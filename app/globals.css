@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-playfair: "Playfair Display", serif;
+  --font-caveat: "Caveat", cursive;
+  --font-lato: "Lato", sans-serif;
+  --pink: #f472b6;
+  --pink-light: #fce7f3;
+  --pink-mid: #fbcfe8;
+  --pink-deep: #ec4899;
+  --rose: #fff1f2;
+  --cream: #fffbf7;
+  --text: #3d1f2b;
+  --muted: #9d6b80;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--cream);
+  color: var(--text);
+  font-family: var(--font-lato);
+}
+
+/* ensure the Next.js root div doesn't constrain anything */
+#__next, main {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.font-playfair { font-family: var(--font-playfair) !important; }
+.font-caveat   { font-family: var(--font-caveat)   !important; }
+.font-lato     { font-family: var(--font-lato)     !important; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--pink-light); }
+::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 10px; }
