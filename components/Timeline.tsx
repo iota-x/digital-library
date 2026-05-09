@@ -48,19 +48,19 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
   },
 
   {
-    q: "remember when we first said I LOVE YOUU?",
-    tag: "making us official 🩷",
-    icon: "💗",
-    color: "#ffd6e0",
-    letter: `It took us a bit but we made it and in the end I did have the courage to say it first 😭 and you were like ILY kya hota hai and just then I knew YOU are the one and only I need in my life and ever since that day I said it so many times almost daily but NEVER enough btw it clearly isnt enough to show how much I truly love you but its a moment I will never forget and it was exactly 2 months ago that we said it for the first time ❤️`,
-  },
-
-  {
     q: "remember when we got matching pfps?",
     tags: "we're so fuckin cute together 💖",
     icon: "🩷",
     color: "#ffc8dd",
     letter: `WAS ONE OF MY BUCKET LIST THING TO DO and when u said it khudse I was SO FRICKIN HAPPY, I wanted to say YES YES YES but had to say suree but yeah im very chalant ig I show a lot and as I get more comfortable around someone I get even more chalant ehehehe but yeah this is something i will not forget I have always wanted to do this w you idc if ppl find it cringe or nah but I wanna do every cutesy stuff with you thats why im insisted we have it everywhere ehehe because Yeah I LOVE ITTTTT <3333`,
+  },
+
+  {
+    q: "remember when we first said I LOVE YOUU?",
+    tag: "making us official 🩷",
+    icon: "💗",
+    color: "#ffd6e0",
+    letter: `It took us a bit but we made it and in the end I did have the courage to say it first 😭 and you were like ILY kya hota hai and just then I knew YOU are the one and only I need in my life and ever since that day I said it so many times almost daily but NEVER enough btw it clearly isnt enough to show how much I truly love you but its a moment I will never forget and it was exactly 2 months ago that we said it for the first time ❤️`,
   },
   {
     q: "remember when we joined the steam family?",
