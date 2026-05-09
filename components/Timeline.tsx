@@ -49,7 +49,7 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
 
   {
     q: "remember when we got matching pfps?",
-    tags: "we're so fuckin cute together 💖",
+    tag: "we're so fuckin cute together 💖",
     icon: "🩷",
     color: "#ffc8dd",
     letter: `WAS ONE OF MY BUCKET LIST THING TO DO and when u said it khudse I was SO FRICKIN HAPPY, I wanted to say YES YES YES but had to say suree but yeah im very chalant ig I show a lot and as I get more comfortable around someone I get even more chalant ehehehe but yeah this is something i will not forget I have always wanted to do this w you idc if ppl find it cringe or nah but I wanna do every cutesy stuff with you thats why im insisted we have it everywhere ehehe because Yeah I LOVE ITTTTT <3333`,

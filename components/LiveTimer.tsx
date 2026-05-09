@@ -122,7 +122,7 @@ export default function LiveTimer() {
 
   return (
     <section
-      id="timer"
+      id="live-timer"
       ref={ref}
       style={{
         width:"100%", minHeight:"100vh",
@@ -208,9 +208,9 @@ export default function LiveTimer() {
         <div style={{ display:"flex", flexWrap:"wrap", gap:"clamp(0.8rem,2vw,2rem)", justifyContent:"center", marginBottom:"2.5rem" }}>
           {time ? (
             <>
-              <CounterBox label="days"    value={time.days}  delay={0.3} inView={inView} />
+              <CounterBox label="days"    value={time.days}  delay={0.3}  inView={inView} />
               <CounterBox label="hours"   value={time.hours} delay={0.45} inView={inView} />
-              <CounterBox label="minutes" value={time.mins}  delay={0.6} inView={inView} />
+              <CounterBox label="minutes" value={time.mins}  delay={0.6}  inView={inView} />
               <CounterBox label="seconds" value={time.secs}  delay={0.75} inView={inView} />
             </>
           ) : (

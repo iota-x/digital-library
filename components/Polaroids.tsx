@@ -77,35 +77,23 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
 
   return (
     <div style={{ position:"relative", flexShrink:0, zIndex:10 }}>
-      {/* Animated glow ring behind the polaroid */}
       <motion.div
         style={{
-          position:"absolute",
-          inset:-6,
-          borderRadius:4,
+          position:"absolute", inset:-6, borderRadius:4,
           background:"linear-gradient(135deg,#f9a8d4,#ec4899,#fbcfe8,#f472b6,#f9a8d4)",
-          backgroundSize:"300% 300%",
-          filter:"blur(12px)",
-          opacity: hovered ? 0.85 : 0.45,
-          zIndex:-1,
-          transition:"opacity 0.3s ease",
+          backgroundSize:"300% 300%", filter:"blur(12px)",
+          opacity: hovered ? 0.85 : 0.45, zIndex:-1, transition:"opacity 0.3s ease",
         }}
         animate={{ backgroundPosition:["0% 50%","100% 50%","0% 50%"] }}
         transition={{ duration:3, repeat:Infinity, ease:"linear" }}
       />
       <motion.div
-        ref={ref}
-        onMouseMove={onMove}
-        onMouseLeave={onLeave}
-        onHoverStart={()=>setHovered(true)}
+        ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} onHoverStart={()=>setHovered(true)}
         style={{
-          x:sx, y:sy, rotate,
-          background:"#fff",
+          x:sx, y:sy, rotate, background:"#fff",
           padding:"1rem 1rem 0.8rem",
           boxShadow:"0 8px 32px rgba(244,114,182,0.18)",
-          width:"clamp(190px,28vw,285px)",
-          cursor:"pointer",
-          position:"relative",
+          width:"clamp(190px,28vw,285px)", cursor:"pointer", position:"relative",
         }}
         whileHover={{ rotate:0, scale:1.07 }}
         transition={{ type:"spring", stiffness:180, damping:16 }}
@@ -167,6 +155,60 @@ function CurtainReveal({ onDone }: { onDone: () => void }) {
       >
         🌸 for my favourite person 🌸
       </motion.p>
+    </motion.div>
+  );
+}
+
+function ScrollIndicator({ entered }: { entered: boolean }) {
+  const handleClick = () => {
+    document.getElementById("live-timer")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <motion.div
+      onClick={handleClick}
+      initial={{ opacity: 0 }}
+      animate={entered ? { opacity: 1 } : {}}
+      transition={{ delay: 1.3, duration: 0.8 }}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: "0.15rem", marginTop: "2.5rem", cursor: "pointer", userSelect: "none",
+      }}
+      whileHover={{ scale: 1.12 }}
+    >
+      {/* label */}
+      <motion.span
+        style={{ fontFamily: "var(--font-caveat)", color: "var(--muted)", fontSize: "1rem", marginBottom: "0.5rem" }}
+        animate={{ y: [-2, 2, -2] }}
+        transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+      >
+        our time together
+      </motion.span>
+
+      {/* bouncing flower */}
+      <motion.span
+        style={{ fontSize: "1.8rem", lineHeight: 1, display: "block" }}
+        animate={{ y: [0, -7, 0], rotate: [-10, 10, -10] }}
+        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+      >
+        🌸
+      </motion.span>
+
+      {/* cascading hearts getting smaller — implies downward direction */}
+      {([
+        { size: "1.1rem", delay: 0 },
+        { size: "0.8rem", delay: 0.18 },
+        { size: "0.55rem", delay: 0.36 },
+      ] as { size: string; delay: number }[]).map((h, i) => (
+        <motion.span
+          key={i}
+          style={{ fontSize: h.size, lineHeight: 1, display: "block", marginTop: "-2px" }}
+          animate={{ opacity: [0.15, 1, 0.15], y: [0, 4, 0] }}
+          transition={{ repeat: Infinity, duration: 1.1, delay: h.delay, ease: "easeInOut" }}
+        >
+          🩷
+        </motion.span>
+      ))}
     </motion.div>
   );
 }
@@ -278,22 +320,7 @@ export default function Polaroids() {
             and somehow every single day gets better than the last haina? 💗
           </motion.p>
 
-          <motion.div
-            style={{
-              display:"flex", flexDirection:"column", alignItems:"center", gap:"0.5rem",
-              marginTop:"2.5rem", fontFamily:"var(--font-caveat)", color:"var(--pink)", fontSize:"1.1rem",
-            }}
-            initial={{ opacity:0 }} animate={entered?{opacity:1}:{}}
-            transition={{ delay:1.3, duration:0.8 }}
-          >
-            <motion.span animate={{ y:[-4,4,-4] }} transition={{ repeat:Infinity, duration:2, ease:"easeInOut" }}>
-              our time together ↓
-            </motion.span>
-            <motion.div
-              style={{ width:20, height:20, borderRight:"2.5px solid var(--pink)", borderBottom:"2.5px solid var(--pink)", rotate:45 }}
-              animate={{ y:[0,6,0] }} transition={{ repeat:Infinity, duration:1.2, ease:"easeInOut" }}
-            />
-          </motion.div>
+          <ScrollIndicator entered={entered} />
         </motion.div>
       </section>
     </>
