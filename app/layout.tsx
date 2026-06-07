@@ -20,7 +20,7 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "2 Months of Us 💗",
+  title: "3 Months of Us 💗",
   description: "made with way too much love",
   icons: {
     icon: "/favicon.svg",
