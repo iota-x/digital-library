@@ -310,7 +310,7 @@ export default function Polaroids() {
             fontFamily:"var(--font-playfair)", fontSize:"clamp(2.1rem,5.5vw,3.6rem)",
             color:"var(--pink-deep)", margin:0, textShadow:"0 2px 28px rgba(244,114,182,0.2)",
           }}>
-            2 months of <em>us</em> 🌸
+            3 months of <em>us</em> 🌸
           </h1>
           <motion.p
             style={{ fontFamily:"var(--font-caveat)", fontSize:"clamp(1.15rem,3vw,1.65rem)", color:"var(--muted)", marginTop:"0.6rem" }}
