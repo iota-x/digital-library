@@ -1,22 +1,28 @@
 import { MongoClient } from "mongodb";
 
-const URI = process.env.MONGODB_URI!;
-if (!URI) throw new Error("MONGODB_URI is not set in .env.local");
+const globalWithMongo = global as typeof global & {
+  _mongoClient?: MongoClient;
+};
 
-// Re-use the connection across hot-reloads in dev
-const globalWithMongo = global as typeof global & { _mongoClient?: MongoClient };
+function getClient() {
+  const uri = process.env.MONGODB_URI;
 
-let client: MongoClient;
-if (process.env.NODE_ENV === "development") {
-  if (!globalWithMongo._mongoClient) {
-    globalWithMongo._mongoClient = new MongoClient(URI);
+  if (!uri) {
+    throw new Error("MONGODB_URI is not configured");
   }
-  client = globalWithMongo._mongoClient;
-} else {
-  client = new MongoClient(URI);
+
+  if (process.env.NODE_ENV === "development") {
+    if (!globalWithMongo._mongoClient) {
+      globalWithMongo._mongoClient = new MongoClient(uri);
+    }
+    return globalWithMongo._mongoClient;
+  }
+
+  return new MongoClient(uri);
 }
 
 export async function getDb(db = "anniversary") {
+  const client = getClient();
   await client.connect();
   return client.db(db);
 }
