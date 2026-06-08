@@ -220,6 +220,7 @@ export default function Polaroids() {
   const [petals, setPetals] = useState<PetalData[]>([]);
   const [showCurtain, setShowCurtain] = useState(true);
   const [entered, setEntered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setPetals(Array.from({ length:28 },(_,i) => ({
@@ -228,6 +229,13 @@ export default function Polaroids() {
       symbol:PETAL_SYMBOLS[Math.floor(Math.random()*PETAL_SYMBOLS.length)],
     })));
   },[]);
+
+  useEffect(() => {
+  const check = () => setIsMobile(window.innerWidth <= 768);
+  check(); // run on first load
+  window.addEventListener("resize", check);
+  return () => window.removeEventListener("resize", check);
+}, []);
 
   return (
     <>
@@ -258,11 +266,18 @@ export default function Polaroids() {
           initial={{ opacity:0, y:90 }}
           animate={entered?{opacity:1,y:0}:{}}
           transition={{ duration:1.2, delay:0.15, ease:[0.16,1,0.3,1] }}
+
           style={{
-            display:"flex", flexDirection:"row", alignItems:"center", justifyContent:"center",
-            gap:"clamp(2rem,5vw,5rem)", flexWrap:"nowrap",
-            zIndex:10, width:"100%", maxWidth:920,
-          }}
+  display:"flex",
+  flexDirection: isMobile ? "column" : "row",
+  alignItems:"center",
+  justifyContent:"center",
+  gap: isMobile ? "1.5rem" : "clamp(2rem,5vw,5rem)",
+  zIndex:10,
+  width:"100%",
+  maxWidth:920,
+}}
+      
         >
           <MagneticPolaroid rotate={-6} label="her" emoji="🩷">
             <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#fce7f3,#fbcfe8)" }}>
