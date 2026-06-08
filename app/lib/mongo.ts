@@ -4,26 +4,27 @@ const globalWithMongo = global as typeof global & {
   _mongoClient?: MongoClient;
 };
 
-function getClient() {
+export function getClient() {
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
     throw new Error("MONGODB_URI is not configured");
   }
 
-  if (process.env.NODE_ENV === "development") {
-    if (!globalWithMongo._mongoClient) {
-      globalWithMongo._mongoClient = new MongoClient(uri);
-    }
-    return globalWithMongo._mongoClient;
+  if (!globalWithMongo._mongoClient) {
+    globalWithMongo._mongoClient = new MongoClient(uri);
   }
 
-  return new MongoClient(uri);
+  return globalWithMongo._mongoClient;
 }
 
 export async function getDb(db = "anniversary") {
   const client = getClient();
-  await client.connect();
+
+  if (!(client as any).topology?.isConnected?.()) {
+    await client.connect();
+  }
+
   return client.db(db);
 }
 
