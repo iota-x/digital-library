@@ -3,307 +3,219 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
+const MONO   = `"Courier New",Courier,monospace`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const START  = new Date("2026-03-11");
 
-interface CalEntry { date:string; note:string; photos:string[]; special:boolean; specialLabel:string; mood:string; }
+interface Entry { date:string; note:string; photos:string[]; special:boolean; specialLabel:string; mood:string; }
 
-function dayNum(key:string){ return Math.floor((new Date(key+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
-
-function fmtFull(key:string){
-  const d=new Date(key+"T12:00:00");
-  return `${["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
+function fmtDate(d:string){ const dt=new Date(d+"T12:00:00"); return `${MONTHS[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`; }
+function dayNum(d:string){ return Math.floor((new Date(d+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
 
 export default function ExportPDF() {
-  const [exporting, setExporting] = useState(false);
-  const [progress,  setProgress]  = useState(0);
-  const [done,      setDone]      = useState(false);
-  const [filterYear, setFilterYear] = useState<number|"all">("all");
+  const [loading,   setLoading]   = useState(false);
+  const [generating,setGenerating]= useState(false);
+  const [preview,   setPreview]   = useState(false);
+  const [entries,   setEntries]   = useState<Entry[]>([]);
+  const [filter,    setFilter]    = useState<"all"|"special"|"photos"|"notes">("all");
+  const [title,     setTitle]     = useState("our story");
+  const [subtitle,  setSubtitle]  = useState("a collection of days worth keeping");
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from(
-    { length: currentYear - START.getFullYear() + 1 },
-    (_, i) => START.getFullYear() + i
-  );
+  const load = async () => {
+    setLoading(true);
+    const arr:Entry[] = await fetch("/api/calendar").then(r=>r.json());
+    const sorted = arr.filter(e=>e.note||(e.photos?.length??0)>0||e.special)
+      .sort((a,b)=>a.date.localeCompare(b.date));
+    setEntries(sorted);
+    setLoading(false);
+    setPreview(true);
+  };
 
-  const exportPDF = async () => {
-    setExporting(true);
-    setProgress(0);
-    setDone(false);
+  const filtered = entries.filter(e=>{
+    if(filter==="special") return e.special;
+    if(filter==="photos")  return (e.photos?.length??0)>0;
+    if(filter==="notes")   return !!e.note;
+    return true;
+  });
 
-    // Dynamically import jsPDF (install: npm install jspdf)
-    const { jsPDF } = await import("jspdf");
-
-    setProgress(10);
-
-    // Fetch all entries
-    const res  = await fetch("/api/calendar");
-    const all: CalEntry[] = await res.json();
-
-    // Filter + sort
-    let entries = all
-      .filter(e => e.note || (e.photos?.length ?? 0) > 0)
-      .filter(e => filterYear === "all" || new Date(e.date+"T12:00:00").getFullYear() === filterYear)
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    setProgress(20);
-
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const W = 210, H = 297;
-    const MARGIN = 18;
-    const CONTENT_W = W - MARGIN * 2;
-
-    // ── Cover page ──────────────────────────────────────────────
-    doc.setFillColor(252, 231, 243);
-    doc.rect(0, 0, W, H, "F");
-
-    // Pink gradient strip
-    doc.setFillColor(244, 114, 182);
-    doc.rect(0, 0, W, 6, "F");
-    doc.setFillColor(253, 186, 213);
-    doc.rect(0, 6, W, 3, "F");
-
-    doc.setFont("times", "bolditalic");
-    doc.setFontSize(32);
-    doc.setTextColor(190, 24, 93);
-    doc.text("our days together", W/2, 90, { align: "center" });
-
-    doc.setFont("times", "italic");
-    doc.setFontSize(14);
-    doc.setTextColor(157, 63, 104);
-    doc.text("a memory book", W/2, 102, { align: "center" });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(190, 24, 93, 0.5 as any);
-    doc.text(`march 11, 2026 → ${filterYear === "all" ? "forever" : filterYear}`, W/2, 115, { align: "center" });
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(200, 130, 160);
-    doc.text(`${entries.length} memories`, W/2, 125, { align: "center" });
-
-    // Bottom strip
-    doc.setFillColor(244, 114, 182);
-    doc.rect(0, H-6, W, 6, "F");
-
-    setProgress(30);
-
-    // ── Memory pages ─────────────────────────────────────────────
-    const total = entries.length;
-    for (let idx = 0; idx < entries.length; idx++) {
-      const e = entries[idx];
-      doc.addPage();
-
-      // Soft pink bg
-      doc.setFillColor(255, 245, 249);
-      doc.rect(0, 0, W, H, "F");
-
-      // Top accent line
-      doc.setFillColor(249, 168, 212);
-      doc.rect(MARGIN, 10, CONTENT_W, 0.5, "F");
-
-      // Day number badge
-      const dn = dayNum(e.date);
-      doc.setFillColor(252, 231, 243);
-      doc.roundedRect(MARGIN, 13, 32, 7, 3, 3, "F");
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(190, 24, 93);
-      doc.text(`day ${dn} of us 🌸`, MARGIN + 2, 18);
-
-      // Special badge
-      if (e.special && e.specialLabel) {
-        doc.setFillColor(253, 164, 175);
-        doc.roundedRect(MARGIN + 35, 13, 55, 7, 3, 3, "F");
-        doc.setFontSize(7.5);
-        doc.setTextColor(255, 255, 255);
-        doc.text(e.specialLabel, MARGIN + 37, 18);
-      }
-
-      // Date heading
-      doc.setFont("times", "italic");
-      doc.setFontSize(16);
-      doc.setTextColor(190, 24, 93);
-      doc.text(fmtFull(e.date), MARGIN, 30);
-
-      let y = 36;
-
-      // Mood
-      if (e.mood) {
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(18);
-        doc.text(e.mood, MARGIN, y + 2);
-        y += 10;
-      }
-
-      // Photo (first one only — base64 → dataURL)
-      if ((e.photos?.length ?? 0) > 0) {
-        try {
-          const imgData = e.photos[0];
-          const ext = imgData.startsWith("data:image/png") ? "PNG" : "JPEG";
-          const imgH = 70;
-          const imgW = Math.min(CONTENT_W, 100);
-          doc.addImage(imgData, ext, MARGIN, y, imgW, imgH, undefined, "MEDIUM");
-          y += imgH + 4;
-          if (e.photos.length > 1) {
-            doc.setFontSize(8);
-            doc.setTextColor(180, 120, 150);
-            doc.text(`+ ${e.photos.length - 1} more photo${e.photos.length > 2 ? "s" : ""}`, MARGIN, y);
-            y += 6;
-          }
-        } catch { /* skip bad image */ }
-      }
-
-      // Ruled note lines
-      if (e.note) {
-        y += 4;
-        // Left margin line
-        doc.setDrawColor(244, 114, 182, 0.2 as any);
-        doc.setLineWidth(0.3);
-        doc.line(MARGIN + 8, y, MARGIN + 8, H - 22);
-
-        // Ruled lines
-        doc.setDrawColor(249, 168, 212, 0.2 as any);
-        doc.setLineWidth(0.2);
-        const LINE_H = 6;
-        for (let ly = y + LINE_H; ly < H - 22; ly += LINE_H) {
-          doc.line(MARGIN + 10, ly, W - MARGIN, ly);
-        }
-
-        // Note text
-        doc.setFont("times", "italic");
-        doc.setFontSize(10.5);
-        doc.setTextColor(124, 63, 88);
-        const lines = doc.splitTextToSize(e.note, CONTENT_W - 14);
-        doc.text(lines, MARGIN + 12, y + LINE_H - 1);
-        y += lines.length * LINE_H + 8;
-      }
-
-      // Bottom divider + page number
-      doc.setDrawColor(249, 168, 212);
-      doc.setLineWidth(0.4);
-      doc.line(MARGIN, H - 15, W - MARGIN, H - 15);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(190, 130, 160);
-      doc.text(`${e.date}  ·  ${idx + 1} of ${total}`, W/2, H - 10, { align: "center" });
-
-      setProgress(30 + Math.round((idx / total) * 65));
-    }
-
-    // ── Back cover ───────────────────────────────────────────────
-    doc.addPage();
-    doc.setFillColor(252, 231, 243);
-    doc.rect(0, 0, W, H, "F");
-    doc.setFillColor(244, 114, 182);
-    doc.rect(0, 0, W, 6, "F");
-    doc.rect(0, H-6, W, 6, "F");
-
-    doc.setFont("times", "italic");
-    doc.setFontSize(18);
-    doc.setTextColor(190, 24, 93);
-    doc.text(`${entries.length} memories.`, W/2, H/2 - 8, { align: "center" });
-    doc.setFontSize(12);
-    doc.text("every one of them worth keeping. 🩷", W/2, H/2 + 4, { align: "center" });
-    doc.setFontSize(9);
-    doc.setTextColor(180, 130, 160);
-    doc.text(`march 11, 2026 → forever`, W/2, H/2 + 16, { align: "center" });
-
-    setProgress(100);
-
-    const filename = `our-days-${filterYear === "all" ? "all" : filterYear}.pdf`;
-    doc.save(filename);
-
-    setExporting(false);
-    setDone(true);
-    setTimeout(() => setDone(false), 3000);
+  const handlePrint = () => {
+    setGenerating(true);
+    setTimeout(()=>{ window.print(); setGenerating(false); },300);
   };
 
   return (
-    <section style={{
-      position:"relative",width:"100%",
-      padding:"4rem clamp(1rem,3vw,2rem) 5rem",
-      background:"linear-gradient(160deg,#fff5f9,#fce7f3 40%,#fff0f5)",
-      overflow:"hidden",
-    }}>
-      <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-        style={{maxWidth:560,margin:"0 auto",textAlign:"center"}}>
+    <>
+      <section style={{
+        position:"relative",width:"100%",
+        padding:"5rem clamp(1rem,3vw,2rem) 6rem",
+        /* Unique: aged newspaper / editorial look */
+        background:"linear-gradient(160deg,#fdf8f0 0%,#fef3e8 50%,#fdf8f0 100%)",
+        overflow:"hidden",
+      }}>
+        {/* Decorative ink blots */}
+        <div style={{position:"absolute",top:0,left:0,right:0,height:4,background:"linear-gradient(90deg,#be185d,#f9a8d4,#be185d)"}}/>
+        <div style={{position:"absolute",top:"15%",right:"-5%",width:220,height:220,borderRadius:"50%",background:"rgba(190,24,93,0.04)",filter:"blur(40px)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",bottom:"20%",left:"-5%",width:180,height:180,borderRadius:"50%",background:"rgba(244,114,182,0.06)",filter:"blur(40px)",pointerEvents:"none"}}/>
 
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"0.8rem"}}>
-          <div style={{width:45,height:1,background:"linear-gradient(90deg,transparent,#f9a8d4)"}}/>
-          <motion.span style={{fontSize:"1.5rem"}} animate={{rotate:[-5,5,-5]}} transition={{repeat:Infinity,duration:3}}>📖</motion.span>
-          <div style={{width:45,height:1,background:"linear-gradient(90deg,#f9a8d4,transparent)"}}/>
-        </div>
+        <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+          style={{maxWidth:680,margin:"0 auto",position:"relative",zIndex:2}}>
 
-        <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.5rem,4vw,2.2rem)",color:"#be185d",margin:"0 0 0.4rem",fontWeight:400}}>
-          export memory book
-        </h2>
-        <p style={{fontFamily:SANS,fontSize:"0.88rem",color:"rgba(190,24,93,.5)",margin:"0 0 2rem",lineHeight:1.5}}>
-          download a beautiful printable PDF of all your memories 🌸<br/>
-          each page is a day — your photos, notes, and moods all in one book.
-        </p>
+          {/* Editorial header */}
+          <div style={{textAlign:"center",marginBottom:"2.5rem",borderBottom:"3px double rgba(190,24,93,0.3)",paddingBottom:"1.5rem"}}>
+            <p style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(190,24,93,0.45)",letterSpacing:"0.3em",textTransform:"uppercase",margin:"0 0 0.6rem"}}>
+              the memory gazette
+            </p>
+            <h2 style={{fontFamily:SERIF,fontSize:"clamp(1.8rem,5vw,2.8rem)",color:"#1a0812",margin:"0 0 0.4rem",fontWeight:700,letterSpacing:"-0.02em"}}>
+              Export Your Memory Book
+            </h2>
+            <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.95rem",color:"rgba(90,40,60,0.6)",margin:0}}>
+              print or save every memory as a beautiful keepsake
+            </p>
+          </div>
 
-        {/* Year filter */}
-        <div style={{display:"flex",gap:"0.6rem",justifyContent:"center",flexWrap:"wrap",marginBottom:"2rem"}}>
-          {["all" as const, ...years].map(y=>(
-            <motion.button key={y} onClick={()=>setFilterYear(y)}
-              whileHover={{scale:1.06}} whileTap={{scale:0.95}}
-              style={{
-                padding:"0.35rem 1rem",borderRadius:20,fontFamily:SANS,fontSize:"0.82rem",cursor:"pointer",
-                border:`1.5px solid ${filterYear===y?"#ec4899":"rgba(249,168,212,.35)"}`,
-                background:filterYear===y?"linear-gradient(135deg,rgba(244,114,182,.2),rgba(236,72,153,.15))":"rgba(255,255,255,.6)",
-                color:filterYear===y?"#be185d":"rgba(190,24,93,.5)",transition:"all 0.18s",
-              }}>
-              {y === "all" ? "all time" : y}
-            </motion.button>
-          ))}
-        </div>
-
-        {/* Progress */}
-        <AnimatePresence>
-          {exporting && (
-            <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} exit={{opacity:0}}
-              style={{marginBottom:"1.5rem"}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:"0.4rem"}}>
-                <span style={{fontFamily:SANS,fontSize:"0.78rem",color:"rgba(190,24,93,.5)"}}>building your book…</span>
-                <span style={{fontFamily:SANS,fontSize:"0.78rem",color:"#ec4899"}}>{progress}%</span>
-              </div>
-              <div style={{height:6,borderRadius:3,background:"rgba(249,168,212,.2)",overflow:"hidden"}}>
-                <motion.div animate={{width:`${progress}%`}} transition={{duration:0.3}}
-                  style={{height:"100%",borderRadius:3,background:"linear-gradient(90deg,#f9a8d4,#ec4899)"}}/>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {done && (
-            <motion.div initial={{opacity:0,scale:0.9}} animate={{opacity:1,scale:1}} exit={{opacity:0}}
-              style={{marginBottom:"1.2rem",background:"rgba(236,72,153,.1)",border:"1px solid rgba(236,72,153,.25)",borderRadius:12,padding:"0.9rem",fontFamily:SANS,fontSize:"0.9rem",color:"#be185d"}}>
-              ✅ PDF downloaded! check your downloads folder 🌸
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <motion.button onClick={exportPDF} disabled={exporting}
-          whileHover={exporting?{}:{scale:1.04,y:-3}} whileTap={exporting?{}:{scale:0.97}}
-          style={{
-            padding:"1.1rem 2.8rem",borderRadius:50,border:"none",cursor:exporting?"not-allowed":"pointer",
-            background:"linear-gradient(135deg,#f9a8d4,#ec4899)",
-            color:"#fff",fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1rem,2.5vw,1.2rem)",
-            boxShadow:"0 6px 28px rgba(236,72,153,.38)",
-            opacity:exporting?0.7:1,transition:"opacity 0.2s",
+          {/* Customise */}
+          <div style={{
+            background:"rgba(255,255,255,0.7)",
+            border:"1px solid rgba(190,24,93,0.12)",
+            borderRadius:16,padding:"1.5rem",marginBottom:"1.5rem",
+            boxShadow:"0 2px 16px rgba(190,24,93,0.06)",
           }}>
-          {exporting ? `generating… ${progress}%` : "download memory book 📖"}
-        </motion.button>
+            <p style={{fontFamily:MONO,fontSize:"0.68rem",color:"rgba(190,24,93,0.45)",letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 1rem"}}>
+              customise your book
+            </p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.8rem",marginBottom:"1rem"}}>
+              <div>
+                <label style={{fontFamily:SANS,fontSize:"0.75rem",color:"rgba(90,40,60,0.5)",display:"block",marginBottom:"0.3rem"}}>Book title</label>
+                <input value={title} onChange={e=>setTitle(e.target.value)}
+                  style={{width:"100%",padding:"0.6rem 0.8rem",border:"1px solid rgba(190,24,93,0.15)",borderRadius:8,fontFamily:SERIF,fontStyle:"italic",fontSize:"0.95rem",color:"#1a0812",outline:"none",background:"rgba(252,231,243,0.2)",boxSizing:"border-box"}}/>
+              </div>
+              <div>
+                <label style={{fontFamily:SANS,fontSize:"0.75rem",color:"rgba(90,40,60,0.5)",display:"block",marginBottom:"0.3rem"}}>Subtitle</label>
+                <input value={subtitle} onChange={e=>setSubtitle(e.target.value)}
+                  style={{width:"100%",padding:"0.6rem 0.8rem",border:"1px solid rgba(190,24,93,0.15)",borderRadius:8,fontFamily:SANS,fontSize:"0.88rem",color:"#1a0812",outline:"none",background:"rgba(252,231,243,0.2)",boxSizing:"border-box"}}/>
+              </div>
+            </div>
+            {/* Filter */}
+            <p style={{fontFamily:SANS,fontSize:"0.75rem",color:"rgba(90,40,60,0.5)",margin:"0 0 0.5rem"}}>Include</p>
+            <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap"}}>
+              {([["all","All memories"],["special","Special days only"],["photos","With photos"],["notes","With notes"]] as [typeof filter,string][]).map(([v,l])=>(
+                <button key={v} onClick={()=>setFilter(v)}
+                  style={{
+                    padding:"0.3rem 0.8rem",borderRadius:16,cursor:"pointer",fontFamily:SANS,fontSize:"0.78rem",
+                    border:`1px solid ${filter===v?"#be185d":"rgba(190,24,93,0.18)"}`,
+                    background:filter===v?"#be185d":"transparent",
+                    color:filter===v?"#fff":"rgba(90,40,60,0.6)",
+                    transition:"all 0.18s",
+                  }}>{l}</button>
+              ))}
+            </div>
+          </div>
 
-        <p style={{fontFamily:SANS,fontSize:"0.75rem",color:"rgba(190,24,93,.35)",marginTop:"1rem"}}>
-          installs jsPDF client-side · nothing leaves your device
-        </p>
-      </motion.div>
-    </section>
+          {/* Buttons */}
+          <div style={{display:"flex",gap:"0.8rem",marginBottom:preview?"2rem":"0"}}>
+            <motion.button onClick={load} disabled={loading}
+              whileHover={{scale:1.03,y:-2}} whileTap={{scale:0.97}}
+              style={{
+                flex:1,padding:"1rem",borderRadius:12,border:"none",cursor:"pointer",
+                background:"linear-gradient(135deg,#be185d,#9d174d)",
+                color:"#fff",fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",
+                boxShadow:"0 4px 20px rgba(190,24,93,0.3)",
+              }}>
+              {loading?"loading memories…":"preview memory book 📖"}
+            </motion.button>
+            {preview&&(
+              <motion.button onClick={handlePrint} disabled={generating}
+                whileHover={{scale:1.03,y:-2}} whileTap={{scale:0.97}}
+                style={{
+                  padding:"1rem 1.4rem",borderRadius:12,cursor:"pointer",
+                  border:"2px solid #be185d",background:"transparent",
+                  color:"#be185d",fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",
+                }}>
+                {generating?"preparing…":"print / save PDF 🖨️"}
+              </motion.button>
+            )}
+          </div>
+
+          {/* Preview */}
+          <AnimatePresence>
+            {preview&&(
+              <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}}
+                style={{overflow:"hidden"}}>
+                {/* Preview count */}
+                <p style={{fontFamily:MONO,fontSize:"0.72rem",color:"rgba(190,24,93,0.45)",letterSpacing:"0.12em",textTransform:"uppercase",margin:"0 0 1.2rem",textAlign:"center"}}>
+                  {filtered.length} entr{filtered.length!==1?"ies":"y"} will be included
+                </p>
+                {/* Sample entries */}
+                <div style={{display:"flex",flexDirection:"column",gap:"0.6rem",maxHeight:320,overflowY:"auto"}}>
+                  {filtered.slice(0,8).map(e=>(
+                    <div key={e.date} style={{display:"flex",gap:"0.8rem",alignItems:"flex-start",padding:"0.7rem",background:"rgba(255,255,255,0.6)",border:"1px solid rgba(190,24,93,0.08)",borderRadius:10}}>
+                      {e.special&&<span style={{fontSize:"1rem",flexShrink:0}}>⭐</span>}
+                      {e.mood&&<span style={{fontSize:"1rem",flexShrink:0}}>{e.mood}</span>}
+                      <div style={{flex:1,minWidth:0}}>
+                        <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.88rem",color:"#be185d",margin:"0 0 0.2rem"}}>
+                          {fmtDate(e.date)} — Day {dayNum(e.date)}
+                        </p>
+                        {e.specialLabel&&<p style={{fontFamily:SANS,fontSize:"0.75rem",color:"rgba(190,24,93,0.5)",margin:"0 0 0.2rem"}}>{e.specialLabel}</p>}
+                        {e.note&&<p style={{fontFamily:SERIF,fontSize:"0.82rem",color:"rgba(90,40,60,0.7)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.note}</p>}
+                      </div>
+                      {(e.photos?.length??0)>0&&<span style={{fontFamily:MONO,fontSize:"0.68rem",color:"rgba(190,24,93,0.4)",flexShrink:0}}>📸×{e.photos.length}</span>}
+                    </div>
+                  ))}
+                  {filtered.length>8&&<p style={{fontFamily:MONO,fontSize:"0.72rem",color:"rgba(190,24,93,0.35)",textAlign:"center",margin:"0.5rem 0 0"}}>+{filtered.length-8} more entries in the full book</p>}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </section>
+
+      {/* Print styles — this renders when window.print() is called */}
+      <style>{`
+        @media print {
+          body > * { display: none !important; }
+          .print-book { display: block !important; }
+          @page { margin: 1.5cm; size: A4; }
+        }
+        .print-book { display: none; }
+      `}</style>
+
+      {/* Hidden print-ready book */}
+      <div className="print-book" style={{fontFamily:SERIF,maxWidth:700,margin:"0 auto",padding:"2rem"}}>
+        <div style={{textAlign:"center",borderBottom:"3px double #be185d",paddingBottom:"1.5rem",marginBottom:"2rem"}}>
+          <p style={{fontFamily:MONO,fontSize:"0.6rem",letterSpacing:"0.3em",textTransform:"uppercase",color:"rgba(190,24,93,0.5)"}}>
+            printed with love
+          </p>
+          <h1 style={{fontSize:"2.5rem",fontStyle:"italic",color:"#1a0812",margin:"0.5rem 0"}}>{title}</h1>
+          <p style={{fontStyle:"italic",color:"rgba(90,40,60,0.6)",fontSize:"1rem"}}>{subtitle}</p>
+          <p style={{fontFamily:MONO,fontSize:"0.7rem",color:"rgba(190,24,93,0.4)",letterSpacing:"0.1em",marginTop:"0.5rem"}}>
+            march 11, 2026 → forever
+          </p>
+        </div>
+        {filtered.map((e,i)=>(
+          <div key={e.date} style={{marginBottom:"2rem",paddingBottom:"1.5rem",borderBottom:"1px solid rgba(190,24,93,0.1)"}}>
+            <div style={{display:"flex",gap:"0.5rem",alignItems:"center",marginBottom:"0.5rem"}}>
+              {e.mood&&<span>{e.mood}</span>}
+              {e.special&&<span>⭐</span>}
+              <h3 style={{fontStyle:"italic",fontSize:"1.1rem",color:"#be185d",margin:0,flex:1}}>
+                {fmtDate(e.date)} · Day {dayNum(e.date)}
+              </h3>
+              {e.specialLabel&&<span style={{fontSize:"0.8rem",color:"rgba(190,24,93,0.5)"}}>{e.specialLabel}</span>}
+            </div>
+            {e.note&&<p style={{lineHeight:1.9,color:"rgba(20,5,12,0.8)",margin:"0.5rem 0",fontSize:"0.95rem",whiteSpace:"pre-wrap",fontStyle:"italic"}}>{e.note}</p>}
+            {(e.photos?.length??0)>0&&(
+              <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap",marginTop:"0.8rem"}}>
+                {e.photos.slice(0,4).map((src,pi)=>(
+                  <img key={pi} src={src} style={{width:120,height:120,objectFit:"cover",borderRadius:4,border:"1px solid rgba(190,24,93,0.15)"}} alt=""/>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+        <div style={{textAlign:"center",marginTop:"3rem",borderTop:"2px solid rgba(190,24,93,0.15)",paddingTop:"1rem",fontStyle:"italic",color:"rgba(190,24,93,0.5)",fontSize:"0.9rem"}}>
+          made with 💗 — {filtered.length} memories, one story
+        </div>
+      </div>
+    </>
   );
 }
