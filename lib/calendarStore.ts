@@ -10,80 +10,107 @@ export interface CalEntry {
   mood: string;
 }
 
-/* ── Module-level cache — survives tab switches within the same session ── */
+const SESSION_KEY = "cal_cache_v1";
+const listeners: Set<(data: CalEntry[]) => void> = new Set();
+
+/* ── Read from sessionStorage on first import ── */
+function readSession(): CalEntry[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function writeSession(data: CalEntry[]) {
+  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch {}
+}
+
+/* ── In-memory cache (stays alive as long as the JS module is alive) ── */
 let _cache: CalEntry[] | null = null;
-let _promise: Promise<CalEntry[]> | null = null;
-let _listeners: Array<(data: CalEntry[]) => void> = [];
+let _inflight: Promise<CalEntry[]> | null = null;
 
 function notify(data: CalEntry[]) {
-  _listeners.forEach(fn => fn(data));
+  listeners.forEach(fn => fn(data));
 }
 
 export async function fetchCalendarData(): Promise<CalEntry[]> {
+  // 1. Already in memory
   if (_cache) return _cache;
-  if (_promise) return _promise;
 
-  _promise = fetch("/api/calendar")
+  // 2. Already in sessionStorage (survives tab switch without re-fetching)
+  const session = readSession();
+  if (session) {
+    _cache = session;
+    return _cache;
+  }
+
+  // 3. Already fetching — share the same promise
+  if (_inflight) return _inflight;
+
+  // 4. Fresh fetch
+  _inflight = fetch("/api/calendar")
     .then(r => r.json())
     .then((arr: CalEntry[]) => {
       _cache = arr;
-      _promise = null;
+      _inflight = null;
+      writeSession(arr);
       notify(arr);
       return arr;
     })
-    .catch(() => {
-      _promise = null;
-      return [];
-    });
+    .catch(() => { _inflight = null; return []; });
 
-  return _promise;
+  return _inflight;
 }
 
 export function invalidateCalendarCache() {
   _cache = null;
-  _promise = null;
+  _inflight = null;
+  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
 }
 
 export function updateCalendarCache(entry: CalEntry) {
-  if (_cache) {
-    const idx = _cache.findIndex(e => e.date === entry.date);
-    if (idx >= 0) _cache[idx] = entry;
-    else _cache = [..._cache, entry];
-    notify(_cache);
-  }
+  if (!_cache) return;
+  const idx = _cache.findIndex(e => e.date === entry.date);
+  if (idx >= 0) _cache[idx] = entry;
+  else _cache.push(entry);
+  writeSession(_cache);
+  notify([..._cache]);
 }
 
 export function deleteFromCalendarCache(date: string) {
-  if (_cache) {
-    _cache = _cache.filter(e => e.date !== date);
-    notify(_cache);
-  }
+  if (!_cache) return;
+  _cache = _cache.filter(e => e.date !== date);
+  writeSession(_cache);
+  notify([..._cache]);
 }
 
-/* ── Hook: subscribe to the cache ── */
+/* ── React hook ── */
 export function useCalendarData(): { data: CalEntry[]; loading: boolean } {
-  const [data,    setData]    = useState<CalEntry[]>(_cache ?? []);
-  const [loading, setLoading] = useState(!_cache);
+  // Initialise synchronously from whatever is already cached
+  const [data,    setData]    = useState<CalEntry[]>(() => _cache ?? readSession() ?? []);
+  const [loading, setLoading] = useState<boolean>(() => !(_cache ?? readSession()));
 
   useEffect(() => {
-    // If already cached, skip fetch
-    if (_cache) { setData(_cache); setLoading(false); return; }
+    // Already have data — no spinner needed
+    if (_cache || readSession()) {
+      const existing = _cache ?? readSession()!;
+      _cache = existing;
+      setData(existing);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
 
-    setLoading(true);
     let cancelled = false;
 
     fetchCalendarData().then(arr => {
       if (!cancelled) { setData(arr); setLoading(false); }
     });
 
-    // Subscribe to future updates (e.g. after save/delete)
     const handler = (arr: CalEntry[]) => { if (!cancelled) setData([...arr]); };
-    _listeners.push(handler);
-
-    return () => {
-      cancelled = true;
-      _listeners = _listeners.filter(fn => fn !== handler);
-    };
+    listeners.add(handler);
+    return () => { cancelled = true; listeners.delete(handler); };
   }, []);
 
   return { data, loading };
