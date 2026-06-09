@@ -577,47 +577,71 @@ export default function OurCalendar() {
   const specialCnt = Object.values(entries).filter(e=>e.special).length;
 
   return (
-    <section id="calendar" style={{position:"relative",width:"100%",padding:"clamp(3rem,6vw,6rem) clamp(1rem,3vw,1.5rem) 0",background:"linear-gradient(180deg,#fff1f5 0%,#fce4ef 35%,#f5c6dc 65%,#d4729a 85%,#a10b56 100%)",overflow:"hidden"}}>
+    <section id="calendar" style={{
+      position:"relative",width:"100%",
+      minHeight:"100vh",
+      padding:"clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)",
+      /* Soft blush — section 1, lightest in the palette flow */
+      background:"linear-gradient(180deg,#fff0f5 0%,#fde8f2 30%,#fad0e8 60%,#f0a8cc 85%,#c9447a 100%)",
+      overflow:"hidden",
+    }}>
+      {/* Floating hearts bg deco */}
+      {["💗","🌸","💕","🩷","✨"].map((sym,i)=>(
+        <motion.span key={i}
+          animate={{y:[-12,12,-12],opacity:[0.12,0.28,0.12],rotate:[-10,10,-10]}}
+          transition={{repeat:Infinity,duration:4+i*1.2,delay:i*0.8,ease:"easeInOut"}}
+          style={{
+            position:"absolute",
+            left:`${8+i*18}%`,top:`${15+((i*37)%55)}%`,
+            fontSize:`${2+Math.random()*1.5}rem`,
+            pointerEvents:"none",userSelect:"none",zIndex:0,
+          }}>{sym}</motion.span>
+      ))}
       {/* Orbs */}
-      {[{l:"4%",t:"6%",c:"rgba(249,168,212,.18)"},{l:"72%",t:"3%",c:"rgba(253,186,213,.14)"},{l:"48%",t:"74%",c:"rgba(244,114,182,.09)"}].map((o,i)=>(
-        <motion.div key={i} style={{position:"absolute",left:o.l,top:o.t,width:"clamp(180px,25vw,300px)",height:"clamp(180px,25vw,300px)",borderRadius:"50%",background:o.c,filter:"blur(55px)",pointerEvents:"none",zIndex:0}}
-          animate={{scale:[1,1.18,1],opacity:[0.5,0.8,0.5]}} transition={{repeat:Infinity,duration:6+i*2,ease:"easeInOut"}}/>
+      {[{l:"5%",t:"8%",c:"rgba(249,168,212,.22)"},{l:"70%",t:"4%",c:"rgba(253,186,213,.18)"},{l:"45%",t:"72%",c:"rgba(244,114,182,.12)"}].map((o,i)=>(
+        <motion.div key={i} style={{position:"absolute",left:o.l,top:o.t,width:"clamp(200px,28vw,360px)",height:"clamp(200px,28vw,360px)",borderRadius:"50%",background:o.c,filter:"blur(65px)",pointerEvents:"none",zIndex:0}}
+          animate={{scale:[1,1.18,1],opacity:[0.5,0.85,0.5]}} transition={{repeat:Infinity,duration:6+i*2,ease:"easeInOut"}}/>
       ))}
 
       {/* Section header */}
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-        style={{textAlign:"center",marginBottom:"clamp(1.5rem,4vw,3rem)",position:"relative",zIndex:2}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"0.8rem"}}>
-          <div style={{width:50,height:1,background:"linear-gradient(90deg,transparent,#f9a8d4)"}}/>
-          <motion.span style={{fontSize:"1.6rem"}} animate={{scale:[1,1.18,1],rotate:[-4,4,-4]}} transition={{repeat:Infinity,duration:2.5}}>💗</motion.span>
-          <div style={{width:50,height:1,background:"linear-gradient(90deg,#f9a8d4,transparent)"}}/>
+        style={{textAlign:"center",marginBottom:"clamp(2rem,4vw,3.5rem)",position:"relative",zIndex:2}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1rem"}}>
+          <div style={{width:60,height:1,background:"linear-gradient(90deg,transparent,rgba(190,24,93,.4))"}}/>
+          <motion.span style={{fontSize:"1.8rem",filter:"drop-shadow(0 0 8px rgba(190,24,93,.3))"}}
+            animate={{scale:[1,1.2,1],rotate:[-5,5,-5]}} transition={{repeat:Infinity,duration:2.5}}>💗</motion.span>
+          <div style={{width:60,height:1,background:"linear-gradient(90deg,rgba(190,24,93,.4),transparent)"}}/>
         </div>
-        <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.6rem,4vw,2.6rem)",color:"#be185d",margin:"0 0 0.4rem",fontWeight:400}}>
+        <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(2rem,5vw,3rem)",color:"#9d174d",margin:"0 0 0.5rem",fontWeight:400,textShadow:"0 2px 16px rgba(190,24,93,.15)"}}>
           our days together
         </h2>
-        <p style={{fontFamily:SANS,fontSize:"clamp(0.85rem,2vw,1rem)",color:"rgba(190,24,93,.5)",margin:"0 0 1rem",lineHeight:1.5}}>
-          Tap any day to step inside that memory 🌸
+        <p style={{fontFamily:SANS,fontSize:"clamp(0.88rem,2vw,1rem)",color:"rgba(157,23,77,.55)",margin:"0 0 1.2rem",lineHeight:1.6}}>
+          every day logged, every moment saved 🌸
         </p>
-        {!loading&&(
-          <div style={{display:"flex",gap:"0.6rem",justifyContent:"center",flexWrap:"wrap"}}>
-            {[{label:`${totalMem} memories`,e:"📖"},{label:`${specialCnt} special days`,e:"⭐"},{label:`Day ${Math.floor((today.getTime()-START.getTime())/86400000)+1}`,e:"🌸"}].map((s,i)=>(
-              <div key={i} style={{background:"rgba(249,168,212,.14)",border:"1px solid rgba(249,168,212,.28)",borderRadius:28,padding:"0.3rem 0.9rem",fontFamily:SANS,fontSize:"0.82rem",color:"#be185d"}}>
-                {s.e} {s.label}
-              </div>
-            ))}
-          </div>
-        )}
+        <div style={{display:"flex",gap:"0.6rem",justifyContent:"center",flexWrap:"wrap"}}>
+          {[
+            {label:`${totalMem} memories`,e:"📖"},
+            {label:`${specialCnt} special days`,e:"⭐"},
+            {label:`Day ${Math.floor((today.getTime()-START.getTime())/86400000)+1} of us`,e:"🌸"},
+          ].map((s,i)=>(
+            <motion.div key={i} initial={{opacity:0,y:8}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{delay:i*0.08}}
+              style={{background:"rgba(255,255,255,.6)",border:"1px solid rgba(190,24,93,.2)",borderRadius:30,padding:"0.35rem 1rem",fontFamily:SANS,fontSize:"0.82rem",color:"#9d174d",backdropFilter:"blur(8px)",boxShadow:"0 2px 12px rgba(190,24,93,.08)"}}>
+              {s.e} {s.label}
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
 
-      {/* Calendar card */}
-      <div style={{position:"relative",zIndex:2,maxWidth:660,margin:"0 auto"}}>
+      {/* Calendar card — wider, fills viewport properly */}
+      <div style={{position:"relative",zIndex:2,maxWidth:780,margin:"0 auto"}}>
         <motion.div
           animate={{rotateY:flipDir==="right"?-12:flipDir==="left"?12:0,scale:flipDir?0.97:1,opacity:flipDir?0.6:1}}
           transition={{duration:0.24,ease:"easeInOut"}}
           style={{
-            background:"rgba(255,255,255,.93)",backdropFilter:"blur(18px)",WebkitBackdropFilter:"blur(18px)",
-            borderRadius:24,overflow:"hidden",transformStyle:"preserve-3d",perspective:1000,
-            boxShadow:"0 12px 60px rgba(244,114,182,.18),0 3px 12px rgba(0,0,0,.05),inset 0 0 0 1.5px rgba(249,168,212,.32)",
+            background:"rgba(255,255,255,.88)",
+            backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",
+            borderRadius:28,overflow:"hidden",transformStyle:"preserve-3d",perspective:1000,
+            boxShadow:"0 16px 70px rgba(190,24,93,.18),0 4px 16px rgba(0,0,0,.06),inset 0 0 0 1.5px rgba(249,168,212,.4)",
           }}
         >
           {/* Dark month header */}
@@ -643,9 +667,9 @@ export default function OurCalendar() {
           </div>
 
           {/* Day labels */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"0.8rem 1rem 0.3rem",background:"rgba(253,186,213,.05)"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"1rem 1.4rem 0.4rem",background:"rgba(252,231,243,.08)"}}>
             {DAYS_SHORT.map((d,i)=>(
-              <div key={i} style={{textAlign:"center",fontFamily:SANS,fontSize:"0.7rem",fontWeight:700,letterSpacing:"0.07em",textTransform:"uppercase",color:i===0||i===6?"rgba(236,72,153,.45)":"rgba(190,24,93,.38)",padding:"0.25rem 0"}}>{d}</div>
+              <div key={i} style={{textAlign:"center",fontFamily:SANS,fontSize:"0.75rem",fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:i===0||i===6?"rgba(236,72,153,.5)":"rgba(157,23,77,.4)",padding:"0.3rem 0"}}>{d}</div>
             ))}
           </div>
 
@@ -654,7 +678,7 @@ export default function OurCalendar() {
             <motion.div key={`${year}-${month}`}
               initial={{opacity:0,x:flipDir==="right"?28:-28}} animate={{opacity:1,x:0}} exit={{opacity:0}}
               transition={{duration:0.24,ease:"easeOut"}}
-              style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,padding:"0.3rem 1rem 0.7rem"}}>
+              style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4,padding:"0.4rem 1.4rem 1rem"}}>
               {cells.map((day,i)=>{
                 if(!day) return <div key={i}/>;
                 const key=toKey(year,month,day);
@@ -666,16 +690,16 @@ export default function OurCalendar() {
                 const inOurTime=new Date(key+"T12:00:00")>=START;
                 return (
                   <motion.button key={key} onClick={e=>openDay(key,e)}
-                    whileHover={{scale:1.15,zIndex:5}} whileTap={{scale:0.88}}
+                    whileHover={{scale:1.18,zIndex:5}} whileTap={{scale:0.88}}
                     style={{
-                      position:"relative",aspectRatio:"1",border:"none",borderRadius:8,cursor:"pointer",
-                      background:isSpecial?"linear-gradient(135deg,#fda4af,#ec4899)":isToday?"linear-gradient(135deg,#fce7f3,#fbcfe8)":hasPhoto||hasNote?"rgba(249,168,212,.22)":inOurTime?"rgba(249,168,212,.06)":"transparent",
-                      boxShadow:isSpecial?"0 3px 14px rgba(236,72,153,.4)":isToday?"0 2px 10px rgba(244,114,182,.25)":"none",
-                      outline:isToday?"2px solid #f9a8d4":"none",outlineOffset:1,
+                      position:"relative",aspectRatio:"1",border:"none",borderRadius:12,cursor:"pointer",
+                      background:isSpecial?"linear-gradient(135deg,#fda4af,#ec4899)":isToday?"linear-gradient(135deg,#fce7f3,#f9a8d4)":hasPhoto||hasNote?"rgba(249,168,212,.28)":inOurTime?"rgba(249,168,212,.1)":"transparent",
+                      boxShadow:isSpecial?"0 4px 18px rgba(236,72,153,.5)":isToday?"0 2px 14px rgba(244,114,182,.35)":hasPhoto||hasNote?"0 1px 8px rgba(244,114,182,.18)":"none",
+                      outline:isToday?"2.5px solid #ec4899":"none",outlineOffset:1,
                       display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-                      gap:1,padding:"1px",transition:"background 0.18s",
+                      gap:2,padding:"4px",transition:"background 0.2s",
                     }}>
-                    <span style={{fontFamily:SANS,fontSize:"clamp(0.7rem,2vw,0.88rem)",color:isSpecial?"#fff":isToday?"#be185d":inOurTime?"#9d3f68":"#c4a0b0",fontWeight:isToday||isSpecial?700:inOurTime?500:400,lineHeight:1}}>{day}</span>
+                    <span style={{fontFamily:SANS,fontSize:"clamp(0.82rem,2.2vw,1rem)",color:isSpecial?"#fff":isToday?"#9d174d":inOurTime?"#9d3f68":"#c4a0b0",fontWeight:isToday||isSpecial?700:inOurTime?500:400,lineHeight:1}}>{day}</span>
                     {entry?.mood&&<span style={{fontSize:"clamp(0.45rem,1.2vw,0.58rem)",lineHeight:1}}>{entry.mood}</span>}
                     {isSpecial&&!entry?.mood&&<span style={{fontSize:"0.48rem",lineHeight:1}}>⭐</span>}
                     {hasPhoto&&!isSpecial&&!entry?.mood&&<span style={{fontSize:"0.45rem",lineHeight:1}}>📸</span>}
@@ -687,11 +711,11 @@ export default function OurCalendar() {
           </AnimatePresence>
 
           {/* Legend */}
-          <div style={{display:"flex",gap:"0.8rem",flexWrap:"wrap",justifyContent:"center",padding:"0.6rem 1rem 1.2rem",borderTop:"1px solid rgba(249,168,212,.12)",fontFamily:SANS,fontSize:"0.75rem",color:"rgba(190,24,93,.45)"}}>
-            <span style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:10,height:10,borderRadius:2,background:"linear-gradient(135deg,#fda4af,#ec4899)"}}/> special</span>
-            <span style={{display:"flex",alignItems:"center",gap:3}}>📸 photo</span>
-            <span style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:4,height:4,borderRadius:"50%",background:"#f472b6"}}/> note</span>
-            <span style={{display:"flex",alignItems:"center",gap:3}}><div style={{width:10,height:10,borderRadius:2,outline:"2px solid #f9a8d4",outlineOffset:1}}/> today</span>
+          <div style={{display:"flex",gap:"1rem",flexWrap:"wrap",justifyContent:"center",padding:"1rem 1.5rem 1.5rem",borderTop:"1px solid rgba(249,168,212,.18)",fontFamily:SANS,fontSize:"0.82rem",color:"rgba(157,23,77,.5)"}}>
+            <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,background:"linear-gradient(135deg,#fda4af,#ec4899)"}}/> special</span>
+            <span style={{display:"flex",alignItems:"center",gap:4}}>📸 photo</span>
+            <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:5,height:5,borderRadius:"50%",background:"#f472b6"}}/> note</span>
+            <span style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:12,height:12,borderRadius:3,outline:"2.5px solid #ec4899",outlineOffset:1}}/> today</span>
           </div>
         </motion.div>
       </div>
