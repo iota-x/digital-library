@@ -151,8 +151,9 @@ export default function MoodGraph() {
 
   return (
     <section style={{
-      position:"relative", width:"100%",
-      padding:"5rem clamp(1rem,3vw,2rem) 6rem",
+      position:"relative", width:"100%", minHeight:"100vh",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:"clamp(4rem,8vh,7rem) clamp(1rem,3vw,2rem)",
       background:"linear-gradient(160deg,#0e0408 0%,#1a0812 50%,#0e0408 100%)",
       overflow:"hidden",
     }}>
@@ -172,7 +173,7 @@ export default function MoodGraph() {
       ))}
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-        style={{maxWidth:760,margin:"0 auto",position:"relative",zIndex:2}}>
+        style={{maxWidth:760,width:"100%",margin:"0 auto",position:"relative",zIndex:2}}>
 
         {/* Header */}
         <div style={{textAlign:"center",marginBottom:"2.5rem"}}>
