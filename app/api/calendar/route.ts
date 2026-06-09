@@ -1,4 +1,4 @@
-import { getCol } from "@/app/lib/mongo";
+import { getCol } from "@/lib/mongo";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {

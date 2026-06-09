@@ -1,6 +1,7 @@
 "use client";
 import React, { useRef, useState, useEffect, useCallback, memo } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { updateCalendarCache, deleteFromCalendarCache } from "@/lib/calendarStore";
 
 interface CalEntry {
   date: string; note: string; photos: string[];
@@ -545,6 +546,7 @@ export default function OurCalendar() {
     const payload = { ...draft, date: selected } as CalEntry;
     await fetch("/api/calendar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     setEntries(p => ({ ...p, [selected]: payload }));
+    updateCalendarCache(payload);
     setSelected(null);
   }, [selected]);
 
@@ -552,6 +554,7 @@ export default function OurCalendar() {
     if (!selected) return;
     await fetch("/api/calendar", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: selected }) });
     setEntries(p => { const n = { ...p }; delete n[selected]; return n; });
+    deleteFromCalendarCache(selected);
     setSelected(null);
   }, [selected]);
 

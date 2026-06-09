@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Caveat, Lato } from "next/font/google";
-import Navbar from "@/components/Navbar";
+import Navbar      from "@/components/Navbar";
+import ScrollToTop from "@/components/ScrollToTop";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
+        <ScrollToTop />
         <Navbar />
         {children}
       </body>

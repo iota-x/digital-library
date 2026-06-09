@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { getCol } from "@/app/lib/mongo";
+import { getCol } from "@/lib/mongo";
 
 // GET — return only capsules whose unlockDate <= today
 export async function GET() {
