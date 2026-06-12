@@ -3,6 +3,27 @@ import React, { useRef, useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry } from "@/lib/calendarStore";
 
+/* ─── Cloudinary unsigned upload ─── */
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+
+async function uploadToCloudinary(file: File): Promise<string> {
+  const isVideo = file.type.startsWith("video/");
+  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? "video" : "image"}/upload`;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+  const res = await fetch(endpoint, { method: "POST", body: formData });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || "Upload failed");
+  }
+  const data = await res.json();
+  return data.secure_url as string;
+}
+
 /* ─── types ─── */
 interface DraftEntry extends Omit<CalEntry, "date"> {}
 type MediaItem = { type: "image" | "video"; src: string };
@@ -24,16 +45,6 @@ const SERIF  = `"Georgia", "Times New Roman", serif`;
 const SCRIPT = `var(--font-caveat), "Segoe Script", cursive`;
 const SANS   = `var(--font-lato), "Inter", system-ui, sans-serif`;
 const GRAIN  = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")`;
-
-/* ─── read files as data URLs (works on mobile) ─── */
-function readFileAsDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target?.result as string);
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
 
 function isAcceptedMedia(file: File) {
   return file.type.startsWith("image/") || ["video/mp4", "video/quicktime", "video/webm"].includes(file.type);
@@ -237,7 +248,7 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
 }
 
 /* ─── drag & drop / paste media upload zone ─── */
-function MediaUploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
+function MediaUploadZone({ onFiles, busy }: { onFiles: (files: File[]) => void; busy?: boolean }) {
   const [dragging, setDragging] = useState(false);
   const imgRef  = useRef<HTMLInputElement>(null);
   const vidRef  = useRef<HTMLInputElement>(null);
@@ -259,12 +270,11 @@ function MediaUploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
   useEffect(() => {
     const handler = (e: ClipboardEvent) => {
       if (!e.clipboardData) return;
-      const files = Array.from(e.clipboardData.files).filter(isAcceptedMedia);
-      const items = Array.from(e.clipboardData.items)
-        .filter(it => it.kind === "file" && isAcceptedMedia(it.getAsFile()!))
-        .map(it => it.getAsFile()!);
-      const all = [...files, ...items.filter(f => !files.includes(f))];
-      if (all.length) onFiles(all);
+      const files = Array.from(e.clipboardData.items)
+        .filter(it => it.kind === "file")
+        .map(it => it.getAsFile())
+        .filter((f): f is File => !!f && isAcceptedMedia(f));
+      if (files.length) onFiles(files);
     };
     window.addEventListener("paste", handler);
     return () => window.removeEventListener("paste", handler);
@@ -280,15 +290,15 @@ function MediaUploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
         style={{
           width: "100%", padding: "1.4rem 1rem",
           border: "1.5px dashed rgba(236,72,153,.25)",
-          borderRadius: 12, cursor: "pointer",
+          borderRadius: 12, cursor: busy ? "wait" : "pointer",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-          position: "relative",
+          position: "relative", opacity: busy ? 0.6 : 1,
         }}
-        onClick={() => imgRef.current?.click()}
+        onClick={() => { if (!busy) imgRef.current?.click(); }}
       >
-        <span style={{ fontSize: "1.8rem" }}>{dragging ? "📂" : "📸"}</span>
+        <span style={{ fontSize: "1.8rem" }}>{busy ? "⏳" : dragging ? "📂" : "📸"}</span>
         <span style={{ fontFamily: SANS, fontSize: "0.88rem", color: "rgba(244,114,182,.7)", textAlign: "center" }}>
-          {dragging ? "Drop to add!" : "Tap to add photos · drag & drop · paste (⌘V)"}
+          {busy ? "Uploading…" : dragging ? "Drop to add!" : "Tap to add photos · drag & drop · paste (⌘V)"}
         </span>
         <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(244,114,182,.4)" }}>
           Images (JPG, PNG, HEIC, GIF) &amp; Videos (MP4, MOV)
@@ -298,13 +308,15 @@ function MediaUploadZone({ onFiles }: { onFiles: (files: File[]) => void }) {
       {/* Separate video button — on mobile Safari "accept" with comma list breaks; separate inputs are more reliable */}
       <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
         <button
+          disabled={busy}
           onClick={() => imgRef.current?.click()}
-          style={{ flex: 1, padding: "0.6rem", background: "rgba(236,72,153,.06)", border: "1px solid rgba(236,72,153,.18)", borderRadius: 10, cursor: "pointer", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(244,114,182,.65)" }}>
+          style={{ flex: 1, padding: "0.6rem", background: "rgba(236,72,153,.06)", border: "1px solid rgba(236,72,153,.18)", borderRadius: 10, cursor: busy ? "wait" : "pointer", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(244,114,182,.65)", opacity: busy ? 0.6 : 1 }}>
           🖼 Photos
         </button>
         <button
+          disabled={busy}
           onClick={() => vidRef.current?.click()}
-          style={{ flex: 1, padding: "0.6rem", background: "rgba(236,72,153,.06)", border: "1px solid rgba(236,72,153,.18)", borderRadius: 10, cursor: "pointer", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(244,114,182,.65)" }}>
+          style={{ flex: 1, padding: "0.6rem", background: "rgba(236,72,153,.06)", border: "1px solid rgba(236,72,153,.18)", borderRadius: 10, cursor: busy ? "wait" : "pointer", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(244,114,182,.65)", opacity: busy ? 0.6 : 1 }}>
           🎬 Videos
         </button>
       </div>
@@ -349,6 +361,8 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   const [saving,   setSaving]   = useState(false);
   const [lbIdx,    setLbIdx]    = useState<number | null>(null);
   const [dispMode, setDispMode] = useState<"polaroid" | "film">("polaroid");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const displayDate = new Date(dateKey + "T12:00:00");
   const isOurs      = displayDate >= START;
@@ -356,14 +370,20 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   const hasContent  = !!(draft.note || (draft.photos?.length ?? 0) > 0);
   const hasMedia    = (draft.photos?.length ?? 0) > 0;
 
+  /* ─── Cloudinary upload ─── */
   const handleFiles = useCallback(async (files: File[]) => {
-    for (const file of files) {
-      try {
-        const src = await readFileAsDataURL(file);
-        setDraft(d => ({ ...d, photos: [...(d.photos || []), src] }));
-      } catch (err) {
-        console.error("Failed to read file:", err);
+    setUploadError(null);
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const url = await uploadToCloudinary(file);
+        setDraft(d => ({ ...d, photos: [...(d.photos || []), url] }));
       }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      setUploadError(err?.message || "Upload failed — try again");
+    } finally {
+      setUploading(false);
     }
   }, []);
 
@@ -524,7 +544,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                   </div>
                 </div>
 
-                {/* Media — drag/drop/paste upload zone */}
+                {/* Media — drag/drop/paste upload zone (Uploadthing) */}
                 <div>
                   <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(244,114,182,.45)", marginBottom: "0.6rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>Photos &amp; Videos</p>
                   {(draft.photos || []).length > 0 && (
@@ -540,7 +560,12 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                       ))}
                     </div>
                   )}
-                  <MediaUploadZone onFiles={handleFiles} />
+                  <MediaUploadZone onFiles={handleFiles} busy={uploading} />
+                  {uploadError && (
+                    <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "#fb7185", marginTop: "0.5rem", textAlign: "center" }}>
+                      {uploadError}
+                    </p>
+                  )}
                 </div>
 
                 {/* Note */}
@@ -586,10 +611,10 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
 
                 {/* Actions */}
                 <div style={{ display: "flex", gap: "0.8rem", paddingBottom: "1rem" }}>
-                  <motion.button onClick={save} disabled={saving}
+                  <motion.button onClick={save} disabled={saving || uploading}
                     whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }}
-                    style={{ flex: 1, padding: "0.95rem", borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#ec4899,#be185d)", color: "#fff", fontFamily: SANS, fontSize: "1rem", fontWeight: 600, boxShadow: "0 4px 20px rgba(236,72,153,.35)" }}>
-                    {saving ? "Saving…" : "Save memory 💗"}
+                    style={{ flex: 1, padding: "0.95rem", borderRadius: 12, border: "none", cursor: (saving || uploading) ? "wait" : "pointer", background: "linear-gradient(135deg,#ec4899,#be185d)", color: "#fff", fontFamily: SANS, fontSize: "1rem", fontWeight: 600, boxShadow: "0 4px 20px rgba(236,72,153,.35)", opacity: (saving || uploading) ? 0.7 : 1 }}>
+                    {saving ? "Saving…" : uploading ? "Uploading…" : "Save memory 💗"}
                   </motion.button>
                   {hasContent && (
                     <motion.button onClick={async () => { await onDelete(); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
@@ -645,7 +670,15 @@ export default function OurCalendar() {
 
   const handleSave = useCallback(async (draft: DraftEntry) => {
     if (!selected) return;
-    const payload = { ...draft, date: selected } as CalEntry;
+    const payload: CalEntry = {
+      date: selected,
+      note: draft.note || "",
+      photos: draft.photos || [],
+      special: draft.special || false,
+      specialLabel: draft.specialLabel || "",
+      mood: draft.mood || "",
+      pinnedNote: draft.pinnedNote || "",
+    };
     await fetch("/api/calendar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     updateCalendarCache(payload);
     setSelected(null);
