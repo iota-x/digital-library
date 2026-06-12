@@ -210,9 +210,10 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   onClose:()=>void; onSave:(d:DraftEntry)=>Promise<void>; onDelete:()=>Promise<void>;
 }) {
   const [draft, setDraft] = useState<DraftEntry>({
-    note:entry.note||"", photos:entry.photos||[],
-    special:entry.special||false, specialLabel:entry.specialLabel||"", mood:entry.mood||"",
-  });
+  note:entry.note||"", photos:entry.photos||[],
+  special:entry.special||false, specialLabel:entry.specialLabel||"",
+  mood:entry.mood||"", pinnedNote:entry.pinnedNote||"",
+});
   const [tab,      setTab]      = useState<"view"|"edit">(entry.note||(entry.photos?.length??0)>0?"view":"edit");
   const [saving,   setSaving]   = useState(false);
   const [lbIdx,    setLbIdx]    = useState<number|null>(null);
@@ -731,7 +732,7 @@ export default function OurCalendar() {
       <AnimatePresence>
         {selected&&(
           <DayView key={selected} dateKey={selected}
-            entry={entries[selected]??{date:selected,note:"",photos:[],special:false,specialLabel:"",mood:""}}
+          entry={entries[selected]??{date:selected,note:"",photos:[],special:false,specialLabel:"",mood:"",pinnedNote:""}}
             originRect={originRect} onClose={()=>setSelected(null)} onSave={handleSave} onDelete={handleDelete}/>
         )}
       </AnimatePresence>
