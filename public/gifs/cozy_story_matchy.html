@@ -1,0 +1,119 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500&family=Nunito:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+.wrap{display:flex;justify-content:center;padding:20px 0;}
+.story{
+  width:360px;
+  background:#e8c9a0;
+  border-radius:28px;
+  padding:20px 16px 18px;
+  font-family:'Nunito',sans-serif;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.top-text{
+  text-align:center;
+  color:#5c3a1e;
+  font-family:'Dancing Script',cursive;
+  font-size:22px;
+  letter-spacing:0.3px;
+  line-height:1.3;
+}
+.sub{
+  font-family:'Nunito',sans-serif;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:2px;
+  color:#8b5e3c;
+  text-align:center;
+  text-transform:uppercase;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.cell{
+  border-radius:16px;
+  overflow:hidden;
+  border:3px solid #c9986a;
+  aspect-ratio:3/4;
+  background:#d4a87a;
+}
+.cell img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.bottom-text{
+  text-align:center;
+  color:#5c3a1e;
+  font-family:'Dancing Script',cursive;
+  font-size:17px;
+}
+.dot-row{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+}
+.dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:#c9986a;
+}
+.dot.sm{width:4px;height:4px;background:#d4b08c;align-self:center;}
+.dl{
+  display:block;
+  width:100%;
+  margin-top:2px;
+  background:#8b5e3c;
+  color:#f5e6d3;
+  border:none;
+  border-radius:18px;
+  padding:9px 0;
+  font-family:'Nunito',sans-serif;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  letter-spacing:0.5px;
+}
+.dl:hover{background:#5c3a1e;}
+</style>
+
+<div class="wrap">
+  <div>
+    <div class="story" id="card">
+      <div class="sub">our little moments</div>
+      <div class="top-text">us & always ♡</div>
+
+      <div class="grid">
+        <div class="cell"><img src="/mnt/user-data/uploads/1781278700898_image.png" alt=""/></div>
+        <div class="cell"><img src="/mnt/user-data/uploads/1781278706129_image.png" alt=""/></div>
+        <div class="cell"><img src="/mnt/user-data/uploads/1781278714785_image.png" alt=""/></div>
+        <div class="cell"><img src="/mnt/user-data/uploads/Screenshot_2026-06-12_at_9_09_07_PM.png" alt=""/></div>
+      </div>
+
+      <div class="dot-row">
+        <div class="dot sm"></div><div class="dot"></div><div class="dot sm"></div>
+      </div>
+      <div class="bottom-text">home is wherever you are</div>
+    </div>
+
+    <button class="dl" onclick="dl()">save ↓</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+function dl(){
+  html2canvas(document.getElementById('card'),{scale:3,useCORS:true,backgroundColor:'#e8c9a0'}).then(c=>{
+    const a=document.createElement('a');
+    a.download='story.png';
+    a.href=c.toDataURL('image/png');
+    a.click();
+  });
+}
+</script>
