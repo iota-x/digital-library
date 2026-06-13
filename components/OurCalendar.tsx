@@ -3,30 +3,8 @@ import React, { useRef, useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry } from "@/lib/calendarStore";
 
-/* ─── Cloudinary unsigned upload ─── */
-const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
-
-async function uploadToCloudinary(file: File): Promise<string> {
-  const isVideo = file.type.startsWith("video/");
-  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? "video" : "image"}/upload`;
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-  const res = await fetch(endpoint, { method: "POST", body: formData });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || "Upload failed");
-  }
-  const data = await res.json();
-  return data.secure_url as string;
-}
-
 /* ─── types ─── */
 interface DraftEntry extends Omit<CalEntry, "date"> {}
-type MediaItem = { type: "image" | "video"; src: string };
 
 /* ─── constants ─── */
 const MONTHS     = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -35,6 +13,16 @@ const DAYS_FULL  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
 const SPECIAL_LABELS = ["🌹 First date","💗 Special moment","🌙 Late night talk","✈️ Adventure","🎂 Birthday","💌 Important","⭐ Favourite memory","🎶 Our song","🌸 Just us","🎮 Gaming night","🍜 Food date","🌃 Night out"];
 const MOODS = ["🥰","😊","🥺","😂","🌙","💗","✨","🎮","🌷","😴","🤭","💫"];
 const START = new Date("2026-03-11");
+
+/* ─── stable per-decoration values — computed once, never on render ─── */
+const DECO_SYMS   = ["💗","🌸","💕","🩷","✨"] as const;
+const DECO_SIZES  = [2.0, 2.4, 2.1, 2.6, 2.2];   // rem, replaces Math.random()
+const DECO_TOPS   = [15, 52, 30, 67, 41];          // %, replaces (i*37)%55
+const ORBS = [
+  { l: "5%",  t: "8%",  c: "rgba(249,168,212,.22)" },
+  { l: "70%", t: "4%",  c: "rgba(253,186,213,.18)" },
+  { l: "45%", t: "72%", c: "rgba(244,114,182,.12)" },
+] as const;
 
 function toKey(y: number, m: number, d: number) { return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`; }
 function dayNum(key: string) { return Math.floor((new Date(key + "T12:00:00").getTime() - START.getTime()) / 86400000) + 1; }
@@ -54,11 +42,11 @@ function isAcceptedMedia(file: File) {
 function MediaThumb({ src, onClick }: { src: string; onClick: () => void }) {
   const isVid = isVideoSrc(src);
   return (
-    <div style={{ position: "relative", cursor: "pointer" }} onClick={onClick}>
+    <div style={{ position: "relative", cursor: "pointer", width: 64, height: 64 }} onClick={onClick}>
       {isVid ? (
         <div style={{ width: 64, height: 64, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(236,72,153,.18)", background: "#1a0a12", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <video src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted playsInline/>
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.35)" }}>
+          <video src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted playsInline />
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.35)", borderRadius: 8 }}>
             <span style={{ fontSize: "1.2rem" }}>▶</span>
           </div>
         </div>
@@ -94,7 +82,6 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
         <motion.button onClick={prev} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           style={{ position: "absolute", left: "clamp(0.6rem,2.5vw,2rem)", background: "rgba(236,72,153,.15)", border: "1px solid rgba(236,72,153,.3)", borderRadius: "50%", width: 48, height: 48, cursor: "pointer", color: "#f9a8d4", fontSize: "1.4rem", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</motion.button>
       )}
-
       <AnimatePresence mode="wait">
         <motion.div key={idx} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
@@ -106,11 +93,8 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
             <img src={media[idx]} alt="" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block" }} />
           )}
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            {media.map((src, i) => (
-              <div key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{
-                width: i === idx ? 10 : 6, height: i === idx ? 10 : 6, borderRadius: "50%", cursor: "pointer",
-                background: i === idx ? "#ec4899" : "rgba(249,168,212,.35)", transition: "all 0.2s",
-              }} />
+            {media.map((_, i) => (
+              <div key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{ width: i === idx ? 10 : 6, height: i === idx ? 10 : 6, borderRadius: "50%", cursor: "pointer", background: i === idx ? "#ec4899" : "rgba(249,168,212,.35)", transition: "all 0.2s" }} />
             ))}
           </div>
           <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(244,114,182,.4)", letterSpacing: "0.12em", margin: 0 }}>
@@ -118,12 +102,10 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
           </p>
         </motion.div>
       </AnimatePresence>
-
       {media.length > 1 && (
         <motion.button onClick={next} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           style={{ position: "absolute", right: "clamp(0.6rem,2.5vw,2rem)", background: "rgba(236,72,153,.15)", border: "1px solid rgba(236,72,153,.3)", borderRadius: "50%", width: 48, height: 48, cursor: "pointer", color: "#f9a8d4", fontSize: "1.4rem", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>›</motion.button>
       )}
-
       <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
         style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", color: "rgba(255,255,255,.7)", fontSize: "1rem", zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
     </motion.div>
@@ -138,12 +120,7 @@ function Polaroid({ src, dateKey, idx, total, isTop, offset, onClick, onBringFor
   const isVid = isVideoSrc(src);
   return (
     <motion.div
-      style={{
-        position: "absolute", width: "100%", height: "100%",
-        background: "#fefefe", padding: "10px 10px 52px", cursor: "pointer",
-        zIndex: total - Math.abs(offset),
-        boxShadow: isTop ? "0 24px 70px rgba(0,0,0,.65),0 6px 20px rgba(236,72,153,.2)" : "0 8px 28px rgba(0,0,0,.45)",
-      }}
+      style={{ position: "absolute", width: "100%", height: "100%", background: "#fefefe", padding: "10px 10px 52px", cursor: "pointer", zIndex: total - Math.abs(offset), boxShadow: isTop ? "0 24px 70px rgba(0,0,0,.65),0 6px 20px rgba(236,72,153,.2)" : "0 8px 28px rgba(0,0,0,.45)" }}
       animate={{ rotate: isTop ? 0 : offset * 6, x: isTop ? 0 : offset * 18, y: isTop ? 0 : Math.abs(offset) * 6, scale: isTop ? 1 : 1 - Math.abs(offset) * 0.05 }}
       whileHover={isTop ? { scale: 1.03, y: -6 } : { scale: 1.01 }}
       transition={{ type: "spring", stiffness: 260, damping: 28 }}
@@ -179,8 +156,7 @@ function PolaroidStack({ media, dateKey, onMediaClick }: { media: string[]; date
           {media.map((src, i) => (
             <Polaroid key={i} src={src} dateKey={dateKey} idx={i} total={media.length}
               isTop={i === topIdx} offset={i - topIdx}
-              onClick={() => onMediaClick(i)}
-              onBringForward={() => setTopIdx(i)} />
+              onClick={() => onMediaClick(i)} onBringForward={() => setTopIdx(i)} />
           ))}
         </div>
       </div>
@@ -238,7 +214,7 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
               )}
             </div>
             <div style={{ position: "absolute", bottom: 4, left: 0, right: 0, textAlign: "center", fontFamily: "monospace", fontSize: "0.58rem", color: "rgba(255,170,150,.4)", letterSpacing: "0.1em" }}>
-              {fmtDate(dateKey)} · {String(i + 1).padStart(2, "00")}
+              {fmtDate(dateKey)} · {String(i + 1).padStart(2, "0")}
             </div>
           </motion.div>
         );
@@ -247,26 +223,53 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
   );
 }
 
-/* ─── drag & drop / paste media upload zone ─── */
+/* ─── Cloudinary unsigned upload ─── */
+const CLOUDINARY_CLOUD_NAME    = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+
+async function uploadToCloudinary(file: File): Promise<string> {
+  const isVideo  = file.type.startsWith("video/");
+  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? "video" : "image"}/upload`;
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch(endpoint, { method: "POST", body: fd });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any)?.error?.message || "Upload failed");
+  }
+  return ((await res.json()) as { secure_url: string }).secure_url;
+}
+
+/* ─── upload zone ───────────────────────────────────────────────────────────
+   Mobile (iOS Safari) fixes applied:
+   1. <label htmlFor> wired to hidden <input> — the ONLY reliable way to open
+      the native picker inside a modal on iOS 15-17. input.click() from JS is
+      silently blocked by WebKit inside portals/fixed-position containers.
+   2. Separate inputs for images vs video — iOS ignores `multiple` on video
+      inputs and may break the picker when accept mixes types.
+   3. Drag & drop preserved for desktop, but NOT required for mobile to work.
+   4. Paste support via window paste event.
+   ────────────────────────────────────────────────────────────────────────── */
 function MediaUploadZone({ onFiles, busy }: { onFiles: (files: File[]) => void; busy?: boolean }) {
   const [dragging, setDragging] = useState(false);
-  const imgRef  = useRef<HTMLInputElement>(null);
-  const vidRef  = useRef<HTMLInputElement>(null);
+  // Stable IDs — not generated per render
+  const imgId = "cal-upload-img";
+  const vidId = "cal-upload-vid";
 
-  const handleFiles = useCallback((files: FileList | File[]) => {
-    const accepted = Array.from(files).filter(isAcceptedMedia);
+  const processFiles = useCallback((raw: FileList | File[]) => {
+    const accepted = Array.from(raw).filter(isAcceptedMedia);
     if (accepted.length) onFiles(accepted);
   }, [onFiles]);
 
-  /* Drag events */
-  const onDragOver  = (e: React.DragEvent) => { e.preventDefault(); setDragging(true); };
-  const onDragLeave = () => setDragging(false);
-  const onDrop      = (e: React.DragEvent) => {
-    e.preventDefault(); setDragging(false);
-    handleFiles(e.dataTransfer.files);
-  };
+  /* Drag & drop — desktop only, degrades gracefully on mobile */
+  const onDragOver  = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(true); }, []);
+  const onDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); setDragging(false); }, []);
+  const onDrop      = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setDragging(false); processFiles(e.dataTransfer.files);
+  }, [processFiles]);
 
-  /* Paste */
+  /* Paste — images only (no video paste on mobile) */
   useEffect(() => {
     const handler = (e: ClipboardEvent) => {
       if (!e.clipboardData) return;
@@ -280,68 +283,63 @@ function MediaUploadZone({ onFiles, busy }: { onFiles: (files: File[]) => void; 
     return () => window.removeEventListener("paste", handler);
   }, [onFiles]);
 
+  /* Visually hidden but accessible — keeps input in the tap/a11y tree */
+  const hiddenInput: React.CSSProperties = {
+    position: "absolute", width: 1, height: 1, opacity: 0,
+    overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap",
+  };
+
+  const labelBtn: React.CSSProperties = {
+    flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem",
+    padding: "0.75rem 0.5rem", borderRadius: 10,
+    cursor: busy ? "wait" : "pointer",
+    fontFamily: SANS, fontSize: "0.85rem",
+    border: "1px solid rgba(236,72,153,.22)",
+    background: "rgba(236,72,153,.06)", color: "rgba(244,114,182,.75)",
+    opacity: busy ? 0.55 : 1,
+    userSelect: "none", WebkitUserSelect: "none",
+    transition: "opacity 0.15s",
+  } as React.CSSProperties;
+
   return (
     <div>
-      {/* Drop zone */}
-      <motion.div
+      {/* Drag-and-drop zone — desktop; on mobile just shows hint text */}
+      <div
         onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
-        animate={{ borderColor: dragging ? "rgba(236,72,153,.7)" : "rgba(236,72,153,.25)", background: dragging ? "rgba(236,72,153,.1)" : "rgba(236,72,153,.04)" }}
-        transition={{ duration: 0.15 }}
         style={{
-          width: "100%", padding: "1.4rem 1rem",
-          border: "1.5px dashed rgba(236,72,153,.25)",
-          borderRadius: 12, cursor: busy ? "wait" : "pointer",
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem",
-          position: "relative", opacity: busy ? 0.6 : 1,
+          width: "100%", padding: "1.1rem 1rem", marginBottom: "0.5rem",
+          border: `1.5px dashed ${dragging ? "rgba(236,72,153,.7)" : "rgba(236,72,153,.25)"}`,
+          borderRadius: 12, display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", gap: "0.35rem",
+          background: dragging ? "rgba(236,72,153,.1)" : "rgba(236,72,153,.04)",
+          opacity: busy ? 0.6 : 1,
+          transition: "border-color 0.15s, background 0.15s",
+          pointerEvents: busy ? "none" : "auto",
         }}
-        onClick={() => { if (!busy) imgRef.current?.click(); }}
       >
-        <span style={{ fontSize: "1.8rem" }}>{busy ? "⏳" : dragging ? "📂" : "📸"}</span>
-        <span style={{ fontFamily: SANS, fontSize: "0.88rem", color: "rgba(244,114,182,.7)", textAlign: "center" }}>
-          {busy ? "Uploading…" : dragging ? "Drop to add!" : "Tap to add photos · drag & drop · paste (⌘V)"}
+        <span style={{ fontSize: "1.5rem" }}>{busy ? "⏳" : dragging ? "📂" : "🌸"}</span>
+        <span style={{ fontFamily: SANS, fontSize: "0.83rem", color: "rgba(244,114,182,.6)", textAlign: "center" }}>
+          {busy ? "Uploading…" : dragging ? "Drop to add!" : "Drag & drop here · or paste (⌘V)"}
         </span>
-        <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(244,114,182,.4)" }}>
-          Images (JPG, PNG, HEIC, GIF) &amp; Videos (MP4, MOV)
+        <span style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(244,114,182,.32)" }}>
+          JPG · PNG · HEIC · GIF · MP4 · MOV
         </span>
-      </motion.div>
-
-      {/* Separate video button — on mobile Safari "accept" with comma list breaks; separate inputs are more reliable */}
-      <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-        <button
-          disabled={busy}
-          onClick={() => imgRef.current?.click()}
-          style={{ flex: 1, padding: "0.6rem", background: "rgba(236,72,153,.06)", border: "1px solid rgba(236,72,153,.18)", borderRadius: 10, cursor: busy ? "wait" : "pointer", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(244,114,182,.65)", opacity: busy ? 0.6 : 1 }}>
-          🖼 Photos
-        </button>
-        <button
-          disabled={busy}
-          onClick={() => vidRef.current?.click()}
-          style={{ flex: 1, padding: "0.6rem", background: "rgba(236,72,153,.06)", border: "1px solid rgba(236,72,153,.18)", borderRadius: 10, cursor: busy ? "wait" : "pointer", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(244,114,182,.65)", opacity: busy ? 0.6 : 1 }}>
-          🎬 Videos
-        </button>
       </div>
 
-      {/* Hidden inputs — MOBILE FIX:
-          • No `multiple` on iOS Safari for video (breaks camera roll picker)
-          • `accept` kept per-input so iOS correctly opens the right picker
-          • Use onChange instead of onClick for better mobile reliability      */}
-      <input
-        ref={imgRef}
-        type="file"
-        accept="image/*"
-        multiple
-        style={{ display: "none" }}
-        /* iOS Safari requires a fresh input each pick; reset value so same file can be re-selected */
-        onChange={e => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }}
-      />
-      {/* Video: no "multiple" — iOS Safari ignores multiple for video; user picks one at a time */}
-      <input
-        ref={vidRef}
-        type="file"
-        accept="video/mp4,video/quicktime,video/webm"
-        style={{ display: "none" }}
-        onChange={e => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }}
-      />
+      {/* ── Pick buttons — label+input pairs, the only mobile-safe approach ── */}
+      <div style={{ display: "flex", gap: "0.5rem" }}>
+        {/* Images — multiple OK on iOS for images */}
+        <input id={imgId} type="file" accept="image/*" multiple disabled={busy}
+          style={hiddenInput}
+          onChange={e => { if (e.target.files?.length) processFiles(e.target.files); e.currentTarget.value = ""; }} />
+        <label htmlFor={imgId} style={labelBtn}>📸 Photos</label>
+
+        {/* Videos — NO multiple; iOS silently breaks the picker with it */}
+        <input id={vidId} type="file" accept="video/mp4,video/quicktime,video/webm" disabled={busy}
+          style={hiddenInput}
+          onChange={e => { if (e.target.files?.length) processFiles(e.target.files); e.currentTarget.value = ""; }} />
+        <label htmlFor={vidId} style={labelBtn}>🎬 Videos</label>
+      </div>
     </div>
   );
 }
@@ -351,7 +349,6 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   dateKey: string; entry: Partial<CalEntry>; originRect: DOMRect | null;
   onClose: () => void; onSave: (d: DraftEntry) => Promise<void>; onDelete: () => Promise<void>;
 }) {
-  /* Merge photos + videos into a single `media` array stored in photos field (backward compat) */
   const [draft, setDraft] = useState<DraftEntry>({
     note: entry.note || "", photos: entry.photos || [],
     special: entry.special || false, specialLabel: entry.specialLabel || "",
@@ -362,7 +359,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   const [lbIdx,    setLbIdx]    = useState<number | null>(null);
   const [dispMode, setDispMode] = useState<"polaroid" | "film">("polaroid");
   const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadErr, setUploadErr] = useState<string | null>(null);
 
   const displayDate = new Date(dateKey + "T12:00:00");
   const isOurs      = displayDate >= START;
@@ -370,9 +367,9 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   const hasContent  = !!(draft.note || (draft.photos?.length ?? 0) > 0);
   const hasMedia    = (draft.photos?.length ?? 0) > 0;
 
-  /* ─── Cloudinary upload ─── */
+  /* Upload each file to Cloudinary, append returned URL to draft */
   const handleFiles = useCallback(async (files: File[]) => {
-    setUploadError(null);
+    setUploadErr(null);
     setUploading(true);
     try {
       for (const file of files) {
@@ -380,8 +377,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
         setDraft(d => ({ ...d, photos: [...(d.photos || []), url] }));
       }
     } catch (err: any) {
-      console.error("Upload error:", err);
-      setUploadError(err?.message || "Upload failed — try again");
+      setUploadErr(err?.message || "Upload failed — please try again.");
     } finally {
       setUploading(false);
     }
@@ -390,7 +386,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
   const removeMedia = (i: number) => setDraft(d => ({ ...d, photos: (d.photos || []).filter((_, idx) => idx !== i) }));
   const save = async () => { setSaving(true); await onSave(draft); setSaving(false); };
 
-  const ox = originRect ? originRect.left + originRect.width / 2 - window.innerWidth / 2  : 0;
+  const ox = originRect ? originRect.left + originRect.width  / 2 - window.innerWidth  / 2 : 0;
   const oy = originRect ? originRect.top  + originRect.height / 2 - window.innerHeight / 2 : 0;
 
   return (
@@ -407,9 +403,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
         exit={{ opacity: 0, scale: 0.06, borderRadius: 999 }}
         transition={{ type: "spring", stiffness: 230, damping: 30, mass: 0.8 }}
         style={{
-          position: "fixed",
-          top: "2vh", left: "2vw", right: "2vw", bottom: "2vh",
-          zIndex: 3001,
+          position: "fixed", top: "2vh", left: "2vw", right: "2vw", bottom: "2vh", zIndex: 3001,
           background: "linear-gradient(148deg,#17060f 0%,#280c1a 50%,#190810 100%)",
           backgroundImage: `${GRAIN},linear-gradient(148deg,#17060f 0%,#280c1a 50%,#190810 100%)`,
           display: "flex", flexDirection: "column", overflow: "hidden",
@@ -417,19 +411,9 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
         }}
       >
         {/* ── Header ── */}
-        <div style={{
-          padding: "clamp(1rem,3vw,1.8rem) clamp(1rem,3vw,2rem) clamp(0.8rem,2vw,1.2rem)",
-          borderBottom: "1px solid rgba(236,72,153,.1)",
-          background: "linear-gradient(180deg,rgba(236,72,153,.06) 0%,transparent)",
-          flexShrink: 0,
-          display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.8rem",
-        }}>
+        <div style={{ padding: "clamp(1rem,3vw,1.8rem) clamp(1rem,3vw,2rem) clamp(0.8rem,2vw,1.2rem)", borderBottom: "1px solid rgba(236,72,153,.1)", background: "linear-gradient(180deg,rgba(236,72,153,.06) 0%,transparent)", flexShrink: 0, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.8rem" }}>
           <div style={{ minWidth: 0, flex: 1 }}>
-            {dn && (
-              <span style={{ fontFamily: SANS, fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(244,114,182,.4)", display: "block", marginBottom: "0.3rem" }}>
-                day {dn} of us 🌸
-              </span>
-            )}
+            {dn && <span style={{ fontFamily: SANS, fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(244,114,182,.4)", display: "block", marginBottom: "0.3rem" }}>day {dn} of us 🌸</span>}
             <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.1rem,3.5vw,1.8rem)", color: "#fce7f3", margin: 0, lineHeight: 1.25, fontWeight: 400 }}>
               {DAYS_FULL[displayDate.getDay()]}, {MONTHS[displayDate.getMonth()]} {displayDate.getDate()}, {displayDate.getFullYear()}
             </h2>
@@ -439,26 +423,19 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
               <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(244,114,182,.3)", letterSpacing: "0.1em" }}>{fmtDate(dateKey)}</span>
             </div>
           </div>
-
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
             {hasContent && (
               <div style={{ background: "rgba(255,255,255,.05)", borderRadius: 28, padding: "0.18rem", display: "flex", border: "1px solid rgba(236,72,153,.15)" }}>
                 {(["view", "edit"] as const).map(t => (
                   <button key={t} onClick={() => setTab(t)}
-                    style={{
-                      padding: "0.28rem 0.85rem", borderRadius: 24, border: "none", fontFamily: SANS, fontSize: "0.82rem", cursor: "pointer", transition: "all 0.2s",
-                      background: tab === t ? "linear-gradient(135deg,rgba(236,72,153,.4),rgba(190,24,93,.3))" : "transparent",
-                      color: tab === t ? "#fce7f3" : "rgba(252,231,243,.35)",
-                    }}>
+                    style={{ padding: "0.28rem 0.85rem", borderRadius: 24, border: "none", fontFamily: SANS, fontSize: "0.82rem", cursor: "pointer", transition: "all 0.2s", background: tab === t ? "linear-gradient(135deg,rgba(236,72,153,.4),rgba(190,24,93,.3))" : "transparent", color: tab === t ? "#fce7f3" : "rgba(252,231,243,.35)" }}>
                     {t === "view" ? "💌 memory" : "✏️ edit"}
                   </button>
                 ))}
               </div>
             )}
             <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
-              style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(236,72,153,.15)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "rgba(252,231,243,.6)", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              ✕
-            </motion.button>
+              style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(236,72,153,.15)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "rgba(252,231,243,.6)", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</motion.button>
           </div>
         </div>
 
@@ -468,26 +445,15 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
 
             {/* VIEW */}
             {tab === "view" && (
-              <motion.div key="view"
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                style={{ padding: "clamp(1.2rem,3vw,2rem)", minHeight: "100%" }}
-              >
+              <motion.div key="view" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22, ease: "easeOut" }} style={{ padding: "clamp(1.2rem,3vw,2rem)", minHeight: "100%" }}>
                 {hasMedia && (
                   <div style={{ marginBottom: "1.8rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.2rem" }}>
-                      <span style={{ fontFamily: SANS, fontSize: "0.75rem", color: "rgba(244,114,182,.5)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                        {draft.photos!.length} item{draft.photos!.length !== 1 ? "s" : ""}
-                      </span>
+                      <span style={{ fontFamily: SANS, fontSize: "0.75rem", color: "rgba(244,114,182,.5)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{draft.photos!.length} item{draft.photos!.length !== 1 ? "s" : ""}</span>
                       <div style={{ display: "flex", gap: "0.35rem" }}>
                         {(["polaroid", "film"] as const).map(m => (
                           <button key={m} onClick={() => setDispMode(m)}
-                            style={{
-                              padding: "0.25rem 0.75rem", borderRadius: 18, cursor: "pointer", transition: "all 0.2s", fontFamily: SANS, fontSize: "0.78rem",
-                              border: `1px solid ${dispMode === m ? "rgba(236,72,153,.45)" : "rgba(236,72,153,.18)"}`,
-                              background: dispMode === m ? "rgba(236,72,153,.15)" : "transparent",
-                              color: dispMode === m ? "#f9a8d4" : "rgba(244,114,182,.38)",
-                            }}>
+                            style={{ padding: "0.25rem 0.75rem", borderRadius: 18, cursor: "pointer", transition: "all 0.2s", fontFamily: SANS, fontSize: "0.78rem", border: `1px solid ${dispMode === m ? "rgba(236,72,153,.45)" : "rgba(236,72,153,.18)"}`, background: dispMode === m ? "rgba(236,72,153,.15)" : "transparent", color: dispMode === m ? "#f9a8d4" : "rgba(244,114,182,.38)" }}>
                             {m === "polaroid" ? "🖼 polaroid" : "🎞 film"}
                           </button>
                         ))}
@@ -499,18 +465,11 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                     }
                   </div>
                 )}
-
                 {draft.note ? (
-                  <div style={{
-                    background: "rgba(255,255,255,.02)", border: "1px solid rgba(236,72,153,.08)",
-                    borderRadius: 14, padding: "clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(2rem,4vw,2.5rem)",
-                    position: "relative", overflow: "hidden", marginTop: hasMedia ? "2rem" : "0",
-                  }}>
+                  <div style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(236,72,153,.08)", borderRadius: 14, padding: "clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(2rem,4vw,2.5rem)", position: "relative", overflow: "hidden", marginTop: hasMedia ? "2rem" : "0" }}>
                     <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: "repeating-linear-gradient(transparent,transparent 31px,rgba(236,72,153,.05) 31px,rgba(236,72,153,.05) 32px)" }} />
                     <div style={{ position: "absolute", left: "2.5rem", top: 0, bottom: 0, width: 1, background: "rgba(236,72,153,.09)" }} />
-                    <p style={{ fontFamily: SERIF, fontSize: "clamp(1rem,2.2vw,1.18rem)", color: "rgba(252,231,243,.88)", lineHeight: 2, margin: 0, whiteSpace: "pre-wrap", position: "relative", zIndex: 1, letterSpacing: "0.01em", fontWeight: 400 }}>
-                      {draft.note}
-                    </p>
+                    <p style={{ fontFamily: SERIF, fontSize: "clamp(1rem,2.2vw,1.18rem)", color: "rgba(252,231,243,.88)", lineHeight: 2, margin: 0, whiteSpace: "pre-wrap", position: "relative", zIndex: 1, letterSpacing: "0.01em", fontWeight: 400 }}>{draft.note}</p>
                     <div style={{ marginTop: "1.4rem", display: "flex", alignItems: "center", gap: "0.5rem", position: "relative", zIndex: 1 }}>
                       <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(236,72,153,.28),transparent)" }} />
                       <span style={{ fontFamily: SCRIPT, fontSize: "0.85rem", color: "rgba(244,114,182,.4)" }}>— with love 🩷</span>
@@ -527,11 +486,8 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
 
             {/* EDIT */}
             {(tab === "edit" || !hasContent) && (
-              <motion.div key="edit"
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-                style={{ padding: "clamp(1.2rem,3vw,2rem)", display: "flex", flexDirection: "column", gap: "1.4rem" }}
-              >
+              <motion.div key="edit" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22, ease: "easeOut" }} style={{ padding: "clamp(1.2rem,3vw,2rem)", display: "flex", flexDirection: "column", gap: "1.4rem" }}>
+
                 {/* Mood */}
                 <div>
                   <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(244,114,182,.45)", marginBottom: "0.6rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>How are you feeling?</p>
@@ -544,7 +500,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                   </div>
                 </div>
 
-                {/* Media — drag/drop/paste upload zone (Uploadthing) */}
+                {/* Media */}
                 <div>
                   <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(244,114,182,.45)", marginBottom: "0.6rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>Photos &amp; Videos</p>
                   {(draft.photos || []).length > 0 && (
@@ -553,19 +509,13 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                         <div key={i} style={{ position: "relative" }}>
                           <MediaThumb src={src} onClick={() => setLbIdx(i)} />
                           <button onClick={() => removeMedia(i)}
-                            style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", border: "none", background: "#be185d", color: "#fff", fontSize: "0.6rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            ✕
-                          </button>
+                            style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", border: "none", background: "#be185d", color: "#fff", fontSize: "0.6rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                         </div>
                       ))}
                     </div>
                   )}
                   <MediaUploadZone onFiles={handleFiles} busy={uploading} />
-                  {uploadError && (
-                    <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "#fb7185", marginTop: "0.5rem", textAlign: "center" }}>
-                      {uploadError}
-                    </p>
-                  )}
+                  {uploadErr && <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "#fb7185", marginTop: "0.5rem", textAlign: "center" }}>{uploadErr}</p>}
                 </div>
 
                 {/* Note */}
@@ -574,23 +524,12 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                   <textarea value={draft.note} onChange={e => setDraft(d => ({ ...d, note: e.target.value }))}
                     placeholder={"Write about this day…\n\nHow did it feel? What do you want to remember? 🌸"}
                     rows={6}
-                    style={{
-                      width: "100%", padding: "1rem 1rem 1rem 1.4rem",
-                      background: "rgba(255,255,255,.03)",
-                      border: "1px solid rgba(236,72,153,.16)",
-                      borderRadius: 12, resize: "vertical",
-                      fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)",
-                      color: "rgba(252,231,243,.85)",
-                      outline: "none", boxSizing: "border-box",
-                      lineHeight: 1.9, caretColor: "#f9a8d4",
-                      letterSpacing: "0.01em",
-                    }} />
+                    style={{ width: "100%", padding: "1rem 1rem 1rem 1.4rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(236,72,153,.16)", borderRadius: 12, resize: "vertical", fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)", color: "rgba(252,231,243,.85)", outline: "none", boxSizing: "border-box", lineHeight: 1.9, caretColor: "#f9a8d4", letterSpacing: "0.01em" }} />
                 </div>
 
                 {/* Special */}
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: "0.7rem", cursor: "pointer", marginBottom: "0.8rem" }}
-                    onClick={() => setDraft(d => ({ ...d, special: !d.special }))}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.7rem", cursor: "pointer", marginBottom: "0.8rem" }} onClick={() => setDraft(d => ({ ...d, special: !d.special }))}>
                     <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, border: `2px solid ${draft.special ? "#ec4899" : "rgba(236,72,153,.28)"}`, background: draft.special ? "linear-gradient(135deg,#ec4899,#be185d)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
                       {draft.special && <span style={{ color: "#fff", fontSize: "0.7rem" }}>✓</span>}
                     </div>
@@ -598,8 +537,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                   </label>
                   <AnimatePresence>
                     {draft.special && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                        style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem", overflow: "hidden" }}>
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem", overflow: "hidden" }}>
                         {SPECIAL_LABELS.map(lbl => (
                           <button key={lbl} onClick={() => setDraft(d => ({ ...d, specialLabel: d.specialLabel === lbl ? "" : lbl }))}
                             style={{ padding: "0.28rem 0.7rem", borderRadius: 18, cursor: "pointer", fontFamily: SANS, fontSize: "0.82rem", border: `1.5px solid ${draft.specialLabel === lbl ? "#ec4899" : "rgba(236,72,153,.2)"}`, background: draft.specialLabel === lbl ? "rgba(236,72,153,.2)" : "rgba(255,255,255,.04)", color: draft.specialLabel === lbl ? "#f9a8d4" : "rgba(244,114,182,.45)", transition: "all 0.15s" }}>{lbl}</button>
@@ -618,9 +556,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
                   </motion.button>
                   {hasContent && (
                     <motion.button onClick={async () => { await onDelete(); }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                      style={{ padding: "0.95rem 1.2rem", borderRadius: 12, border: "1px solid rgba(236,72,153,.2)", cursor: "pointer", background: "rgba(255,255,255,.03)", color: "rgba(244,114,182,.5)", fontFamily: SANS, fontSize: "0.9rem" }}>
-                      Clear
-                    </motion.button>
+                      style={{ padding: "0.95rem 1.2rem", borderRadius: 12, border: "1px solid rgba(236,72,153,.2)", cursor: "pointer", background: "rgba(255,255,255,.03)", color: "rgba(244,114,182,.5)", fontFamily: SANS, fontSize: "0.9rem" }}>Clear</motion.button>
                   )}
                 </div>
               </motion.div>
@@ -629,7 +565,6 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
         </div>
       </motion.div>
 
-      {/* Lightbox */}
       <AnimatePresence>
         {lbIdx !== null && <Lightbox media={draft.photos!} startIdx={lbIdx} onClose={() => setLbIdx(null)} />}
       </AnimatePresence>
@@ -670,15 +605,7 @@ export default function OurCalendar() {
 
   const handleSave = useCallback(async (draft: DraftEntry) => {
     if (!selected) return;
-    const payload: CalEntry = {
-      date: selected,
-      note: draft.note || "",
-      photos: draft.photos || [],
-      special: draft.special || false,
-      specialLabel: draft.specialLabel || "",
-      mood: draft.mood || "",
-      pinnedNote: draft.pinnedNote || "",
-    };
+    const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
     await fetch("/api/calendar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     updateCalendarCache(payload);
     setSelected(null);
@@ -700,44 +627,32 @@ export default function OurCalendar() {
   const specialCnt = Object.values(entries).filter(e => e.special).length;
 
   return (
-    <section id="calendar" style={{
-      position: "relative", width: "100%",
-      minHeight: "100vh",
-      padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)",
-      background: "linear-gradient(180deg,#fff0f5 0%,#fde8f2 30%,#fad0e8 60%,#f0a8cc 85%,#c9447a 100%)",
-      overflow: "hidden",
-    }}>
-      {["💗","🌸","💕","🩷","✨"].map((sym, i) => (
+    <section id="calendar" style={{ position: "relative", width: "100%", minHeight: "100vh", padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)", background: "linear-gradient(180deg,#fff0f5 0%,#fde8f2 30%,#fad0e8 60%,#f0a8cc 85%,#c9447a 100%)", overflow: "hidden" }}>
+      {DECO_SYMS.map((sym, i) => (
         <motion.span key={i}
           animate={{ y: [-12, 12, -12], opacity: [0.12, 0.28, 0.12], rotate: [-10, 10, -10] }}
           transition={{ repeat: Infinity, duration: 4 + i * 1.2, delay: i * 0.8, ease: "easeInOut" }}
-          style={{ position: "absolute", left: `${8 + i * 18}%`, top: `${15 + ((i * 37) % 55)}%`, fontSize: `${2 + Math.random() * 1.5}rem`, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>{sym}</motion.span>
+          style={{ position: "absolute", left: `${8 + i * 18}%`, top: `${DECO_TOPS[i]}%`, fontSize: `${DECO_SIZES[i]}rem`, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>
+          {sym}
+        </motion.span>
       ))}
-      {[{ l: "5%", t: "8%", c: "rgba(249,168,212,.22)" }, { l: "70%", t: "4%", c: "rgba(253,186,213,.18)" }, { l: "45%", t: "72%", c: "rgba(244,114,182,.12)" }].map((o, i) => (
-        <motion.div key={i} style={{ position: "absolute", left: o.l, top: o.t, width: "clamp(200px,28vw,360px)", height: "clamp(200px,28vw,360px)", borderRadius: "50%", background: o.c, filter: "blur(65px)", pointerEvents: "none", zIndex: 0 }}
-          animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0.85, 0.5] }} transition={{ repeat: Infinity, duration: 6 + i * 2, ease: "easeInOut" }} />
+      {ORBS.map((o, i) => (
+        <motion.div key={i}
+          style={{ position: "absolute", left: o.l, top: o.t, width: "clamp(200px,28vw,360px)", height: "clamp(200px,28vw,360px)", borderRadius: "50%", background: o.c, filter: "blur(65px)", pointerEvents: "none", zIndex: 0 }}
+          animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0.85, 0.5] }}
+          transition={{ repeat: Infinity, duration: 6 + i * 2, ease: "easeInOut" }} />
       ))}
 
-      <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-        style={{ textAlign: "center", marginBottom: "clamp(2rem,4vw,3.5rem)", position: "relative", zIndex: 2 }}>
+      <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "clamp(2rem,4vw,3.5rem)", position: "relative", zIndex: 2 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "1rem" }}>
           <div style={{ width: 60, height: 1, background: "linear-gradient(90deg,transparent,rgba(190,24,93,.4))" }} />
-          <motion.span style={{ fontSize: "1.8rem", filter: "drop-shadow(0 0 8px rgba(190,24,93,.3))" }}
-            animate={{ scale: [1, 1.2, 1], rotate: [-5, 5, -5] }} transition={{ repeat: Infinity, duration: 2.5 }}>💗</motion.span>
+          <motion.span style={{ fontSize: "1.8rem", filter: "drop-shadow(0 0 8px rgba(190,24,93,.3))" }} animate={{ scale: [1, 1.2, 1], rotate: [-5, 5, -5] }} transition={{ repeat: Infinity, duration: 2.5 }}>💗</motion.span>
           <div style={{ width: 60, height: 1, background: "linear-gradient(90deg,rgba(190,24,93,.4),transparent)" }} />
         </div>
-        <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(2rem,5vw,3rem)", color: "#9d174d", margin: "0 0 0.5rem", fontWeight: 400, textShadow: "0 2px 16px rgba(190,24,93,.15)" }}>
-          our days together
-        </h2>
-        <p style={{ fontFamily: SANS, fontSize: "clamp(0.88rem,2vw,1rem)", color: "rgba(157,23,77,.55)", margin: "0 0 1.2rem", lineHeight: 1.6 }}>
-          every day logged, every moment saved 🌸
-        </p>
+        <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(2rem,5vw,3rem)", color: "#9d174d", margin: "0 0 0.5rem", fontWeight: 400, textShadow: "0 2px 16px rgba(190,24,93,.15)" }}>our days together</h2>
+        <p style={{ fontFamily: SANS, fontSize: "clamp(0.88rem,2vw,1rem)", color: "rgba(157,23,77,.55)", margin: "0 0 1.2rem", lineHeight: 1.6 }}>every day logged, every moment saved 🌸</p>
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "center", flexWrap: "wrap" }}>
-          {[
-            { label: `${totalMem} memories`, e: "📖" },
-            { label: `${specialCnt} special days`, e: "⭐" },
-            { label: `Day ${Math.floor((today.getTime() - START.getTime()) / 86400000) + 1} of us`, e: "🌸" },
-          ].map((s, i) => (
+          {[{ label: `${totalMem} memories`, e: "📖" }, { label: `${specialCnt} special days`, e: "⭐" }, { label: `Day ${Math.floor((today.getTime() - START.getTime()) / 86400000) + 1} of us`, e: "🌸" }].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               style={{ background: "rgba(255,255,255,.6)", border: "1px solid rgba(190,24,93,.2)", borderRadius: 30, padding: "0.35rem 1rem", fontFamily: SANS, fontSize: "0.82rem", color: "#9d174d", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px rgba(190,24,93,.08)" }}>
               {s.e} {s.label}
@@ -747,68 +662,45 @@ export default function OurCalendar() {
       </motion.div>
 
       <div style={{ position: "relative", zIndex: 2, maxWidth: 780, margin: "0 auto" }}>
-        <motion.div
-          animate={{ rotateY: flipDir === "right" ? -12 : flipDir === "left" ? 12 : 0, scale: flipDir ? 0.97 : 1, opacity: flipDir ? 0.6 : 1 }}
-          transition={{ duration: 0.24, ease: "easeInOut" }}
-          style={{ background: "rgba(255,255,255,.88)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "0 16px 70px rgba(190,24,93,.18),0 4px 16px rgba(0,0,0,.06),inset 0 0 0 1.5px rgba(249,168,212,.4)" }}
-        >
+        <motion.div animate={{ rotateY: flipDir === "right" ? -12 : flipDir === "left" ? 12 : 0, scale: flipDir ? 0.97 : 1, opacity: flipDir ? 0.6 : 1 }} transition={{ duration: 0.24, ease: "easeInOut" }}
+          style={{ background: "rgba(255,255,255,.88)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "0 16px 70px rgba(190,24,93,.18),0 4px 16px rgba(0,0,0,.06),inset 0 0 0 1.5px rgba(249,168,212,.4)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.2rem 1.6rem", background: "linear-gradient(135deg,#2d0f1e,#4a1628)", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, pointerEvents: "none", opacity: 0.5 }} />
-            <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }}
-              style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
+            <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
             <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
               <AnimatePresence mode="wait">
-                <motion.p key={`${year}-${month}`}
-                  initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-                  transition={{ duration: 0.22 }}
-                  style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.2rem,3vw,1.6rem)", color: "#fce7f3", margin: 0, fontWeight: 400 }}>
-                  {MONTHS[month]}
-                </motion.p>
+                <motion.p key={`${year}-${month}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }} style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.2rem,3vw,1.6rem)", color: "#fce7f3", margin: 0, fontWeight: 400 }}>{MONTHS[month]}</motion.p>
               </AnimatePresence>
               <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(252,231,243,.4)", margin: 0 }}>{year}</p>
             </div>
-            <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }}
-              style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
+            <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "1rem 1.4rem 0.4rem", background: "rgba(252,231,243,.08)" }}>
-            {DAYS_SHORT.map((d, i) => (
-              <div key={i} style={{ textAlign: "center", fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: i === 0 || i === 6 ? "rgba(236,72,153,.5)" : "rgba(157,23,77,.4)", padding: "0.3rem 0" }}>{d}</div>
-            ))}
+            {DAYS_SHORT.map((d, i) => (<div key={i} style={{ textAlign: "center", fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: i === 0 || i === 6 ? "rgba(236,72,153,.5)" : "rgba(157,23,77,.4)", padding: "0.3rem 0" }}>{d}</div>))}
           </div>
 
           <AnimatePresence mode="wait">
-            <motion.div key={`${year}-${month}`}
-              initial={{ opacity: 0, x: flipDir === "right" ? 28 : -28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-              transition={{ duration: 0.24, ease: "easeOut" }}
-              style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, padding: "0.4rem 1.4rem 1rem" }}>
+            <motion.div key={`${year}-${month}`} initial={{ opacity: 0, x: flipDir === "right" ? 28 : -28 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.24, ease: "easeOut" }} style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, padding: "0.4rem 1.4rem 1rem" }}>
               {cells.map((day, i) => {
                 if (!day) return <div key={i} />;
                 const key = toKey(year, month, day);
                 const entry = entries[key];
-                const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                const isToday   = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
                 const isSpecial = !!entry?.special;
                 const hasMedia  = (entry?.photos?.length ?? 0) > 0;
                 const hasNote   = !!entry?.note;
                 const hasVideo  = hasMedia && entry.photos!.some(isVideoSrc);
                 const inOurTime = new Date(key + "T12:00:00") >= START;
                 return (
-                  <motion.button key={key} onClick={e => openDay(key, e)}
-                    whileHover={{ scale: 1.18, zIndex: 5 }} whileTap={{ scale: 0.88 }}
-                    style={{
-                      position: "relative", aspectRatio: "1", border: "none", borderRadius: 12, cursor: "pointer",
-                      background: isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent",
-                      boxShadow: isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none",
-                      outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1,
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                      gap: 2, padding: "4px", transition: "background 0.2s",
-                    }}>
+                  <motion.button key={key} onClick={e => openDay(key, e)} whileHover={{ scale: 1.18, zIndex: 5 }} whileTap={{ scale: 0.88 }}
+                    style={{ position: "relative", aspectRatio: "1", border: "none", borderRadius: 12, cursor: "pointer", background: isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent", boxShadow: isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none", outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "4px", transition: "background 0.2s" }}>
                     <span style={{ fontFamily: SANS, fontSize: "clamp(0.82rem,2.2vw,1rem)", color: isSpecial ? "#fff" : isToday ? "#9d174d" : inOurTime ? "#9d3f68" : "#c4a0b0", fontWeight: isToday || isSpecial ? 700 : inOurTime ? 500 : 400, lineHeight: 1 }}>{day}</span>
                     {entry?.mood && <span style={{ fontSize: "clamp(0.45rem,1.2vw,0.58rem)", lineHeight: 1 }}>{entry.mood}</span>}
                     {isSpecial && !entry?.mood && <span style={{ fontSize: "0.48rem", lineHeight: 1 }}>⭐</span>}
-                    {hasVideo && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>🎬</span>}
-                    {hasMedia && !hasVideo && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>📸</span>}
-                    {hasNote && !hasMedia && !isSpecial && !entry?.mood && <div style={{ width: 3, height: 3, borderRadius: "50%", background: "#f472b6" }} />}
+                    {hasVideo  && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>🎬</span>}
+                    {hasMedia  && !hasVideo && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>📸</span>}
+                    {hasNote   && !hasMedia && !isSpecial && !entry?.mood && <div style={{ width: 3, height: 3, borderRadius: "50%", background: "#f472b6" }} />}
                   </motion.button>
                 );
               })}
