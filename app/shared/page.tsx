@@ -1,6 +1,7 @@
 import PasswordGate     from "@/components/PasswordGate";
 import SpotifySection   from "@/components/SpotifySection";
 import WatchlistSection from "@/components/WatchlistSection";
+import BucketList       from "@/components/BucketList";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
@@ -64,7 +65,7 @@ function SharedHero() {
           fontFamily:SCRIPT, fontSize:"clamp(1.05rem,2.5vw,1.3rem)",
           color:"rgba(157,23,77,.4)", margin:0,
         }}>
-          music we share · stories we&apos;ll watch together 🌸
+          dreams to live · music to share · movies to watch 🌸
         </p>
 
         {/* Divider */}
@@ -72,11 +73,13 @@ function SharedHero() {
           display:"flex", alignItems:"center", justifyContent:"center",
           gap:"1rem", marginTop:"2rem",
         }}>
-          <div style={{ height:1, width:60, background:"linear-gradient(90deg,transparent,rgba(190,24,93,.2))" }}/>
+          <div style={{ height:1, width:50, background:"linear-gradient(90deg,transparent,rgba(190,24,93,.2))" }}/>
+          <span style={{ color:"rgba(190,24,93,.3)", fontSize:"1rem" }}>💕</span>
+          <span style={{ color:"rgba(190,24,93,.25)", fontSize:"0.7rem" }}>✦</span>
           <span style={{ color:"rgba(190,24,93,.3)", fontSize:"1rem" }}>♪</span>
-          <span style={{ color:"rgba(190,24,93,.2)", fontSize:"0.7rem" }}>✦</span>
+          <span style={{ color:"rgba(190,24,93,.25)", fontSize:"0.7rem" }}>✦</span>
           <span style={{ color:"rgba(190,24,93,.3)", fontSize:"1rem" }}>🎬</span>
-          <div style={{ height:1, width:60, background:"linear-gradient(90deg,rgba(190,24,93,.2),transparent)" }}/>
+          <div style={{ height:1, width:50, background:"linear-gradient(90deg,rgba(190,24,93,.2),transparent)" }}/>
         </div>
       </div>
     </div>
@@ -88,6 +91,7 @@ export default function SharedPage() {
     <PasswordGate>
       <main>
         <SharedHero />
+        <BucketList />
         <SpotifySection />
         <WatchlistSection />
       </main>

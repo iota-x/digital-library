@@ -23,8 +23,13 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  // close mobile menu on route change
+  // close mobile menu on route change or ESC
   useEffect(() => setMobileOpen(false), [path]);
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileOpen(false); };
+    window.addEventListener("keydown", fn);
+    return () => window.removeEventListener("keydown", fn);
+  }, []);
 
   return (
     <>
@@ -109,6 +114,24 @@ export default function Navbar() {
             );
           })}
         </div>
+
+        {/* ⌘K shortcut hint — desktop only */}
+        <button
+          className="nav-cmdK"
+          onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
+          style={{
+            display:"flex", alignItems:"center", gap:"0.35rem",
+            background:"rgba(252,231,243,.55)",
+            border:"1px solid rgba(249,168,212,.35)",
+            borderRadius:8, padding:"0.32rem 0.65rem",
+            cursor:"pointer",
+            fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif",
+            fontSize:"0.62rem", fontWeight:700,
+            color:"rgba(190,24,93,.5)",
+            letterSpacing:"0.06em",
+          }}>
+          <span>⌘K</span>
+        </button>
 
         {/* Mobile hamburger */}
         <motion.button
@@ -196,6 +219,7 @@ export default function Navbar() {
         @media (max-width: 580px) {
           .nav-desktop { display: none !important; }
           .nav-mobile-btn { display: flex !important; }
+          .nav-cmdK { display: none !important; }
         }
       `}</style>
 

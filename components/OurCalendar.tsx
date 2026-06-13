@@ -2,6 +2,7 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry } from "@/lib/calendarStore";
+import { useEscKey } from "@/lib/useEscKey";
 
 /* ─── types ─── */
 interface DraftEntry extends Omit<CalEntry, "date"> {}
@@ -393,6 +394,9 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
 
   const removeMedia = (i: number) => setDraft(d => ({ ...d, photos: (d.photos || []).filter((_, idx) => idx !== i) }));
   const save = async () => { setSaving(true); await onSave(draft); setSaving(false); };
+
+  // ESC closes the day view, but only when the lightbox isn't open (lightbox handles its own ESC)
+  useEscKey(onClose, lbIdx === null);
 
   const ox = originRect ? originRect.left + originRect.width  / 2 - window.innerWidth  / 2 : 0;
   const oy = originRect ? originRect.top  + originRect.height / 2 - window.innerHeight / 2 : 0;

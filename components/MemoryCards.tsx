@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useEscKey } from "@/lib/useEscKey";
 
 const MEMORIES = [
   { title:"The Beginning 🌸",   body:"So it all started when we met on that one valorant swift LMAO, but it was so much more than that for me personally. You've literally become the person I care the most about in this world. I think of you even more than I think of myself at times. You have that effect on me, you're just magical I genuinely want to immerse myself in this beautiful journey of ours ♡ ", color:"#ffd6e0", rotation:-2 },
@@ -15,6 +16,7 @@ export default function MemoryCards() {
   const [active, setActive] = useState<number | null>(null);
   const ref = useRef(null);
   const inView = useInView(ref, { once:true, margin:"-80px" });
+  useEscKey(() => setActive(null), active !== null);
 
   return (
     <section

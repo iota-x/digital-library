@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const PLAYLIST_ID = "41LuF5qeH9u3erSTc5LkPw";
 
 export async function GET() {
@@ -39,7 +41,7 @@ export async function GET() {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-        next: { revalidate: 60 },
+        cache: "no-store",
       }
     );
 
