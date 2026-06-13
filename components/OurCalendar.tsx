@@ -38,26 +38,57 @@ function isAcceptedMedia(file: File) {
   return file.type.startsWith("image/") || ["video/mp4", "video/quicktime", "video/webm"].includes(file.type);
 }
 
-/* ─── media thumbnail ─── */
+/* ─── Cloudinary unsigned upload ─── */
+const CLOUDINARY_CLOUD_NAME    = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
+
+async function uploadToCloudinary(file: File): Promise<string> {
+  const isVideo  = file.type.startsWith("video/");
+  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? "video" : "image"}/upload`;
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch(endpoint, { method: "POST", body: fd });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any)?.error?.message || "Upload failed");
+  }
+  return ((await res.json()) as { secure_url: string }).secure_url;
+}
+
+/* ─── lightweight thumbnail URLs ───────────────────────────────────────────
+   Inserts a Cloudinary transformation segment right after `/upload/` so
+   thumbnails are small + compressed, and (for video) a static jpg frame —
+   instead of loading the full original image/video for every grid item.
+   This is the main fix for lag with many items. Full quality is only
+   loaded in the Lightbox (uses the original `src`).
+   ──────────────────────────────────────────────────────────────────────── */
+function cldThumb(src: string, w = 200): string {
+  if (!src.includes("res.cloudinary.com") || !src.includes("/upload/")) return src;
+  if (isVideoSrc(src)) {
+    return src
+      .replace("/video/upload/", `/video/upload/so_0,w_${w},h_${w},c_fill,q_auto,f_jpg/`)
+      .replace(/\.(mp4|mov|webm)$/i, ".jpg");
+  }
+  return src.replace("/upload/", `/upload/w_${w},h_${w},c_fill,q_auto,f_auto/`);
+}
+
+/* ─── media thumbnail (always renders a static <img>, never <video>) ─── */
 function MediaThumb({ src, onClick }: { src: string; onClick: () => void }) {
   const isVid = isVideoSrc(src);
   return (
     <div style={{ position: "relative", cursor: "pointer", width: 64, height: 64 }} onClick={onClick}>
-      {isVid ? (
-        <div style={{ width: 64, height: 64, borderRadius: 8, overflow: "hidden", border: "1px solid rgba(236,72,153,.18)", background: "#1a0a12", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <video src={src} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted playsInline />
-          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.35)", borderRadius: 8 }}>
-            <span style={{ fontSize: "1.2rem" }}>▶</span>
-          </div>
+      <img src={cldThumb(src, 128)} loading="lazy" decoding="async" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, display: "block", border: "1px solid rgba(236,72,153,.18)", background: "#1a0a12" }} alt="" />
+      {isVid && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.3)", borderRadius: 8 }}>
+          <span style={{ fontSize: "1.2rem" }}>▶</span>
         </div>
-      ) : (
-        <img src={src} style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, display: "block", border: "1px solid rgba(236,72,153,.18)" }} alt="" />
       )}
     </div>
   );
 }
 
-/* ─── lightbox (images + videos) ─── */
+/* ─── lightbox (images + videos) — full quality, only one rendered at a time ─── */
 function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: number; onClose: () => void }) {
   const [idx, setIdx] = useState(startIdx);
   const prev = useCallback((e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => (i - 1 + media.length) % media.length); }, [media.length]);
@@ -88,9 +119,9 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
           onClick={e => e.stopPropagation()}
           style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", maxWidth: "min(85vw,900px)" }}>
           {isVid ? (
-            <video src={media[idx]} controls autoPlay style={{ maxWidth: "100%", maxHeight: "75vh", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block", background: "#000" }} />
+            <video src={media[idx]} controls autoPlay playsInline preload="metadata" style={{ maxWidth: "100%", maxHeight: "75vh", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block", background: "#000" }} />
           ) : (
-            <img src={media[idx]} alt="" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block" }} />
+            <img src={media[idx]} alt="" loading="eager" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block" }} />
           )}
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
             {media.map((_, i) => (
@@ -112,12 +143,15 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
   );
 }
 
-/* ─── polaroid card ─── */
+/* ─── polaroid card — renders thumbnail only; videos show a play badge ─── */
 function Polaroid({ src, dateKey, idx, total, isTop, offset, onClick, onBringForward }: {
   src: string; dateKey: string; idx: number; total: number;
   isTop: boolean; offset: number; onClick: () => void; onBringForward: () => void;
 }) {
   const isVid = isVideoSrc(src);
+  // Only the top card and its immediate neighbors render at all — far cards
+  // in a 15-item stack are pure visual clutter and cost a full <img> decode.
+  if (Math.abs(offset) > 2) return null;
   return (
     <motion.div
       style={{ position: "absolute", width: "100%", height: "100%", background: "#fefefe", padding: "10px 10px 52px", cursor: "pointer", zIndex: total - Math.abs(offset), boxShadow: isTop ? "0 24px 70px rgba(0,0,0,.65),0 6px 20px rgba(236,72,153,.2)" : "0 8px 28px rgba(0,0,0,.45)" }}
@@ -127,15 +161,11 @@ function Polaroid({ src, dateKey, idx, total, isTop, offset, onClick, onBringFor
       onClick={isTop ? onClick : onBringForward}
     >
       <div style={{ width: "100%", paddingBottom: "100%", position: "relative", overflow: "hidden", background: "#e8d5dc" }}>
-        {isVid ? (
-          <>
-            <video src={src} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} muted playsInline />
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.25)" }}>
-              <span style={{ fontSize: "2rem", filter: "drop-shadow(0 2px 8px rgba(0,0,0,.5))" }}>▶</span>
-            </div>
-          </>
-        ) : (
-          <img src={src} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        <img src={cldThumb(src, 360)} loading={isTop ? "eager" : "lazy"} decoding="async" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        {isVid && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.25)" }}>
+            <span style={{ fontSize: "2rem", filter: "drop-shadow(0 2px 8px rgba(0,0,0,.5))" }}>▶</span>
+          </div>
         )}
       </div>
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 52, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 2 }}>
@@ -180,7 +210,7 @@ function PolaroidStack({ media, dateKey, onMediaClick }: { media: string[]; date
   );
 }
 
-/* ─── film strip ─── */
+/* ─── film strip — renders thumbnails only, lazy-loaded ─── */
 function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey: string; onMediaClick: (i: number) => void }) {
   return (
     <div style={{ display: "flex", gap: "1rem", overflowX: "auto", paddingBottom: "1.5rem", paddingTop: "0.5rem", scrollbarWidth: "none" } as React.CSSProperties}>
@@ -190,7 +220,7 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
         return (
           <motion.div key={i}
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06, duration: 0.3, ease: "easeOut" }}
+            transition={{ delay: Math.min(i, 8) * 0.04, duration: 0.3, ease: "easeOut" }}
             whileHover={{ scale: 1.06, y: -6 }}
             onClick={() => onMediaClick(i)}
             style={{ cursor: "pointer", flexShrink: 0, position: "relative", background: "#110507", padding: "7px 7px 28px", boxShadow: "0 16px 40px rgba(0,0,0,.65)", width: 140, transform: `rotate(${rot}deg)` }}
@@ -202,15 +232,11 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
               </React.Fragment>
             ))}
             <div style={{ width: "100%", aspectRatio: "1", position: "relative", overflow: "hidden" }}>
-              {isVid ? (
-                <>
-                  <video src={src} style={{ width: "100%", height: "100%", objectFit: "cover", filter: "saturate(0.9)" }} muted playsInline />
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.3)" }}>
-                    <span style={{ fontSize: "1.5rem" }}>▶</span>
-                  </div>
-                </>
-              ) : (
-                <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "saturate(0.9)" }} />
+              <img src={cldThumb(src, 280)} loading="lazy" decoding="async" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "saturate(0.9)" }} />
+              {isVid && (
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.3)" }}>
+                  <span style={{ fontSize: "1.5rem" }}>▶</span>
+                </div>
               )}
             </div>
             <div style={{ position: "absolute", bottom: 4, left: 0, right: 0, textAlign: "center", fontFamily: "monospace", fontSize: "0.58rem", color: "rgba(255,170,150,.4)", letterSpacing: "0.1em" }}>
@@ -221,24 +247,6 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
       })}
     </div>
   );
-}
-
-/* ─── Cloudinary unsigned upload ─── */
-const CLOUDINARY_CLOUD_NAME    = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
-
-async function uploadToCloudinary(file: File): Promise<string> {
-  const isVideo  = file.type.startsWith("video/");
-  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? "video" : "image"}/upload`;
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  const res = await fetch(endpoint, { method: "POST", body: fd });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message || "Upload failed");
-  }
-  return ((await res.json()) as { secure_url: string }).secure_url;
 }
 
 /* ─── upload zone ───────────────────────────────────────────────────────────
@@ -269,7 +277,7 @@ function MediaUploadZone({ onFiles, busy }: { onFiles: (files: File[]) => void; 
     e.preventDefault(); setDragging(false); processFiles(e.dataTransfer.files);
   }, [processFiles]);
 
-  /* Paste — images only (no video paste on mobile) */
+  /* Paste — uses clipboardData.items only (avoids double-paste duplicates) */
   useEffect(() => {
     const handler = (e: ClipboardEvent) => {
       if (!e.clipboardData) return;

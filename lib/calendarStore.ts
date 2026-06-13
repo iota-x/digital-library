@@ -29,6 +29,7 @@ function writeSession(data: CalEntry[]) {
 let _cache: CalEntry[] | null = null;
 let _inflight: Promise<CalEntry[]> | null = null;
 let _sseSource: EventSource | null = null;
+let _refreshing = false;
 
 function notify(data: CalEntry[]) {
   listeners.forEach(fn => fn(data));
@@ -68,16 +69,47 @@ function startSSE() {
   } catch {}
 }
 
-export async function fetchCalendarData(): Promise<CalEntry[]> {
-  if (_cache) return _cache;
-  const session = readSession();
-  if (session) {
+/* ─── Background revalidation ───────────────────────────────────────────
+   SSE can silently drop (serverless hosts kill long-lived connections,
+   tab was backgrounded, phone slept, etc). Without this, a stale
+   sessionStorage snapshot or a missed SSE event means one device never
+   sees another device's changes until sessionStorage is cleared.
+   This fetches fresh data, diffs it against cache, and notifies listeners
+   only if something actually changed — silent, no loading spinner.
+   ──────────────────────────────────────────────────────────────────────── */
+export function refreshCalendarData() {
+  if (typeof window === "undefined" || _refreshing) return;
+  _refreshing = true;
+  fetch("/api/calendar", { cache: "no-store" })
+    .then(r => r.json())
+    .then((arr: CalEntry[]) => {
+      const changed = JSON.stringify(arr) !== JSON.stringify(_cache);
+      if (changed) {
+        _cache = arr;
+        writeSession(arr);
+        notify([...arr]);
+      }
+    })
+    .catch(() => {})
+    .finally(() => { _refreshing = false; });
+}
+
+export async function fetchCalendarData(force = false): Promise<CalEntry[]> {
+  if (_cache && !force) {
+    // Serve cached data instantly, but always revalidate in the background
+    // so a stale snapshot self-heals without blocking the UI.
+    refreshCalendarData();
+    return _cache;
+  }
+  const session = !force ? readSession() : null;
+  if (session && !force) {
     _cache = session;
     startSSE();
+    refreshCalendarData();
     return _cache;
   }
   if (_inflight) return _inflight;
-  _inflight = fetch("/api/calendar")
+  _inflight = fetch("/api/calendar", { cache: "no-store" })
     .then(r => r.json())
     .then((arr: CalEntry[]) => {
       _cache = arr;
@@ -87,7 +119,7 @@ export async function fetchCalendarData(): Promise<CalEntry[]> {
       startSSE();
       return arr;
     })
-    .catch(() => { _inflight = null; return []; });
+    .catch(() => { _inflight = null; return _cache ?? []; });
   return _inflight;
 }
 
@@ -134,7 +166,27 @@ export function useCalendarData(): { data: CalEntry[]; loading: boolean } {
     });
     const handler = (arr: CalEntry[]) => { if (!cancelled) setData([...arr]); };
     listeners.add(handler);
-    return () => { cancelled = true; listeners.delete(handler); };
+
+    // Revalidate whenever the tab/page becomes visible or regains focus —
+    // this is the main fix for "uploaded on phone, laptop doesn't see it":
+    // the laptop tab was just sitting on stale cached/SSE-missed data.
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshCalendarData();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", refreshCalendarData);
+
+    // Light polling fallback (60s) in case SSE + focus both miss it
+    // (e.g. tab left open and focused on a desktop monitor).
+    const poll = setInterval(refreshCalendarData, 60_000);
+
+    return () => {
+      cancelled = true;
+      listeners.delete(handler);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", refreshCalendarData);
+      clearInterval(poll);
+    };
   }, []);
 
   return { data, loading };
