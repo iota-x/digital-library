@@ -27,7 +27,6 @@ export default function JournalPage() {
         <StreakTracker />
         <SurpriseMe />
         <MonthlyRecap />
-        <Final />
       </main>
     </PasswordGate>
   );
