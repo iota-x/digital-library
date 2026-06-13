@@ -10,6 +10,7 @@ const ROUTES = [
   { href: "/journal",  label: "journal",   emoji: "📖" },
   { href: "/capsule",  label: "capsule",   emoji: "💌" },
   { href: "/shared",   label: "shared",    emoji: "🎬" },
+  { href: "/map",      label: "memories",  emoji: "📸" },
 ];
 
 export default function Navbar() {

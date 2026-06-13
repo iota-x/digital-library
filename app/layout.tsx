@@ -3,6 +3,8 @@ import { Playfair_Display, Caveat, Lato } from "next/font/google";
 import Navbar          from "@/components/Navbar";
 import ScrollToTop     from "@/components/ScrollToTop";
 import CommandPalette  from "@/components/CommandPalette";
+import SwipeNav        from "@/components/SwipeNav";
+import PwaRegister     from "@/components/PwaRegister";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -25,7 +27,9 @@ const lato = Lato({
 export const metadata: Metadata = {
   title: "3 Months of Us 💗",
   description: "made with way too much love",
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: "/favicon.svg", apple: "/favicon.svg" },
+  manifest: "/manifest.json",
+  themeColor: "#be185d",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -35,6 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ScrollToTop />
         <Navbar />
         <CommandPalette />
+        <SwipeNav />
+        <PwaRegister />
         {children}
       </body>
     </html>

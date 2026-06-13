@@ -12,6 +12,7 @@ const MONTHS     = ["January","February","March","April","May","June","July","Au
 const DAYS_SHORT = ["Su","Mo","Tu","We","Th","Fr","Sa"];
 const DAYS_FULL  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const SPECIAL_LABELS = ["🌹 First date","💗 Special moment","🌙 Late night talk","✈️ Adventure","🎂 Birthday","💌 Important","⭐ Favourite memory","🎶 Our song","🌸 Just us","🎮 Gaming night","🍜 Food date","🌃 Night out"];
+const BIRTHDAYS: Record<string, string> = { "12-20": "🎂 Ankit's Birthday", "07-06": "🎂 Juhi's Birthday" };
 const MOODS = ["🥰","😊","🥺","😂","🌙","💗","✨","🎮","🌷","😴","🤭","💫"];
 const START = new Date("2026-03-11");
 
@@ -354,9 +355,10 @@ function MediaUploadZone({ onFiles, busy }: { onFiles: (files: File[]) => void; 
 }
 
 /* ─── day view portal ─── */
-function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
+function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthdayLabel }: {
   dateKey: string; entry: Partial<CalEntry>; originRect: DOMRect | null;
   onClose: () => void; onSave: (d: DraftEntry) => Promise<void>; onDelete: () => Promise<void>;
+  birthdayLabel?: string | null;
 }) {
   const [draft, setDraft] = useState<DraftEntry>({
     note: entry.note || "", photos: entry.photos || [],
@@ -425,6 +427,13 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
         {/* ── Header ── */}
         <div style={{ padding: "clamp(1rem,3vw,1.8rem) clamp(1rem,3vw,2rem) clamp(0.8rem,2vw,1.2rem)", borderBottom: "1px solid rgba(236,72,153,.1)", background: "linear-gradient(180deg,rgba(236,72,153,.06) 0%,transparent)", flexShrink: 0, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.8rem" }}>
           <div style={{ minWidth: 0, flex: 1 }}>
+            {birthdayLabel && (
+              <motion.span
+                animate={{ scale: [1, 1.08, 1] }} transition={{ repeat: Infinity, duration: 2 }}
+                style={{ fontFamily: SANS, fontSize: "0.82rem", fontWeight: 700, color: "#fbbf24", display: "block", marginBottom: "0.25rem", letterSpacing: "0.04em" }}>
+                {birthdayLabel}! 🎉
+              </motion.span>
+            )}
             {dn && <span style={{ fontFamily: SANS, fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(244,114,182,.4)", display: "block", marginBottom: "0.3rem" }}>day {dn} of us 🌸</span>}
             <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.1rem,3.5vw,1.8rem)", color: "#fce7f3", margin: 0, lineHeight: 1.25, fontWeight: 400 }}>
               {DAYS_FULL[displayDate.getDay()]}, {MONTHS[displayDate.getMonth()]} {displayDate.getDate()}, {displayDate.getFullYear()}
@@ -694,21 +703,24 @@ export default function OurCalendar() {
                 if (!day) return <div key={i} />;
                 const key = toKey(year, month, day);
                 const entry = entries[key];
-                const isToday   = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-                const isSpecial = !!entry?.special;
-                const hasMedia  = (entry?.photos?.length ?? 0) > 0;
-                const hasNote   = !!entry?.note;
-                const hasVideo  = hasMedia && entry.photos!.some(isVideoSrc);
-                const inOurTime = new Date(key + "T12:00:00") >= START;
+                const isToday    = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                const isSpecial  = !!entry?.special;
+                const hasMedia   = (entry?.photos?.length ?? 0) > 0;
+                const hasNote    = !!entry?.note;
+                const hasVideo   = hasMedia && entry.photos!.some(isVideoSrc);
+                const inOurTime  = new Date(key + "T12:00:00") >= START;
+                const bdayLabel  = BIRTHDAYS[`${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`] ?? null;
+                const isBirthday = !!bdayLabel;
                 return (
                   <button key={key} onClick={e => openDay(key, e)} className="occ-day"
-                    style={{ background: isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent", boxShadow: isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none", outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1 }}>
-                    <span style={{ fontFamily: SANS, fontSize: "clamp(0.82rem,2.2vw,1rem)", color: isSpecial ? "#fff" : isToday ? "#9d174d" : inOurTime ? "#9d3f68" : "#c4a0b0", fontWeight: isToday || isSpecial ? 700 : inOurTime ? 500 : 400, lineHeight: 1 }}>{day}</span>
+                    style={{ background: isBirthday ? "linear-gradient(135deg,#fde68a,#f59e0b)" : isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent", boxShadow: isBirthday ? "0 4px 18px rgba(245,158,11,.45)" : isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none", outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1 }}>
+                    <span style={{ fontFamily: SANS, fontSize: "clamp(0.82rem,2.2vw,1rem)", color: isBirthday ? "#78350f" : isSpecial ? "#fff" : isToday ? "#9d174d" : inOurTime ? "#9d3f68" : "#c4a0b0", fontWeight: isToday || isSpecial || isBirthday ? 700 : inOurTime ? 500 : 400, lineHeight: 1 }}>{day}</span>
                     {entry?.mood && <span style={{ fontSize: "clamp(0.45rem,1.2vw,0.58rem)", lineHeight: 1 }}>{entry.mood}</span>}
-                    {isSpecial && !entry?.mood && <span style={{ fontSize: "0.48rem", lineHeight: 1 }}>⭐</span>}
-                    {hasVideo  && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>🎬</span>}
-                    {hasMedia  && !hasVideo && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>📸</span>}
-                    {hasNote   && !hasMedia && !isSpecial && !entry?.mood && <div style={{ width: 3, height: 3, borderRadius: "50%", background: "#f472b6" }} />}
+                    {isBirthday && !entry?.mood && <span style={{ fontSize: "0.5rem", lineHeight: 1 }}>🎂</span>}
+                    {isSpecial && !isBirthday && !entry?.mood && <span style={{ fontSize: "0.48rem", lineHeight: 1 }}>⭐</span>}
+                    {hasVideo  && !isSpecial && !isBirthday && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>🎬</span>}
+                    {hasMedia  && !hasVideo && !isSpecial && !isBirthday && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>📸</span>}
+                    {hasNote   && !hasMedia && !isSpecial && !isBirthday && !entry?.mood && <div style={{ width: 3, height: 3, borderRadius: "50%", background: "#f472b6" }} />}
                   </button>
                 );
               })}
@@ -716,6 +728,7 @@ export default function OurCalendar() {
           </AnimatePresence>
 
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", padding: "1rem 1.5rem 1.5rem", borderTop: "1px solid rgba(249,168,212,.18)", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(157,23,77,.5)" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 12, height: 12, borderRadius: 3, background: "linear-gradient(135deg,#fde68a,#f59e0b)" }} /> birthday</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 12, height: 12, borderRadius: 3, background: "linear-gradient(135deg,#fda4af,#ec4899)" }} /> special</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>📸 photo</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>🎬 video</span>
@@ -735,6 +748,7 @@ export default function OurCalendar() {
         {selected && (
           <DayView key={selected} dateKey={selected}
             entry={entries[selected] ?? { date: selected, note: "", photos: [], special: false, specialLabel: "", mood: "", pinnedNote: "" }}
+            birthdayLabel={BIRTHDAYS[selected.slice(5)] ?? null}
             originRect={originRect} onClose={() => setSelected(null)} onSave={handleSave} onDelete={handleDelete} />
         )}
       </AnimatePresence>
