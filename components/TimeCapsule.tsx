@@ -26,16 +26,29 @@ export default function TimeCapsule() {
   const [pending,    setPending]    = useState<{unlockDate:string;from:string;createdAt:string}[]>([]);
 
   useEffect(()=>{
-    fetch("/api/capsules").then(r=>r.json()).then((arr:Capsule[])=>
-      setUnlocked(arr.sort((a,b)=>a.unlockDate.localeCompare(b.unlockDate)))
-    );
-    try{ const s=localStorage.getItem("capsule_pending"); if(s) setPending(JSON.parse(s)); }catch{}
+    fetch("/api/timecapsule").then(r=>r.json()).then((arr:Capsule[])=>{
+      const sorted=arr.sort((a,b)=>a.unlockDate.localeCompare(b.unlockDate));
+      setUnlocked(sorted);
+      // Remove pending entries that are now unlocked in DB
+      try{
+        const s=localStorage.getItem("capsule_pending");
+        if(s){
+          const all=JSON.parse(s) as {unlockDate:string;from:string;createdAt:string}[];
+          const unlockedDates=new Set(sorted.map(c=>c.unlockDate));
+          const still=all.filter(p=>!unlockedDates.has(p.unlockDate)||new Date(p.unlockDate+"T12:00:00")>new Date());
+          setPending(still);
+          localStorage.setItem("capsule_pending",JSON.stringify(still));
+        }
+      }catch{}
+    }).catch(()=>{
+      try{ const s=localStorage.getItem("capsule_pending"); if(s) setPending(JSON.parse(s)); }catch{}
+    });
   },[]);
 
   const save=async()=>{
     if(!letter.trim()||!unlockDate) return;
     setSaving(true);
-    await fetch("/api/capsules",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letter,unlockDate,from})});
+    await fetch("/api/timecapsule",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({letter,unlockDate,from})});
     const np=[...pending,{unlockDate,from,createdAt:new Date().toISOString()}];
     setPending(np); localStorage.setItem("capsule_pending",JSON.stringify(np));
     setSaving(false); setSaved(true); setComposing(false);
@@ -128,7 +141,7 @@ export default function TimeCapsule() {
 
                 <p style={{fontFamily:SANS,fontSize:"0.68rem",color:"rgba(190,24,93,.5)",letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 0.4rem"}}>Unlock date</p>
                 <input type="date" value={unlockDate} onChange={e=>setUnlockDate(e.target.value)}
-                  min={new Date(Date.now()+86400000).toISOString().slice(0,10)}
+                  min={new Date().toISOString().slice(0,10)}
                   style={{width:"100%",padding:"0.75rem 1rem",border:"1px solid rgba(190,24,93,.2)",borderRadius:10,fontFamily:SANS,fontSize:"0.92rem",color:"#4a1628",outline:"none",background:"rgba(252,231,243,.3)",boxSizing:"border-box",marginBottom:"1rem"}}/>
 
                 <p style={{fontFamily:SANS,fontSize:"0.68rem",color:"rgba(190,24,93,.5)",letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 0.4rem"}}>Your letter</p>
