@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 
 const ROUTES = [
   { href: "/",         label: "home",      emoji: "🌸" },
-  { href: "/timeline", label: "timeline",  emoji: "🕰️" },
+  { href: "/timeline", label: "our story",  emoji: "🕰️" },
   { href: "/journal",  label: "journal",   emoji: "📖" },
   { href: "/capsule",  label: "capsule",   emoji: "💌" },
   { href: "/shared",   label: "shared",    emoji: "🎬" },

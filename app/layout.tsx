@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   description: "made with way too much love",
   icons: { icon: "/favicon.svg", apple: "/favicon.svg" },
   manifest: "/manifest.json",
+};
+
+export const viewport = {
   themeColor: "#be185d",
 };
 

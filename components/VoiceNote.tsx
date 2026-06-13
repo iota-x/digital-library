@@ -133,6 +133,7 @@ export default function VoiceNote() {
   const [label, setLabel] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [hasNew, setHasNew] = useState(false);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -140,8 +141,22 @@ export default function VoiceNote() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   useEffect(() => {
-    fetch("/api/voicenotes").then(r => r.json()).then(setNotes).catch(() => {});
+    fetch("/api/voicenotes").then(r => r.json()).then((data: VNote[]) => {
+      setNotes(data);
+      if (data.length > 0) {
+        const lastSeen = localStorage.getItem("vn_last_seen") || "0";
+        const newest = data[0]?.createdAt || "0";
+        setHasNew(newest > lastSeen);
+      }
+    }).catch(() => {});
   }, []);
+
+  // Mark as seen when this section comes into view
+  useEffect(() => {
+    if (!inView || notes.length === 0) return;
+    localStorage.setItem("vn_last_seen", new Date().toISOString());
+    setHasNew(false);
+  }, [inView, notes.length]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -232,9 +247,20 @@ export default function VoiceNote() {
             <motion.span style={{ fontSize: "2rem" }} animate={{ y: [-3, 3, -3] }} transition={{ repeat: Infinity, duration: 3 }}>🎙️</motion.span>
             <div style={{ width: 40, height: 1, background: "linear-gradient(90deg,rgba(190,24,93,.4),transparent)" }} />
           </div>
-          <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.8rem,4vw,2.6rem)", color: "#be185d", margin: "0 0 0.3rem", fontWeight: 400 }}>
-            voice notes, just for us
-          </h2>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}>
+            <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.8rem,4vw,2.6rem)", color: "#be185d", margin: "0 0 0.3rem", fontWeight: 400 }}>
+              voice notes, just for us
+            </h2>
+            <AnimatePresence>
+              {hasNew && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
+                  style={{ fontFamily: SANS, fontSize: "0.62rem", fontWeight: 700, background: "linear-gradient(135deg,#f472b6,#be185d)", color: "#fff", borderRadius: 20, padding: "0.18rem 0.6rem", letterSpacing: "0.06em", boxShadow: "0 2px 10px rgba(190,24,93,.35)", alignSelf: "flex-start", marginTop: "0.5rem", whiteSpace: "nowrap" }}>
+                  ✨ new
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
           <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(190,24,93,.55)", margin: 0 }}>
             record a little something — it lives here forever 💗
           </p>

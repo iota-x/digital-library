@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { fetchCalendarData } from "@/lib/calendarStore";
 import PasswordGate      from "@/components/PasswordGate";
 import JournalHeader     from "@/components/JournalHeader";
@@ -13,21 +14,31 @@ import Final             from "@/components/Final";
 
 if (typeof window !== "undefined") fetchCalendarData();
 
-export default function JournalPage() {
+function JournalContent() {
+  const params = useSearchParams();
+  const initialDate = params.get("date") ?? undefined;
   useEffect(() => { fetchCalendarData(); }, []);
   return (
+    <main>
+      <JournalHeader />
+      <div style={{ padding: "2rem clamp(1rem,3vw,2rem) 0" }}>
+        <AnniversaryBanner />
+        <OnThisDay />
+      </div>
+      <OurCalendar initialDate={initialDate} />
+      <StreakTracker />
+      <SurpriseMe />
+      <MonthlyRecap />
+    </main>
+  );
+}
+
+export default function JournalPage() {
+  return (
     <PasswordGate>
-      <main>
-        <JournalHeader />
-        <div style={{ padding: "2rem clamp(1rem,3vw,2rem) 0" }}>
-          <AnniversaryBanner />
-          <OnThisDay />
-        </div>
-        <OurCalendar />
-        <StreakTracker />
-        <SurpriseMe />
-        <MonthlyRecap />
-      </main>
+      <Suspense fallback={null}>
+        <JournalContent />
+      </Suspense>
     </PasswordGate>
   );
 }

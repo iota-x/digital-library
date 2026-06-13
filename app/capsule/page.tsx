@@ -1,14 +1,11 @@
-import PasswordGate  from "@/components/PasswordGate";
-import TimeCapsule   from "@/components/TimeCapsule";
-import ExportPDF     from "@/components/ExportPDF";
-import Final         from "@/components/Final";
+import PasswordGate from "@/components/PasswordGate";
+import TimeCapsule  from "@/components/TimeCapsule";
 
 export default function CapsulePage() {
   return (
     <PasswordGate>
       <main>
         <TimeCapsule />
-        <ExportPDF />
       </main>
     </PasswordGate>
   );

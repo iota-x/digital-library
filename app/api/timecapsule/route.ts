@@ -43,7 +43,7 @@ export async function GET() {
     const col   = await getCol("capsules");
     const today = new Date().toISOString().slice(0, 10);
     const docs  = await col
-      .find({ unlockDate: { $lte: today } }, { projection: { _id: 1, letter: 1, unlockDate: 1, from: 1, createdAt: 1, emailSent: 1 } })
+      .find({ unlockDate: { $lte: today } }, { projection: { _id: 1, letter: 1, unlockDate: 1, from: 1, createdAt: 1, emailSent: 1, imageUrl: 1 } })
       .sort({ unlockDate: 1 })
       .toArray();
 
@@ -55,7 +55,7 @@ export async function GET() {
       await col.updateMany({ _id: { $in: ids } }, { $set: { emailSent: true } });
     }
 
-    const safe = docs.map(d => ({ ...d, id: d._id.toString(), _id: undefined, emailSent: undefined }));
+    const safe = docs.map(d => ({ ...d, id: d._id.toString(), _id: undefined, emailSent: undefined, imageUrl: d.imageUrl || "" }));
     return NextResponse.json(safe);
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
@@ -65,7 +65,7 @@ export async function GET() {
 // POST — create a new capsule
 export async function POST(req: NextRequest) {
   try {
-    const { letter, unlockDate, from } = await req.json();
+    const { letter, unlockDate, from, imageUrl } = await req.json();
     if (!letter || !unlockDate) return NextResponse.json({ error: "missing fields" }, { status: 400 });
 
     const col = await getCol("capsules");
@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
       letter,
       unlockDate,
       from: from || "",
+      imageUrl: imageUrl || "",
       createdAt: new Date().toISOString(),
       emailSent: false,
     });

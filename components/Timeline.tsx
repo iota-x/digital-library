@@ -282,21 +282,21 @@ export default function Timeline() {
           initial={{ opacity: 0, y: -10 }} animate={headerInView ? { opacity: 1, y: 0 } : {}}
           style={{ fontFamily:"var(--font-caveat)", fontSize:"1rem", color:"var(--pink)", letterSpacing:"0.12em", marginBottom:"0.4rem", textTransform:"uppercase" }}
         >
-          our story, in order
+          before any of this existed
         </motion.p>
         <motion.h2
           initial={{ opacity: 0, y: 20 }} animate={headerInView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.1 }}
           style={{ fontFamily:"var(--font-playfair)", fontSize:"clamp(1.8rem,4vw,2.8rem)", color:"var(--pink-deep)" }}
         >
-          remember when? 💌
+          our story, from the start 💌
         </motion.h2>
         <motion.p
           initial={{ opacity: 0 }} animate={headerInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.25 }}
           style={{ fontFamily:"var(--font-caveat)", fontSize:"1.2rem", color:"var(--muted)", marginTop:"0.4rem" }}
         >
-          every memory matters — tap to read the letter inside
+          moments we remembered & wrote down, long before we made this 🌙
         </motion.p>
       </div>
 
@@ -341,7 +341,7 @@ export default function Timeline() {
           viewport={{ once: true }}
           style={{ fontFamily:"var(--font-caveat)", textAlign:"center", color:"var(--muted)", marginTop:"1rem", fontSize:"1.1rem" }}
         >
-          and we&apos;re still writing it 🩷
+          this is where it all began 🩷
         </motion.p>
       </div>
 

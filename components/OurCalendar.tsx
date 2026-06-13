@@ -594,15 +594,19 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
 }
 
 /* ─── main calendar ─── */
-export default function OurCalendar() {
+export default function OurCalendar({ initialDate }: { initialDate?: string }) {
   const { data: calData, loading } = useCalendarData();
 
   const today = new Date();
-  const [year,       setYear]       = useState(today.getFullYear());
-  const [month,      setMonth]      = useState(today.getMonth());
-  const [selected,   setSelected]   = useState<string | null>(null);
+  const initD = initialDate ? new Date(initialDate + "T12:00:00") : null;
+  const [year,       setYear]       = useState(initD ? initD.getFullYear() : today.getFullYear());
+  const [month,      setMonth]      = useState(initD ? initD.getMonth()    : today.getMonth());
+  const [selected,   setSelected]   = useState<string | null>(initialDate || null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const [flipDir,    setFlipDir]    = useState<"left" | "right" | null>(null);
+
+  const isOnToday = year === today.getFullYear() && month === today.getMonth();
+  const goToToday = () => { setYear(today.getFullYear()); setMonth(today.getMonth()); };
 
   const entries = useMemo(() => {
     const map: Record<string, CalEntry> = {};
@@ -689,6 +693,12 @@ export default function OurCalendar() {
                 <motion.p key={`${year}-${month}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }} style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.2rem,3vw,1.6rem)", color: "#fce7f3", margin: 0, fontWeight: 400 }}>{MONTHS[month]}</motion.p>
               </AnimatePresence>
               <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(252,231,243,.4)", margin: 0 }}>{year}</p>
+              {!isOnToday && (
+                <motion.button onClick={goToToday} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
+                  style={{ marginTop: "0.3rem", padding: "0.18rem 0.7rem", borderRadius: 20, border: "1px solid rgba(249,168,212,.3)", background: "rgba(249,168,212,.12)", color: "rgba(252,231,243,.7)", fontFamily: SANS, fontSize: "0.62rem", cursor: "pointer", letterSpacing: "0.06em" }}>
+                  today
+                </motion.button>
+              )}
             </div>
             <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
           </div>

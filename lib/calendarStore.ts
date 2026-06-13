@@ -17,13 +17,13 @@ const listeners: Set<(data: CalEntry[]) => void> = new Set();
 function readSession(): CalEntry[] | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
 
 function writeSession(data: CalEntry[]) {
-  try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch {}
 }
 
 let _cache: CalEntry[] | null = null;
@@ -72,8 +72,8 @@ function startSSE() {
 /* ─── Background revalidation ───────────────────────────────────────────
    SSE can silently drop (serverless hosts kill long-lived connections,
    tab was backgrounded, phone slept, etc). Without this, a stale
-   sessionStorage snapshot or a missed SSE event means one device never
-   sees another device's changes until sessionStorage is cleared.
+   localStorage snapshot or a missed SSE event means one device never
+   sees another device's changes until localStorage is cleared.
    This fetches fresh data, diffs it against cache, and notifies listeners
    only if something actually changed — silent, no loading spinner.
    ──────────────────────────────────────────────────────────────────────── */
@@ -128,7 +128,7 @@ export function invalidateCalendarCache() {
   _inflight = null;
   _sseSource?.close();
   _sseSource = null;
-  try { sessionStorage.removeItem(SESSION_KEY); } catch {}
+  try { localStorage.removeItem(SESSION_KEY); } catch {}
 }
 
 export function updateCalendarCache(entry: CalEntry) {
