@@ -49,6 +49,29 @@ body {
 ::-webkit-scrollbar-track { background: var(--pink-light); }
 ::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 10px; }
 
+/* ── Mobile safety net ──────────────────────────────────────────── */
+/* Prevent any element from causing horizontal scroll */
+img, video, canvas, iframe { max-width: 100%; display: block; }
+
+@media (max-width: 640px) {
+  /* Bottom-sheet modals slide from bottom */
+  .mobile-sheet {
+    position: fixed !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    top: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92dvh !important;
+    overflow-y: auto !important;
+  }
+  /* Book reader in Final.tsx — hide arrows, full width */
+  .book-nav-row { flex-direction: column !important; gap: 1rem !important; }
+  .book-arrows  { display: none !important; }
+  /* Memory cards modal — reduce padding */
+  .memory-modal { padding: 2rem 1.4rem !important; }
+  /* Polaroid stack — slightly smaller on tiny screens */
+  .polaroid-stack-wrap { width: min(260px, 78vw) !important; }
+}
+
 /* ── OurCalendar perf-optimized CSS ─────────────────────────────── */
 /* Calendar day cells — CSS hover instead of 35+ motion.button listeners */
 .occ-day {

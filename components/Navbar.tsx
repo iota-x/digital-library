@@ -9,6 +9,7 @@ const ROUTES = [
   { href: "/timeline", label: "timeline",  emoji: "🕰️" },
   { href: "/journal",  label: "journal",   emoji: "📖" },
   { href: "/capsule",  label: "capsule",   emoji: "💌" },
+  { href: "/shared",   label: "shared",    emoji: "🎬" },
 ];
 
 export default function Navbar() {
