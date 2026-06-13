@@ -402,7 +402,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete }: {
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
         onClick={onClose}
-        style={{ position: "fixed", inset: 0, zIndex: 3000, background: "rgba(6,1,4,.82)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+        style={{ position: "fixed", inset: 0, zIndex: 3000, background: "rgba(6,1,4,.88)" }}
       />
 
       <motion.div
@@ -637,24 +637,20 @@ export default function OurCalendar() {
   return (
     <section id="calendar" style={{ position: "relative", width: "100%", minHeight: "100vh", padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)", background: "linear-gradient(180deg,#fff0f5 0%,#fde8f2 30%,#fad0e8 60%,#f0a8cc 85%,#c9447a 100%)", overflow: "hidden" }}>
       {DECO_SYMS.map((sym, i) => (
-        <motion.span key={i}
-          animate={{ y: [-12, 12, -12], opacity: [0.12, 0.28, 0.12], rotate: [-10, 10, -10] }}
-          transition={{ repeat: Infinity, duration: 4 + i * 1.2, delay: i * 0.8, ease: "easeInOut" }}
-          style={{ position: "absolute", left: `${8 + i * 18}%`, top: `${DECO_TOPS[i]}%`, fontSize: `${DECO_SIZES[i]}rem`, pointerEvents: "none", userSelect: "none", zIndex: 0 }}>
+        <span key={i} className="occ-deco"
+          style={{ left: `${8 + i * 18}%`, top: `${DECO_TOPS[i]}%`, fontSize: `${DECO_SIZES[i]}rem`, "--occ-dur": `${4 + i * 1.2}s`, "--occ-del": `${i * 0.8}s` } as React.CSSProperties}>
           {sym}
-        </motion.span>
+        </span>
       ))}
       {ORBS.map((o, i) => (
-        <motion.div key={i}
-          style={{ position: "absolute", left: o.l, top: o.t, width: "clamp(200px,28vw,360px)", height: "clamp(200px,28vw,360px)", borderRadius: "50%", background: o.c, filter: "blur(65px)", pointerEvents: "none", zIndex: 0 }}
-          animate={{ scale: [1, 1.18, 1], opacity: [0.5, 0.85, 0.5] }}
-          transition={{ repeat: Infinity, duration: 6 + i * 2, ease: "easeInOut" }} />
+        <div key={i}
+          style={{ position: "absolute", left: o.l, top: o.t, width: "clamp(200px,28vw,360px)", height: "clamp(200px,28vw,360px)", borderRadius: "50%", background: o.c, filter: "blur(50px)", pointerEvents: "none", zIndex: 0, opacity: 0.7 }} />
       ))}
 
       <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} style={{ textAlign: "center", marginBottom: "clamp(2rem,4vw,3.5rem)", position: "relative", zIndex: 2 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "1rem" }}>
           <div style={{ width: 60, height: 1, background: "linear-gradient(90deg,transparent,rgba(190,24,93,.4))" }} />
-          <motion.span style={{ fontSize: "1.8rem", filter: "drop-shadow(0 0 8px rgba(190,24,93,.3))" }} animate={{ scale: [1, 1.2, 1], rotate: [-5, 5, -5] }} transition={{ repeat: Infinity, duration: 2.5 }}>💗</motion.span>
+          <span className="occ-heart">💗</span>
           <div style={{ width: 60, height: 1, background: "linear-gradient(90deg,rgba(190,24,93,.4),transparent)" }} />
         </div>
         <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(2rem,5vw,3rem)", color: "#9d174d", margin: "0 0 0.5rem", fontWeight: 400, textShadow: "0 2px 16px rgba(190,24,93,.15)" }}>our days together</h2>
@@ -671,7 +667,7 @@ export default function OurCalendar() {
 
       <div style={{ position: "relative", zIndex: 2, maxWidth: 780, margin: "0 auto" }}>
         <motion.div animate={{ rotateY: flipDir === "right" ? -12 : flipDir === "left" ? 12 : 0, scale: flipDir ? 0.97 : 1, opacity: flipDir ? 0.6 : 1 }} transition={{ duration: 0.24, ease: "easeInOut" }}
-          style={{ background: "rgba(255,255,255,.88)", backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "0 16px 70px rgba(190,24,93,.18),0 4px 16px rgba(0,0,0,.06),inset 0 0 0 1.5px rgba(249,168,212,.4)" }}>
+          style={{ background: "rgba(255,255,255,.96)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "0 16px 70px rgba(190,24,93,.18),0 4px 16px rgba(0,0,0,.06),inset 0 0 0 1.5px rgba(249,168,212,.4)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.2rem 1.6rem", background: "linear-gradient(135deg,#2d0f1e,#4a1628)", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, pointerEvents: "none", opacity: 0.5 }} />
             <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
@@ -701,15 +697,15 @@ export default function OurCalendar() {
                 const hasVideo  = hasMedia && entry.photos!.some(isVideoSrc);
                 const inOurTime = new Date(key + "T12:00:00") >= START;
                 return (
-                  <motion.button key={key} onClick={e => openDay(key, e)} whileHover={{ scale: 1.18, zIndex: 5 }} whileTap={{ scale: 0.88 }}
-                    style={{ position: "relative", aspectRatio: "1", border: "none", borderRadius: 12, cursor: "pointer", background: isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent", boxShadow: isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none", outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, padding: "4px", transition: "background 0.2s" }}>
+                  <button key={key} onClick={e => openDay(key, e)} className="occ-day"
+                    style={{ background: isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent", boxShadow: isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none", outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1 }}>
                     <span style={{ fontFamily: SANS, fontSize: "clamp(0.82rem,2.2vw,1rem)", color: isSpecial ? "#fff" : isToday ? "#9d174d" : inOurTime ? "#9d3f68" : "#c4a0b0", fontWeight: isToday || isSpecial ? 700 : inOurTime ? 500 : 400, lineHeight: 1 }}>{day}</span>
                     {entry?.mood && <span style={{ fontSize: "clamp(0.45rem,1.2vw,0.58rem)", lineHeight: 1 }}>{entry.mood}</span>}
                     {isSpecial && !entry?.mood && <span style={{ fontSize: "0.48rem", lineHeight: 1 }}>⭐</span>}
                     {hasVideo  && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>🎬</span>}
                     {hasMedia  && !hasVideo && !isSpecial && !entry?.mood && <span style={{ fontSize: "0.45rem", lineHeight: 1 }}>📸</span>}
                     {hasNote   && !hasMedia && !isSpecial && !entry?.mood && <div style={{ width: 3, height: 3, borderRadius: "50%", background: "#f472b6" }} />}
-                  </motion.button>
+                  </button>
                 );
               })}
             </motion.div>

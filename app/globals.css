@@ -48,3 +48,50 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--pink-light); }
 ::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 10px; }
+
+/* ── OurCalendar perf-optimized CSS ─────────────────────────────── */
+/* Calendar day cells — CSS hover instead of 35+ motion.button listeners */
+.occ-day {
+  position: relative;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+@media (hover: hover) {
+  .occ-day:hover { transform: scale(1.18); z-index: 5; }
+}
+.occ-day:active { transform: scale(0.88); }
+
+/* Floating decoration hearts — CSS animation runs on compositor thread */
+.occ-deco {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  animation: occ-float var(--occ-dur, 4s) ease-in-out infinite;
+  animation-delay: var(--occ-del, 0s);
+}
+@keyframes occ-float {
+  0%, 100% { transform: translateY(-12px) rotate(-10deg); opacity: 0.12; }
+  50%       { transform: translateY(12px)  rotate(10deg);  opacity: 0.28; }
+}
+
+/* Pulsing header heart */
+.occ-heart {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 8px rgba(190,24,93,.3));
+  display: inline-block;
+  animation: occ-heartbeat 2.5s ease-in-out infinite;
+}
+@keyframes occ-heartbeat {
+  0%, 100% { transform: scale(1) rotate(-5deg); }
+  50%       { transform: scale(1.2) rotate(5deg); }
+}
