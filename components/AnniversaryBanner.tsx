@@ -65,12 +65,9 @@ export default function AnniversaryBanner() {
         ))}
 
         <div style={{display:"flex",alignItems:"center",gap:"1rem",flexWrap:"wrap",position:"relative",zIndex:1}}>
-          <motion.span
-            animate={{scale:[1,1.25,1],rotate:[-8,8,-8]}}
-            transition={{repeat:Infinity,duration:1.8}}
-            style={{fontSize:"2rem",flexShrink:0}}>
+          <span className="occ-icon-bounce" style={{fontSize:"2rem",flexShrink:0,"--occ-dur":"1.8s"} as React.CSSProperties}>
             {isToday?"🎉":"💗"}
-          </motion.span>
+          </span>
           <div style={{flex:1}}>
             {isToday?(
               <>

@@ -10,13 +10,9 @@ const COLORS = ["#f9a8d4","#fbcfe8","#fce7f3","#f472b6","#ec4899","#fda4af","#ff
 
 function Petal({ delay, left, size, dur, symbol }: Omit<PetalData,"id">) {
   return (
-    <motion.div
-      style={{ position:"absolute", left, fontSize:size, top:-50, pointerEvents:"none", userSelect:"none", zIndex:1 }}
-      animate={{ y:"115vh", rotate:720, opacity:[0,0.9,0.6,0] }}
-      transition={{ duration:dur, delay, repeat:Infinity, ease:"linear" }}
-    >
+    <div className="occ-petal" style={{ left, fontSize:size, zIndex:1, "--occ-dur":`${dur}s`, "--occ-del":`${delay}s` } as React.CSSProperties}>
       {symbol}
-    </motion.div>
+    </div>
   );
 }
 
@@ -35,25 +31,30 @@ function StardustCanvas() {
       life: Math.random()*300, maxLife: 250+Math.random()*250,
     }));
     let raf: number;
+    let visible = true;
     const tick = () => {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      dots.forEach(d => {
-        d.x+=d.vx; d.y+=d.vy; d.life++;
-        const alpha = Math.sin((d.life/d.maxLife)*Math.PI)*0.75;
-        ctx.save(); ctx.globalAlpha=Math.max(0,alpha); ctx.fillStyle=d.color;
-        ctx.shadowBlur=10; ctx.shadowColor=d.color;
-        ctx.beginPath(); ctx.arc(d.x,d.y,d.size,0,Math.PI*2); ctx.fill(); ctx.restore();
-        if (d.life>=d.maxLife||d.y<-10) {
-          d.x=Math.random()*canvas.width; d.y=canvas.height+10; d.life=0;
-          d.maxLife=250+Math.random()*250; d.vy=-Math.random()*0.5-0.15;
-          d.vx=(Math.random()-0.5)*0.35; d.size=Math.random()*2.5+0.5;
-          d.color=COLORS[Math.floor(Math.random()*COLORS.length)];
-        }
-      });
+      if (visible) {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        dots.forEach(d => {
+          d.x+=d.vx; d.y+=d.vy; d.life++;
+          const alpha = Math.sin((d.life/d.maxLife)*Math.PI)*0.75;
+          ctx.save(); ctx.globalAlpha=Math.max(0,alpha); ctx.fillStyle=d.color;
+          ctx.shadowBlur=10; ctx.shadowColor=d.color;
+          ctx.beginPath(); ctx.arc(d.x,d.y,d.size,0,Math.PI*2); ctx.fill(); ctx.restore();
+          if (d.life>=d.maxLife||d.y<-10) {
+            d.x=Math.random()*canvas.width; d.y=canvas.height+10; d.life=0;
+            d.maxLife=250+Math.random()*250; d.vy=-Math.random()*0.5-0.15;
+            d.vx=(Math.random()-0.5)*0.35; d.size=Math.random()*2.5+0.5;
+            d.color=COLORS[Math.floor(Math.random()*COLORS.length)];
+          }
+        });
+      }
       raf=requestAnimationFrame(tick);
     };
     tick();
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize",resize); };
+    const obs = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
+    obs.observe(canvas);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize",resize); obs.disconnect(); };
   },[]);
   return <canvas ref={canvasRef} style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:1 }} />;
 }

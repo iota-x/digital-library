@@ -95,3 +95,52 @@ body {
   0%, 100% { transform: scale(1) rotate(-5deg); }
   50%       { transform: scale(1.2) rotate(5deg); }
 }
+
+/* ── Twinkling stars — replaces 57 Framer Motion elements in SurpriseMe + MonthlyRecap */
+.occ-star {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: occ-twinkle var(--occ-dur, 3s) ease-in-out infinite;
+  animation-delay: var(--occ-del, 0s);
+}
+@keyframes occ-twinkle {
+  0%, 100% { opacity: 0.04; transform: scale(0.8); }
+  50%       { opacity: 0.48; transform: scale(1.2); }
+}
+
+/* ── Falling petals / floaters — replaces 37 Framer Motion elements in Polaroids + LiveTimer */
+.occ-petal {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  top: -60px;
+  animation: occ-fall var(--occ-dur, 10s) linear infinite;
+  animation-delay: var(--occ-del, 0s);
+}
+@keyframes occ-fall {
+  0%   { transform: translateY(0) rotate(0deg);       opacity: 0; }
+  8%   { opacity: 0.9; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(115vh) rotate(720deg); opacity: 0; }
+}
+
+/* ── Section header icons — replaces individual motion.span animations */
+.occ-icon-bounce {
+  display: inline-block;
+  animation: occ-icon-bounce var(--occ-dur, 2.5s) ease-in-out infinite;
+}
+@keyframes occ-icon-bounce {
+  0%, 100% { transform: scale(1)    rotate(-5deg); }
+  50%       { transform: scale(1.2)  rotate(5deg);  }
+}
+
+.occ-fire-icon {
+  display: inline-block;
+  animation: occ-fire 1.8s ease-in-out infinite;
+  filter: var(--occ-glow, none);
+}
+@keyframes occ-fire {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.28); }
+}

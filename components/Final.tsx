@@ -43,20 +43,25 @@ function Stars() {
       r: Math.random() * 1.5 + 0.4, a: Math.random(), da: (Math.random() - 0.5) * 0.013,
     }));
     let raf: number;
+    let visible = true;
     const draw = () => {
-      ctx.clearRect(0, 0, c.width, c.height);
-      pts.forEach(p => {
-        p.a = Math.max(0.1, Math.min(1, p.a + p.da));
-        if (p.a <= 0.1 || p.a >= 1) p.da *= -1;
-        ctx.beginPath();
-        ctx.arc(p.x * c.width, p.y * c.height, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(244,114,182,${p.a * 0.6})`;
-        ctx.shadowBlur = 5; ctx.shadowColor = "#f9a8d4"; ctx.fill();
-      });
+      if (visible) {
+        ctx.clearRect(0, 0, c.width, c.height);
+        pts.forEach(p => {
+          p.a = Math.max(0.1, Math.min(1, p.a + p.da));
+          if (p.a <= 0.1 || p.a >= 1) p.da *= -1;
+          ctx.beginPath();
+          ctx.arc(p.x * c.width, p.y * c.height, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(244,114,182,${p.a * 0.6})`;
+          ctx.shadowBlur = 5; ctx.shadowColor = "#f9a8d4"; ctx.fill();
+        });
+      }
       raf = requestAnimationFrame(draw);
     };
     draw();
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    const obs = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
+    obs.observe(c);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); obs.disconnect(); };
   }, []);
   return <canvas ref={ref} style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", zIndex:0 }} />;
 }
@@ -572,14 +577,11 @@ export default function Final() {
           {l:"70%", t:"8%",  w:200, c:"rgba(253,186,213,.14)"},
           {l:"62%", t:"68%", w:240, c:"rgba(244,114,182,.10)"},
         ].map((o,i) => (
-          <motion.div key={i} style={{
+          <div key={i} style={{
             position:"absolute", left:o.l, top:o.t,
             width:o.w, height:o.w, borderRadius:"50%",
-            background:o.c, filter:"blur(50px)", pointerEvents:"none", zIndex:0,
-          }}
-            animate={{ scale:[1,1.3,1], opacity:[0.5,1,0.5] }}
-            transition={{ repeat:Infinity, duration:5+i*1.5, delay:i*1.2, ease:"easeInOut" }}
-          />
+            background:o.c, filter:"blur(50px)", pointerEvents:"none", zIndex:0, opacity:0.7,
+          }} />
         ))}
 
         {/* header */}

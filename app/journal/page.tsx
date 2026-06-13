@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { fetchCalendarData } from "@/lib/calendarStore";
 import PasswordGate      from "@/components/PasswordGate";
+import JournalHeader     from "@/components/JournalHeader";
 import AnniversaryBanner from "@/components/AnniversaryBanner";
 import OnThisDay         from "@/components/OnThisDay";
 import OurCalendar       from "@/components/OurCalendar";
@@ -17,7 +18,8 @@ export default function JournalPage() {
   return (
     <PasswordGate>
       <main>
-        <div style={{ padding:"2rem clamp(1rem,3vw,2rem) 0" }}>
+        <JournalHeader />
+        <div style={{ padding: "2rem clamp(1rem,3vw,2rem) 0" }}>
           <AnniversaryBanner />
           <OnThisDay />
         </div>
@@ -25,6 +27,7 @@ export default function JournalPage() {
         <StreakTracker />
         <SurpriseMe />
         <MonthlyRecap />
+        <Final />
       </main>
     </PasswordGate>
   );

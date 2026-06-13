@@ -11,6 +11,13 @@ const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Sat
 const START  = new Date("2026-03-11");
 function dayNum(key:string){ return Math.floor((new Date(key+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
 
+/* ── Pre-computed star positions — stable, no Math.random() in JSX ── */
+const STARS = Array.from({length:22},(_,i)=>({
+  left:`${(i*4.7+2.3)%100}%`, top:`${(i*7.3+5.1)%100}%`,
+  size: i%5===0?2.5:1.5,
+  dur:`${2+(i*0.31)%3}s`, del:`${(i*0.23)%5}s`,
+}));
+
 /* ── Palette slot 3: #61063B → #4E0535 — deep plum ── */
 const BG   = "linear-gradient(180deg,#61063b 0%,#4e0535 55%,#3b032f 100%)";
 const ACC  = "#f9a8d4";
@@ -44,23 +51,18 @@ export default function SurpriseMe() {
   const dn = shown?dayNum(shown.date):null;
 
   return (
-    <section style={{
+    <section id="surprise" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
       background:BG, overflow:"hidden",
     }}>
-      {/* Twinkling stars */}
-      {Array.from({length:22},(_,i)=>(
-        <motion.div key={i}
-          animate={{opacity:[0.05,0.45,0.05],scale:[0.8,1.2,0.8]}}
-          transition={{repeat:Infinity,duration:2+Math.random()*3,delay:Math.random()*5}}
-          style={{
-            position:"absolute",left:`${Math.random()*100}%`,top:`${Math.random()*100}%`,
-            width:Math.random()>0.8?2.5:1.5,height:Math.random()>0.8?2.5:1.5,
-            borderRadius:"50%",background:ACC,boxShadow:`0 0 5px ${ACC}`,
-            pointerEvents:"none",
-          }}/>
+      {/* Twinkling stars — CSS animation, no JS */}
+      {STARS.map((s,i)=>(
+        <div key={i} className="occ-star"
+          style={{ left:s.left, top:s.top, width:s.size, height:s.size,
+            background:ACC, boxShadow:`0 0 5px ${ACC}`,
+            "--occ-dur":s.dur, "--occ-del":s.del } as React.CSSProperties}/>
       ))}
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
@@ -69,8 +71,7 @@ export default function SurpriseMe() {
         {/* Header */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1rem"}}>
           <div style={{width:55,height:1,background:`linear-gradient(90deg,transparent,${ACC}55)`}}/>
-          <motion.span style={{fontSize:"1.8rem",filter:`drop-shadow(0 0 10px ${ACC}88)`}}
-            animate={{rotate:[0,20,-20,0],scale:[1,1.18,1]}} transition={{repeat:Infinity,duration:3.5}}>✨</motion.span>
+          <span className="occ-icon-bounce" style={{fontSize:"1.8rem",filter:`drop-shadow(0 0 10px ${ACC}88)`, "--occ-dur":"3.5s"} as React.CSSProperties}>✨</span>
           <div style={{width:55,height:1,background:`linear-gradient(90deg,${ACC}55,transparent)`}}/>
         </div>
         <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.8rem,5vw,2.8rem)",color:SOFT,margin:"0 0 0.5rem",fontWeight:400}}>
@@ -85,7 +86,7 @@ export default function SurpriseMe() {
           whileHover={{scale:1.06,y:-5}} whileTap={{scale:0.95}}
           style={{
             padding:"1.2rem 3.5rem",borderRadius:50,border:`1px solid ${ACC}55`,cursor:"pointer",
-            background:"rgba(0,0,0,.25)",backdropFilter:"blur(10px)",
+            background:"rgba(0,0,0,.35)",
             color:SOFT,fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1rem,2.5vw,1.25rem)",
             boxShadow:`0 0 40px ${ACC}22,0 4px 16px rgba(0,0,0,.3)`,
             marginBottom:"2.5rem",
@@ -102,9 +103,8 @@ export default function SurpriseMe() {
               initial={{opacity:0,y:28,scale:0.96}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-16}}
               transition={{type:"spring",stiffness:200,damping:24}}
               style={{
-                background:"rgba(255,255,255,.07)",
+                background:"rgba(255,255,255,.09)",
                 border:`1px solid ${ACC}33`,borderRadius:24,overflow:"hidden",textAlign:"left",
-                backdropFilter:"blur(16px)",
                 boxShadow:`0 24px 70px rgba(0,0,0,.5),0 0 0 1px ${ACC}18,0 0 40px ${ACC}08`,
               }}>
               {(shown.photos?.length??0)>0&&(

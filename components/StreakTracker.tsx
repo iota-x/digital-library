@@ -44,7 +44,7 @@ export default function StreakTracker() {
   const progress      = Math.min((streak/nextMilestone)*100,100);
 
   return (
-    <section style={{
+    <section id="streak" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
@@ -76,8 +76,7 @@ export default function StreakTracker() {
         {/* Header */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1rem"}}>
           <div style={{width:55,height:1,background:`linear-gradient(90deg,transparent,${ACC}44)`}}/>
-          <motion.span style={{fontSize:"2rem",filter:`drop-shadow(0 0 12px ${ACC}88)`}}
-            animate={{scale:[1,1.28,1]}} transition={{repeat:Infinity,duration:1.8}}>🔥</motion.span>
+          <span className="occ-fire-icon" style={{fontSize:"2rem","--occ-glow":`drop-shadow(0 0 12px ${ACC}88)`} as React.CSSProperties}>🔥</span>
           <div style={{width:55,height:1,background:`linear-gradient(90deg,${ACC}44,transparent)`}}/>
         </div>
         <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.8rem,5vw,2.8rem)",color:ACC,margin:"0 0 0.5rem",fontWeight:400,textShadow:`0 2px 20px ${GLOW}`}}>
@@ -90,8 +89,7 @@ export default function StreakTracker() {
         </p>
 
         {/* Big number */}
-        <motion.div animate={{scale:[1,1.03,1]}} transition={{repeat:Infinity,duration:3.5,ease:"easeInOut"}}
-          style={{
+        <div style={{
             display:"inline-flex",flexDirection:"column",alignItems:"center",
             background:"rgba(0,0,0,.2)",
             border:`1px solid ${ACC}30`,
@@ -100,16 +98,13 @@ export default function StreakTracker() {
             position:"relative",overflow:"hidden",
           }}>
           <div style={{position:"absolute",inset:0,background:`radial-gradient(circle at 50% 30%,${GLOW} 0%,transparent 65%)`,pointerEvents:"none"}}/>
-          <motion.span
-            style={{fontFamily:SERIF,fontSize:"clamp(4.5rem,14vw,8rem)",color:ACC,lineHeight:1,fontWeight:700,textShadow:`0 0 50px ${ACC}55`,position:"relative",zIndex:1}}
-            animate={streak>0?{textShadow:[`0 0 30px ${ACC}44`,`0 0 60px ${ACC}99`,`0 0 30px ${ACC}44`]}:{}}
-            transition={{repeat:Infinity,duration:2}}>
+          <span style={{fontFamily:SERIF,fontSize:"clamp(4.5rem,14vw,8rem)",color:ACC,lineHeight:1,fontWeight:700,textShadow:`0 0 50px ${ACC}55`,position:"relative",zIndex:1}}>
             {streak}
-          </motion.span>
+          </span>
           <span style={{fontFamily:SANS,fontSize:"0.8rem",color:`${ACC}77`,letterSpacing:"0.22em",textTransform:"uppercase",marginTop:"0.5rem",position:"relative",zIndex:1}}>
             day{streak!==1?"s":""} in a row
           </span>
-        </motion.div>
+        </div>
 
         {/* Progress */}
         <div style={{marginBottom:"2rem"}}>

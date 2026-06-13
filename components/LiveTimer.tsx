@@ -35,8 +35,7 @@ function CounterBox({ label, value, delay, inView }: { label:string; value:numbe
       <div style={{
         position:"relative", width:"clamp(90px,16vw,130px)", height:"clamp(90px,16vw,130px)",
         borderRadius:20,
-        background:"rgba(255,255,255,0.7)",
-        backdropFilter:"blur(12px)",
+        background:"rgba(255,255,255,0.92)",
         border:"2px solid rgba(249,168,212,0.6)",
         boxShadow:"0 8px 32px rgba(244,114,182,.18), inset 0 1px 0 rgba(255,255,255,.9)",
         display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
@@ -76,16 +75,12 @@ function CounterBox({ label, value, delay, inView }: { label:string; value:numbe
   );
 }
 
-/* ── floating tulip / petal ── */
+/* ── floating tulip / petal — CSS animation (no JS per frame) ── */
 function FloatingEl({ emoji, x, delay, dur, size }: { emoji:string; x:string; delay:number; dur:number; size:number }) {
   return (
-    <motion.div
-      style={{ position:"absolute", left:x, top:-60, fontSize:size, pointerEvents:"none", userSelect:"none", zIndex:1 }}
-      animate={{ y:"110vh", rotate:[0, 25, -15, 20, 0], opacity:[0, 0.9, 0.8, 0.5, 0] }}
-      transition={{ duration:dur, delay, repeat:Infinity, ease:"linear" }}
-    >
+    <div className="occ-petal" style={{ left:x, fontSize:size, zIndex:1, "--occ-dur":`${dur}s`, "--occ-del":`${delay}s` } as React.CSSProperties}>
       {emoji}
-    </motion.div>
+    </div>
   );
 }
 
@@ -137,12 +132,8 @@ export default function LiveTimer() {
       {/* falling tulips & petals */}
       {FLOATERS.map((f,i) => <FloatingEl key={i} {...f} />)}
 
-      {/* giant faint tulip watermark */}
-      <motion.div
-        style={{ position:"absolute", fontSize:"55vw", opacity:0.03, pointerEvents:"none", userSelect:"none", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:0 }}
-        animate={{ rotate:[0,5,0,-5,0] }}
-        transition={{ repeat:Infinity, duration:14, ease:"easeInOut" }}
-      >🌷</motion.div>
+      {/* giant faint tulip watermark — static */}
+      <div style={{ position:"absolute", fontSize:"55vw", opacity:0.03, pointerEvents:"none", userSelect:"none", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:0 }}>🌷</div>
 
       {/* floating sticky side notes — hidden on small screens */}
       {SIDE_NOTES.map((n,i) => (
@@ -154,7 +145,6 @@ export default function LiveTimer() {
           style={{
             position:"absolute", ...n.pos,
             background:"rgba(255,255,255,0.75)",
-            backdropFilter:"blur(8px)",
             border:"1.5px solid #f9a8d4",
             borderRadius:14,
             padding:"0.6rem 1rem",
@@ -227,19 +217,18 @@ export default function LiveTimer() {
           transition={{ duration:0.7, delay:0.9 }}
           style={{
             display:"inline-flex", alignItems:"center", gap:"0.8rem",
-            background:"rgba(255,255,255,.7)",
-            backdropFilter:"blur(10px)",
+            background:"rgba(255,255,255,.9)",
             border:"1.5px solid #f9a8d4",
             borderRadius:50,
             padding:"0.7rem 1.8rem",
             boxShadow:"0 4px 20px rgba(244,114,182,.15)",
           }}
         >
-          <motion.span animate={{ scale:[1,1.25,1] }} transition={{ repeat:Infinity, duration:1.4, ease:"easeInOut" }}>💗</motion.span>
+          <span className="occ-heart" style={{ fontSize:"1rem" }}>💗</span>
           <span style={{ fontFamily:"var(--font-caveat)", fontSize:"1.3rem", color:"var(--pink-deep)" }}>
             …and still counting... You make me the happiest frfr
           </span>
-          <motion.span animate={{ scale:[1,1.25,1] }} transition={{ repeat:Infinity, duration:1.4, ease:"easeInOut", delay:0.7 }}>💗</motion.span>
+          <span className="occ-heart" style={{ fontSize:"1rem", animationDelay:"0.7s" }}>💗</span>
         </motion.div>
 
         {/* little love stat pills */}
@@ -268,7 +257,6 @@ export default function LiveTimer() {
                 border:"1.5px solid #f9a8d4",
                 borderRadius:50,
                 padding:"0.35rem 1rem",
-                backdropFilter:"blur(6px)",
               }}
             >
               {pill}

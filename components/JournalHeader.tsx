@@ -1,0 +1,106 @@
+"use client";
+import { useMemo } from "react";
+import { useCalendarData } from "@/lib/calendarStore";
+
+const START = new Date("2026-03-11");
+const SERIF  = `"Georgia","Times New Roman",serif`;
+const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
+const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
+
+const SECTIONS = [
+  { label: "calendar", emoji: "📅", href: "#calendar" },
+  { label: "streak",   emoji: "🔥", href: "#streak"   },
+  { label: "surprise", emoji: "✨", href: "#surprise"  },
+  { label: "recap",    emoji: "📖", href: "#recap"     },
+];
+
+export default function JournalHeader() {
+  const { data } = useCalendarData();
+
+  const stats = useMemo(() => {
+    const today = new Date();
+    const dayNum = Math.floor((today.getTime() - START.getTime()) / 86400000) + 1;
+    const entries = data.filter(e => e.note || (e.photos?.length ?? 0) > 0);
+    const total   = entries.length;
+    const special = data.filter(e => e.special).length;
+    const dates   = new Set(entries.map(e => e.date));
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+      if (dates.has(k)) streak++;
+      else if (i > 0) break;
+    }
+    return { dayNum, total, special, streak };
+  }, [data]);
+
+  return (
+    <div style={{
+      padding: "2.5rem clamp(1rem,3vw,2rem) 1.5rem",
+      background: "linear-gradient(180deg,#fff5f9 0%,#fde8f2 100%)",
+      borderBottom: "1px solid rgba(249,168,212,.18)",
+    }}>
+      {/* Title */}
+      <div style={{ textAlign: "center", marginBottom: "1.4rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.7rem" }}>
+          <div style={{ width: 48, height: 1, background: "linear-gradient(90deg,transparent,rgba(190,24,93,.3))" }} />
+          <span className="occ-heart" style={{ fontSize: "1.5rem" }}>💗</span>
+          <div style={{ width: 48, height: 1, background: "linear-gradient(90deg,rgba(190,24,93,.3),transparent)" }} />
+        </div>
+        <h1 style={{
+          fontFamily: SERIF, fontStyle: "italic",
+          fontSize: "clamp(2rem,5vw,2.8rem)",
+          color: "#9d174d", margin: "0 0 0.3rem", fontWeight: 400,
+          textShadow: "0 2px 16px rgba(190,24,93,.12)",
+        }}>
+          our journal
+        </h1>
+        <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,2.5vw,1.2rem)", color: "rgba(157,23,77,.5)", margin: 0 }}>
+          day {stats.dayNum} of us 🌸
+        </p>
+      </div>
+
+      {/* Stats chips */}
+      <div style={{ display: "flex", gap: "0.55rem", justifyContent: "center", flexWrap: "wrap", marginBottom: "1.2rem" }}>
+        {[
+          { e: "📖", v: stats.total,   l: "memories"  },
+          { e: "⭐", v: stats.special, l: "special"   },
+          { e: "🔥", v: stats.streak,  l: "day streak" },
+        ].map((s, i) => (
+          <div key={i} style={{
+            background: "rgba(255,255,255,.8)",
+            border: "1px solid rgba(190,24,93,.18)",
+            borderRadius: 24, padding: "0.45rem 1.1rem",
+            display: "flex", alignItems: "center", gap: "0.45rem",
+            fontFamily: SANS, fontSize: "0.84rem", color: "#9d174d",
+            boxShadow: "0 2px 10px rgba(190,24,93,.07)",
+          }}>
+            <span>{s.e}</span>
+            <span style={{ fontWeight: 700 }}>{s.v}</span>
+            <span style={{ opacity: 0.58 }}>{s.l}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Section quick-nav */}
+      <div style={{ display: "flex", gap: "0.45rem", justifyContent: "center", flexWrap: "wrap" }}>
+        {SECTIONS.map(s => (
+          <a key={s.href} href={s.href} style={{ textDecoration: "none" }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: "0.38rem",
+              padding: "0.32rem 0.85rem", borderRadius: 20,
+              background: "rgba(255,255,255,.65)",
+              border: "1px solid rgba(190,24,93,.14)",
+              fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,.65)",
+              cursor: "pointer",
+            }}>
+              <span style={{ fontSize: "0.85rem" }}>{s.emoji}</span>
+              <span>{s.label}</span>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}

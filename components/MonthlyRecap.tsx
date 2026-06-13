@@ -12,6 +12,13 @@ const MOOD_LABELS: Record<string,string> = {
   "💗":"loved","✨":"sparkling","🎮":"gaming","🌷":"peaceful","😴":"sleepy","🤭":"giggly","💫":"dreamy",
 };
 
+/* ── Pre-computed star positions — stable, no Math.random() in JSX ── */
+const STARS = Array.from({length:35},(_,i)=>({
+  left:`${(i*2.9+1.7)%100}%`, top:`${(i*5.3+3.8)%100}%`,
+  size: i%5===0?2:1.2,
+  dur:`${2+(i*0.14)%4}s`, del:`${(i*0.14)%5}s`,
+}));
+
 /* ── Palette slot 4: #4E0535 → #3B032F — darkest, end of scroll ── */
 const BG   = "linear-gradient(180deg,#4e0535 0%,#3b032f 60%,#1a0812 100%)";
 const ACC  = "#e879f9";
@@ -46,23 +53,18 @@ export default function MonthlyRecap() {
   const isEmpty = monthEntries.length===0;
 
   return (
-    <section style={{
+    <section id="recap" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
       background:BG, overflow:"hidden",
     }}>
-      {/* Star field */}
-      {Array.from({length:35},(_,i)=>(
-        <motion.div key={i}
-          animate={{opacity:[0.04,0.5,0.04]}}
-          transition={{repeat:Infinity,duration:2+Math.random()*4,delay:Math.random()*5}}
-          style={{
-            position:"absolute",left:`${Math.random()*100}%`,top:`${Math.random()*100}%`,
-            width:Math.random()>0.8?2:1.2,height:Math.random()>0.8?2:1.2,
-            borderRadius:"50%",background:ACC,pointerEvents:"none",
-            boxShadow:`0 0 3px ${ACC}`,
-          }}/>
+      {/* Star field — CSS animation, no JS */}
+      {STARS.map((s,i)=>(
+        <div key={i} className="occ-star"
+          style={{ left:s.left, top:s.top, width:s.size, height:s.size,
+            background:ACC, boxShadow:`0 0 3px ${ACC}`,
+            "--occ-dur":s.dur, "--occ-del":s.del } as React.CSSProperties}/>
       ))}
       {/* Radial glow */}
       <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:"70%",height:"50%",borderRadius:"50%",background:`${ACC}06`,filter:"blur(80px)",pointerEvents:"none"}}/>
@@ -74,8 +76,7 @@ export default function MonthlyRecap() {
         <div style={{textAlign:"center",marginBottom:"2.5rem"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1rem"}}>
             <div style={{width:55,height:1,background:`linear-gradient(90deg,transparent,${ACC}55)`}}/>
-            <motion.span style={{fontSize:"1.8rem",filter:`drop-shadow(0 0 10px ${ACC}88)`}}
-              animate={{scale:[1,1.18,1],rotate:[-4,4,-4]}} transition={{repeat:Infinity,duration:2.5}}>📖</motion.span>
+            <span className="occ-icon-bounce" style={{fontSize:"1.8rem",filter:`drop-shadow(0 0 10px ${ACC}88)`,"--occ-dur":"2.5s"} as React.CSSProperties}>📖</span>
             <div style={{width:55,height:1,background:`linear-gradient(90deg,${ACC}55,transparent)`}}/>
           </div>
           <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.8rem,5vw,2.8rem)",color:SOFT,margin:"0 0 0.4rem",fontWeight:400}}>
@@ -89,8 +90,7 @@ export default function MonthlyRecap() {
         {/* Month nav */}
         <div style={{
           display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"2rem",
-          background:"rgba(0,0,0,.3)",border:`1px solid ${ACC}22`,borderRadius:20,padding:"1rem 1.5rem",
-          backdropFilter:"blur(8px)",
+          background:"rgba(0,0,0,.38)",border:`1px solid ${ACC}22`,borderRadius:20,padding:"1rem 1.5rem",
         }}>
           <motion.button onClick={prev} whileHover={{scale:1.2,x:-2}} whileTap={{scale:0.9}}
             style={{background:"none",border:"none",cursor:"pointer",fontSize:"1.4rem",color:ACC,padding:"0.2rem 0.5rem"}}>‹</motion.button>

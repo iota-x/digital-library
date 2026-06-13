@@ -52,12 +52,7 @@ export default function Navbar() {
         <Link href="/" style={{ textDecoration: "none" }}>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
             style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <motion.span
-              animate={{ scale: [1, 1.2, 1], rotate: [-5, 5, -5] }}
-              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
-              style={{ fontSize: "1.3rem", lineHeight: 1 }}>
-              💗
-            </motion.span>
+            <span className="occ-heart" style={{ fontSize: "1.3rem", lineHeight: 1 }}>💗</span>
             <span style={{
               fontFamily: '"Georgia", "Times New Roman", serif',
               fontStyle: "italic",
