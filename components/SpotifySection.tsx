@@ -76,7 +76,7 @@ export default function SpotifySection() {
     <section style={{
       position:"relative", width:"100%",
       padding:"clamp(3.5rem,7vh,5.5rem) clamp(1rem,4vw,2.5rem)",
-      background:"linear-gradient(160deg,#fff5f9 0%,#fce7f3 55%,#fdf4ff 100%)",
+      background:"linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 55%,var(--pink-light) 100%)",
       overflow:"hidden",
     }}>
       <style>{`
@@ -86,14 +86,14 @@ export default function SpotifySection() {
         @keyframes sp-eq3  { 0%,100%{height:7px}  33%{height:28px} 66%{height:5px} }
         @keyframes sp-eq4  { 0%,100%{height:22px} 50%{height:7px}  }
         @keyframes sp-eq5  { 0%,100%{height:10px} 50%{height:24px} }
-        .sp-recent-chip:hover { background:rgba(236,72,153,.1) !important; transform:translateY(-2px); }
+        .sp-recent-chip:hover { background:rgba(var(--pink-deep-rgb),.1) !important; transform:translateY(-2px); }
         .sp-recent-chip { transition: background .18s, transform .18s; }
         .sp-open-btn:hover { filter:brightness(1.12); transform:scale(1.04); }
         .sp-open-btn { transition: filter .2s, transform .2s; }
       `}</style>
 
       {/* Orbs */}
-      {[{l:"3%",t:"5%",c:"rgba(249,168,212,.2)",w:260},{l:"68%",t:"3%",c:"rgba(244,114,182,.12)",w:200},{l:"40%",t:"72%",c:"rgba(216,180,254,.1)",w:220}].map((o,i)=>(
+      {[{l:"3%",t:"5%",c:"rgba(var(--pink-rgb),.2)",w:260},{l:"68%",t:"3%",c:"rgba(var(--pink-rgb),.12)",w:200},{l:"40%",t:"72%",c:"rgba(216,180,254,.1)",w:220}].map((o,i)=>(
         <div key={i} style={{position:"absolute",left:o.l,top:o.t,width:o.w,height:o.w,
           borderRadius:"50%",background:o.c,filter:"blur(60px)",pointerEvents:"none",zIndex:0}} />
       ))}
@@ -104,15 +104,15 @@ export default function SpotifySection() {
         {/* ── Header ── */}
         <div style={{textAlign:"center",marginBottom:"2.2rem"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"0.9rem",marginBottom:"0.8rem"}}>
-            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,transparent,rgba(190,24,93,.28))"}}/>
-            <span style={{fontFamily:SCRIPT,fontSize:"1rem",color:"rgba(190,24,93,.38)",letterSpacing:"0.08em"}}>♪ ♫ ♪</span>
-            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,rgba(190,24,93,.28),transparent)"}}/>
+            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.28))"}}/>
+            <span style={{fontFamily:SCRIPT,fontSize:"1rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.08em"}}>♪ ♫ ♪</span>
+            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,rgba(var(--pink-deep-rgb),.28),transparent)"}}/>
           </div>
           <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontWeight:400,
-            fontSize:"clamp(2rem,5vw,2.8rem)",color:"#9d174d",margin:"0 0 0.4rem",letterSpacing:"-0.01em"}}>
+            fontSize:"clamp(2rem,5vw,2.8rem)",color:"var(--pink-deep)",margin:"0 0 0.4rem",letterSpacing:"-0.01em"}}>
             our playlist
           </h2>
-          <p style={{fontFamily:SCRIPT,fontSize:"clamp(1rem,2.5vw,1.2rem)",color:"rgba(157,23,77,.45)",margin:0}}>
+          <p style={{fontFamily:SCRIPT,fontSize:"clamp(1rem,2.5vw,1.2rem)",color:"rgba(var(--pink-deep-rgb),.45)",margin:0}}>
             one song a day, always thinking of you 🌸
           </p>
         </div>
@@ -121,17 +121,17 @@ export default function SpotifySection() {
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"0.45rem",marginBottom:"2rem"}}>
           <div style={{
             display:"inline-flex",alignItems:"center",gap:"0.55rem",
-            background:"linear-gradient(135deg,rgba(249,168,212,.28),rgba(236,72,153,.16))",
-            border:"1.5px solid rgba(236,72,153,.28)",
+            background:"linear-gradient(135deg,rgba(var(--pink-rgb),.28),rgba(var(--pink-deep-rgb),.16))",
+            border:"1.5px solid rgba(var(--pink-deep-rgb),.28)",
             borderRadius:50,padding:"0.55rem 1.5rem",
-            boxShadow:"0 4px 20px rgba(236,72,153,.12)",
+            boxShadow:"0 4px 20px rgba(var(--pink-deep-rgb),.12)",
           }}>
             <span style={{fontSize:"1.1rem"}}>🎵</span>
-            <span style={{fontFamily:SANS,fontSize:"0.88rem",fontWeight:700,color:"#be185d"}}>
+            <span style={{fontFamily:SANS,fontSize:"0.88rem",fontWeight:700,color:"var(--pink-deep)"}}>
               {myTurn ? ME : HER}&apos;s turn today
             </span>
           </div>
-          <span style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(190,24,93,.38)",letterSpacing:"0.12em"}}>
+          <span style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.12em"}}>
             day {dn} of us · {myTurn ? `${ME} adds a song` : `${HER} adds a song`}
           </span>
         </div>
@@ -142,15 +142,15 @@ export default function SpotifySection() {
             style={{
               display:"flex",alignItems:"center",gap:"1.2rem",
               background:"rgba(255,255,255,.88)",
-              border:"1.5px solid rgba(236,72,153,.2)",
+              border:"1.5px solid rgba(var(--pink-deep-rgb),.2)",
               borderRadius:24,padding:"1.2rem 1.4rem",
               marginBottom:"2rem",
-              boxShadow:"0 8px 40px rgba(190,24,93,.1),0 0 0 1px rgba(249,168,212,.15)",
+              boxShadow:"0 8px 40px rgba(var(--pink-deep-rgb),.1),0 0 0 1px rgba(var(--pink-rgb),.15)",
               overflow:"hidden",position:"relative",
             }}>
             {/* Pink gradient accent strip */}
             <div style={{position:"absolute",left:0,top:0,bottom:0,width:4,
-              background:"linear-gradient(180deg,#f9a8d4,#ec4899,#be185d)"}} />
+              background:"linear-gradient(180deg,var(--pink),var(--pink-deep),var(--pink-deep))"}} />
 
             {/* Album art — spinning circle */}
             <div style={{
@@ -158,14 +158,14 @@ export default function SpotifySection() {
               width:"clamp(80px,18vw,110px)",height:"clamp(80px,18vw,110px)",
               borderRadius:"50%",overflow:"hidden",
               animation:"sp-spin 10s linear infinite",
-              border:"3px solid rgba(236,72,153,.22)",
-              boxShadow:"0 0 0 6px rgba(249,168,212,.12),0 8px 28px rgba(190,24,93,.18)",
+              border:"3px solid rgba(var(--pink-deep-rgb),.22)",
+              boxShadow:"0 0 0 6px rgba(var(--pink-rgb),.12),0 8px 28px rgba(var(--pink-deep-rgb),.18)",
             }}>
               {songOfDay.track.album.images[0]
                 ? <img src={songOfDay.track.album.images[0].url} alt="" loading="eager"
                     style={{width:"100%",height:"100%",objectFit:"cover"}} />
                 : <div style={{width:"100%",height:"100%",
-                    background:"linear-gradient(135deg,#f9a8d4,#ec4899)",
+                    background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
                     display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.8rem"}}>🎵</div>
               }
             </div>
@@ -174,11 +174,11 @@ export default function SpotifySection() {
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",alignItems:"center",gap:"0.4rem",marginBottom:"0.3rem",flexWrap:"wrap"}}>
                 <span style={{fontFamily:SANS,fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.15em",
-                  textTransform:"uppercase",color:"#be185d",
-                  background:"rgba(190,24,93,.1)",borderRadius:6,padding:"0.1rem 0.5rem"}}>
+                  textTransform:"uppercase",color:"var(--pink-deep)",
+                  background:"rgba(var(--pink-deep-rgb),.1)",borderRadius:6,padding:"0.1rem 0.5rem"}}>
                   ✨ song of the day
                 </span>
-                <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(190,24,93,.4)"}}>
+                <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(var(--pink-deep-rgb),.4)"}}>
                   added by {sodAdder} 💗
                 </span>
               </div>
@@ -188,7 +188,7 @@ export default function SpotifySection() {
                 overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                 {songOfDay.track.name}
               </p>
-              <p style={{fontFamily:SANS,fontSize:"0.78rem",color:"rgba(157,23,77,.5)",margin:"0 0 0.7rem"}}>
+              <p style={{fontFamily:SANS,fontSize:"0.78rem",color:"rgba(var(--pink-deep-rgb),.5)",margin:"0 0 0.7rem"}}>
                 {songOfDay.track.artists.map(a=>a.name).join(", ")} · {fmtDuration(songOfDay.track.duration_ms)}
               </p>
 
@@ -197,7 +197,7 @@ export default function SpotifySection() {
                 <div style={{display:"flex",alignItems:"flex-end",gap:4,height:30}}>
                   {EQ.map(b => (
                     <div key={b.h} style={{width:4,borderRadius:3,
-                      background:"linear-gradient(to top,#be185d,#f9a8d4)",
+                      background:"linear-gradient(to top,var(--pink-deep),var(--pink))",
                       animation:b.h}} />
                   ))}
                 </div>
@@ -220,7 +220,7 @@ export default function SpotifySection() {
 
         {loading && (
           <div style={{textAlign:"center",padding:"2.5rem",
-            fontFamily:SCRIPT,fontSize:"1.15rem",color:"rgba(190,24,93,.38)"}}>
+            fontFamily:SCRIPT,fontSize:"1.15rem",color:"rgba(var(--pink-deep-rgb),.38)"}}>
             loading our playlist… 🌸
           </div>
         )}
@@ -230,7 +230,7 @@ export default function SpotifySection() {
           transition={{delay:.08}}
           style={{
             borderRadius:22,overflow:"hidden",marginBottom:"2rem",
-            boxShadow:"0 16px 52px rgba(190,24,93,.14),0 0 0 1.5px rgba(249,168,212,.28)",
+            boxShadow:"0 16px 52px rgba(var(--pink-deep-rgb),.14),0 0 0 1.5px rgba(var(--pink-rgb),.28)",
           }}>
           <iframe
             src={`https://open.spotify.com/embed/playlist/${PLAYLIST_ID}?utm_source=generator&theme=0`}
@@ -245,12 +245,12 @@ export default function SpotifySection() {
           <motion.div initial={{opacity:0,y:14}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
             transition={{delay:.1}}>
             <p style={{fontFamily:SANS,fontSize:"0.66rem",fontWeight:700,letterSpacing:"0.16em",
-              textTransform:"uppercase",color:"rgba(190,24,93,.4)",margin:"0 0 0.8rem"}}>
+              textTransform:"uppercase",color:"rgba(var(--pink-deep-rgb),.4)",margin:"0 0 0.8rem"}}>
               recent picks
             </p>
             <div style={{
               background:"rgba(255,255,255,.72)",
-              border:"1px solid rgba(236,72,153,.14)",
+              border:"1px solid rgba(var(--pink-deep-rgb),.14)",
               borderRadius:20,overflow:"hidden",
             }}>
               {recent.slice(0,6).map((t,i) => {
@@ -264,12 +264,12 @@ export default function SpotifySection() {
                     style={{
                       display:"flex",alignItems:"center",gap:"0.85rem",
                       padding:"0.72rem 1.1rem",
-                      borderBottom:i<Math.min(recent.length,6)-1?"1px solid rgba(236,72,153,.08)":"none",
-                      background:isSod?"rgba(236,72,153,.05)":"transparent",
+                      borderBottom:i<Math.min(recent.length,6)-1?"1px solid rgba(var(--pink-deep-rgb),.08)":"none",
+                      background:isSod?"rgba(var(--pink-deep-rgb),.05)":"transparent",
                       textDecoration:"none",
                     }}>
                     <div style={{width:40,height:40,borderRadius:9,overflow:"hidden",
-                      flexShrink:0,background:"#fce7f3",border:"1px solid rgba(236,72,153,.14)"}}>
+                      flexShrink:0,background:"var(--pink-light)",border:"1px solid rgba(var(--pink-deep-rgb),.14)"}}>
                       {t.track.album.images[0] && (
                         <img src={t.track.album.images[0].url} alt="" loading="lazy" decoding="async"
                           style={{width:"100%",height:"100%",objectFit:"cover"}} />
@@ -280,12 +280,12 @@ export default function SpotifySection() {
                         margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                         {t.track.name}
                       </p>
-                      <p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(157,23,77,.48)",margin:0}}>
+                      <p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-deep-rgb),.48)",margin:0}}>
                         {t.track.artists.map(a=>a.name).join(", ")}
                       </p>
                     </div>
                     <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2,flexShrink:0}}>
-                      <span style={{fontFamily:SANS,fontSize:"0.64rem",color:"rgba(190,24,93,.42)"}}>
+                      <span style={{fontFamily:SANS,fontSize:"0.64rem",color:"rgba(var(--pink-deep-rgb),.42)"}}>
                         {isMe?ME:HER}
                       </span>
                       {isSod && <span style={{fontSize:"0.7rem"}}>💗</span>}

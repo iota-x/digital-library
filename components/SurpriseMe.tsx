@@ -20,9 +20,9 @@ const STARS = Array.from({length:22},(_,i)=>({
 
 /* ── Palette slot 3: #61063B → #4E0535 — deep plum ── */
 const BG   = "linear-gradient(180deg,#61063b 0%,#4e0535 55%,#3b032f 100%)";
-const ACC  = "#f9a8d4";
-const SOFT = "#fdf2f8";
-const DIM  = "rgba(249,168,212,.6)";
+const ACC  = "var(--pink)";
+const SOFT = "var(--pink-light)";
+const DIM  = "rgba(var(--pink-rgb),.6)";
 
 export default function SurpriseMe() {
   const { data, loading } = useCalendarData();
@@ -33,7 +33,7 @@ export default function SurpriseMe() {
   const [imgIdx,   setImgIdx]   = useState(0);
   const spinRef = useRef<ReturnType<typeof setTimeout>|null>(null);
 
-  if (loading) return <SectionSkeleton bg={BG} accent="rgba(249,168,212,.18)" lines={4}/>;
+  if (loading) return <SectionSkeleton bg={BG} accent="rgba(var(--pink-rgb),.18)" lines={4}/>;
 
   const spin=()=>{
     if(!entries.length||spinning) return;

@@ -38,25 +38,25 @@ export default function JournalHeader() {
   return (
     <div className="dk-journal-header" style={{
       padding: "2.5rem clamp(1rem,3vw,2rem) 1.5rem",
-      background: "linear-gradient(180deg,#fff5f9 0%,#fde8f2 100%)",
-      borderBottom: "1px solid rgba(249,168,212,.18)",
+      background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 100%)",
+      borderBottom: "1px solid rgba(var(--pink-rgb),.18)",
     }}>
       {/* Title */}
       <div style={{ textAlign: "center", marginBottom: "1.4rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.7rem" }}>
-          <div style={{ width: 48, height: 1, background: "linear-gradient(90deg,transparent,rgba(190,24,93,.3))" }} />
+          <div style={{ width: 48, height: 1, background: "linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.3))" }} />
           <span className="occ-heart" style={{ fontSize: "1.5rem" }}>💗</span>
-          <div style={{ width: 48, height: 1, background: "linear-gradient(90deg,rgba(190,24,93,.3),transparent)" }} />
+          <div style={{ width: 48, height: 1, background: "linear-gradient(90deg,rgba(var(--pink-deep-rgb),.3),transparent)" }} />
         </div>
         <h1 style={{
           fontFamily: SERIF, fontStyle: "italic",
           fontSize: "clamp(2rem,5vw,2.8rem)",
-          color: "#9d174d", margin: "0 0 0.3rem", fontWeight: 400,
-          textShadow: "0 2px 16px rgba(190,24,93,.12)",
+          color: "var(--pink-deep)", margin: "0 0 0.3rem", fontWeight: 400,
+          textShadow: "0 2px 16px rgba(var(--pink-deep-rgb),.12)",
         }}>
           our journal
         </h1>
-        <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,2.5vw,1.2rem)", color: "rgba(157,23,77,.5)", margin: 0 }}>
+        <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,2.5vw,1.2rem)", color: "rgba(var(--pink-deep-rgb),.5)", margin: 0 }}>
           day {stats.dayNum} of us 🌸
         </p>
       </div>
@@ -70,11 +70,11 @@ export default function JournalHeader() {
         ].map((s, i) => (
           <div key={i} style={{
             background: "rgba(255,255,255,.8)",
-            border: "1px solid rgba(190,24,93,.18)",
+            border: "1px solid rgba(var(--pink-deep-rgb),.18)",
             borderRadius: 24, padding: "0.45rem 1.1rem",
             display: "flex", alignItems: "center", gap: "0.45rem",
-            fontFamily: SANS, fontSize: "0.84rem", color: "#9d174d",
-            boxShadow: "0 2px 10px rgba(190,24,93,.07)",
+            fontFamily: SANS, fontSize: "0.84rem", color: "var(--pink-deep)",
+            boxShadow: "0 2px 10px rgba(var(--pink-deep-rgb),.07)",
           }}>
             <span>{s.e}</span>
             <span style={{ fontWeight: 700 }}>{s.v}</span>
@@ -91,8 +91,8 @@ export default function JournalHeader() {
               display: "flex", alignItems: "center", gap: "0.38rem",
               padding: "0.32rem 0.85rem", borderRadius: 20,
               background: "rgba(255,255,255,.65)",
-              border: "1px solid rgba(190,24,93,.14)",
-              fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,.65)",
+              border: "1px solid rgba(var(--pink-deep-rgb),.14)",
+              fontFamily: SANS, fontSize: "0.78rem", color: "rgba(var(--pink-deep-rgb),.65)",
               cursor: "pointer",
             }}>
               <span style={{ fontSize: "0.85rem" }}>{s.emoji}</span>

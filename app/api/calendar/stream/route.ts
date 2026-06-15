@@ -5,13 +5,14 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
+  const coupleId = req.nextUrl.searchParams.get("coupleId") || "";
   const clientId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let controllerRef: ReadableStreamDefaultController | null = null;
 
   const stream = new ReadableStream({
     start(controller) {
       controllerRef = controller;
-      addSSEClient(clientId, controller);
+      addSSEClient(clientId, controller, coupleId);
       const hello = `data: ${JSON.stringify({ type: "connected", clientId })}\n\n`;
       controller.enqueue(new TextEncoder().encode(hello));
     },
@@ -43,6 +44,4 @@ export async function GET(req: NextRequest) {
       "X-Accel-Buffering": "no",
     },
   });
-
 }
-

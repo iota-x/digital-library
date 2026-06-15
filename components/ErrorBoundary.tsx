@@ -19,7 +19,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p style={{
             fontFamily: '"Georgia","Times New Roman",serif',
             fontStyle: "italic",
-            color: "rgba(190,24,93,.5)",
+            color: "rgba(var(--pink-deep-rgb),.5)",
             fontSize: "1rem",
           }}>
             something went a little sideways — try refreshing 💗

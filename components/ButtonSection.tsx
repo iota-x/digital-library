@@ -36,8 +36,8 @@ const BUTTONS = [
     sub2: "feel free to annoy me I LOVE IT 🎀",
     emojis: "🌙 🩷 📞 ✨",
     gif: "peeking.gif",
-    color: "#ffccd5",
-    gradient: "linear-gradient(135deg,#ffccd5,#ffd6e0)",
+    color: "var(--pink-mid)",
+    gradient: "linear-gradient(135deg,var(--pink-mid),#ffd6e0)",
   },
 ];
 
@@ -85,7 +85,7 @@ export default function ButtonSection() {
         alignItems: "center",
         justifyContent: "center",
         padding: "6rem 2rem",
-        background: "linear-gradient(160deg,#fff1f2,#fce7f3)",
+        background: "linear-gradient(160deg,var(--rose),var(--pink-light))",
         position: "relative",
         overflow: "hidden",
       }}
@@ -135,16 +135,16 @@ export default function ButtonSection() {
             initial={{ opacity:0, y:40, scale:0.9 }}
             animate={inView ? { opacity:1, y:0, scale:1 } : {}}
             transition={{ duration:0.5, delay:0.3+i*0.1, type:"spring", stiffness:120 }}
-            whileHover={{ y:-8, scale:1.04, boxShadow:"0 18px 40px rgba(244,114,182,.3)" }}
+            whileHover={{ y:-8, scale:1.04, boxShadow:"0 18px 40px rgba(var(--pink-rgb),.3)" }}
             whileTap={{ scale:0.97 }}
             style={{
               background: "#fff",
-              border: "2.5px solid #f9a8d4",
+              border: "2.5px solid var(--pink)",
               borderRadius: 24,
               padding: "2.2rem 1.5rem",
               cursor: "pointer",
               textAlign: "center",
-              boxShadow: "0 4px 18px rgba(244,114,182,.12)",
+              boxShadow: "0 4px 18px rgba(var(--pink-rgb),.12)",
               outline: "none",
               position: "relative",
               overflow: "hidden",
@@ -213,7 +213,7 @@ export default function ButtonSection() {
                 overflow: "hidden",
                 maxWidth: 520,
                 width: "100%",
-                boxShadow: "0 32px 80px rgba(236,72,153,.3)",
+                boxShadow: "0 32px 80px rgba(var(--pink-deep-rgb),.3)",
                 textAlign: "center",
               }}
             >
@@ -245,7 +245,7 @@ export default function ButtonSection() {
                     fontStyle: "italic",
                     fontSize: "clamp(1.5rem,4vw,2rem)",
                     color: "#fff",
-                    textShadow: "0 2px 12px rgba(236,72,153,.3)",
+                    textShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.3)",
                     lineHeight: 1.3,
                   }}
                 >
@@ -283,7 +283,7 @@ export default function ButtonSection() {
                     maxWidth: 260,
                     minHeight: 160,
                     background: "var(--pink-light)",
-                    border: "2px solid #f9a8d4",
+                    border: "2px solid var(--pink)",
                     borderRadius: 20,
                     display: "flex",
                     alignItems: "center",
@@ -306,11 +306,11 @@ export default function ButtonSection() {
                     fontSize: "1.1rem",
                     color: "var(--pink-deep)",
                     background: "var(--pink-light)",
-                    border: "2px solid #f9a8d4",
+                    border: "2px solid var(--pink)",
                     borderRadius: 50,
                     padding: "0.7rem 2.5rem",
                     cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(244,114,182,.2)",
+                    boxShadow: "0 4px 14px rgba(var(--pink-rgb),.2)",
                   }}
                 >
                   close 🩷

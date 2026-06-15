@@ -33,7 +33,7 @@ const EVENTS = [
     q: "remember when I confessed?",
     tag: "the scariest & best thing 🌷",
     icon: "🌷",
-    color: "#ffccd5",
+    color: "var(--pink-mid)",
     letter: `Honestly the scariest thing ever for me I wasn't ready to lose you either but i still went ahead and did that, turns out it became the best thing I ever did for myself and so fuckin glad it all worked out after that even tho i was in a function and made it seem like im still avoiding LMAO but you're so patient with me and im grateful to you for being with me. I have only wanted you AND will keep wanting YOUUU <33`,
   },
 
@@ -41,7 +41,7 @@ const EVENTS = [
     q: "remember when we first slept on call?",
     tag: "our nightly tradition 🌙",
     icon: "🌙",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `I think it was right after the day I confessed all my feelings and how I truly feel about you and since you slept on call which did happen before too in my server but I had the perms to actually disconnect and I did say a couple times that (I think aap call pe so gaye so I dc'ed you) but that day we were in your server and that too a priv vc so couldn't dc you and I was like why not give you company and sleep in vc too (was a part of my bucket list btw i think maine aapko abhi tak nahi bataya tha hehe) and I was so glad it happened pehle din hi and I REMEMBER U STAYING IN VC SUBAH TO GIVE ME COMPANY I WAS SO HAPPY AFTER WAKING UP AND SEEING THAT GENUINELY <33.
 
 Then it became our daily thing and now its non-negotiable btw sleep calls are mandatory or calling before sleeping is something very very important to both of us and we both hold it very dear cuz I genuinely love hearing to you like how was ur day and stuff and our usual comforting each other I think i feel so much better after listening to aapka cutesy sa voice ambsfjsbf <3333`,
@@ -66,7 +66,7 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
     q: "remember when we joined the steam family?",
     tag: "was so cute 😋",
     icon: "🤗",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `It was so sweet of you to let me in on your steam id and make me ur child innit ahahaa i loved you having control over all my steam stuff like it was so cute when I had to ask you to let me download it right? sooner or later we started sharing everything...who texted us got so real and i love every single bit of it <33`
 
   },
@@ -75,7 +75,7 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
     q: "remember when you introduced me to your cousin?",
     tag: "roblox date 💅",
     icon: "🌟",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `I was kinda nervous that day but i made it thru ehehehe it was very wholesome when i could understand stuff you two were talking about and you giggling all over trying to explain her in the most non obvious ways ahahahah, we had so much fun in roblox and you guys even took pictures, even tho i did not talk to her directly or could even hear her I could feel every single conversations yall were having and it made me very very happy.`
   },
 
@@ -93,14 +93,14 @@ It took a lot but we had our first video call together and it was the cutest thi
     q: "remember when we got too comfortable around each other?",
     tag: "home started feeling like you 🏡",
     icon: "🏡",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `I think our video call was the start of being more comfortable I could feel it and it was all a slow process but a very delightful one, we managed to get so comfortable around each other at this point we say and do a lotta stuff which goes unnoticed from our side for the stuff which we could think of oh maybe I shud mute before sneezing or wtv but now we just do it (idk is a small thing but I noticed) even me humming songs in the vc atp i can safely say im the most comfortable around you whenever we're in the vc you are my bestfriend, partner, lover and my everything 💗`,
   },
   {
     q: "remember us making our first playlist together?",
     tag: "bucket list kinda thingy 🥰",
     icon: "🎶",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `It was one of my goals to have a shared playlist with you and since we both like music so much it can also be a very niche way to share our thoughts and express ourselves so I thought of the plan we use rn of adding one song each day and I actually try to decode every single day based on the song you add LMAO i know im very silly and i look for a lotta signs and stuff but it only comes from my caring side i swear <33`
   },
 
@@ -108,21 +108,21 @@ It took a lot but we had our first video call together and it was the cutest thi
     q: "remember us overthinking about stuff?",
     tag: "atleast we care to think ❤️",
     icon: "😭",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `Its a part of it and we gotta be there for each other in these moments and i'd say we both did pretty well to stick w each other we both were there for each other countless overthinking, many thoughts, few doubts but in the end we talked it all out and hoping to do that forever and ever cuz we ain't leaving each other in these moments, whats the point of being together when not actually being there for each other right? And dw Babe i'm always there for you and im very glad you comfort me in the most beautiful ways possible it genuinely shows that you care for me so much <33`
   },
   {
     q: "remember us starting to journal stuff?",
     tag: "one of the most intimate things 👀",
     icon: "📔",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `You saw how much I love writing and suggested this beautiful idea which im very glad u did and we've been using it so much but not enough to only talk things over it and not actually talk, but yeah whenever i miss you my mind goes towards me writing stuff about you which then transitioned to me actually journaling it followed by you doing it too honestly a very romantic thing for me 💗`
   },
   {
     q: "remember us being insecure?",
     tag: "i'd kiss all your insecurities frfr 💋",
     icon: "🫠",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `Being insecure is not a bad thing don't worry it only shows how much you care and think about me, as u said doing things off of insecurities is not somethiing u wanna do which i totally respect and have waited for you in every single situation but yeah never think that you'll be too much for me okay? I'm here for it all and not just the goodies, my love for you is unconditional and i mean it. I LOVE YOUU JUHIII <33`
   },
 
@@ -130,7 +130,7 @@ It took a lot but we had our first video call together and it was the cutest thi
     q: "remember our I'd still choose you phase?",
     tag: "beautiful realization ✨",
     icon: "💖",
-    color: "#ffe0ec",
+    color: "var(--pink-light)",
     letter: `After everything happened because of the game 😭 i think we both kinda realized that I'd still choose you, understanding the phases, awkward silences, repetitive routines but we naturally keep choosing each other's company and it feels so right be with you fr I mean it you're the best thing that has ever happened to me and I would never want to lose you and i think you feel the same and I'll do my best to keep things stay as they are, so yeah cheers to our 2 months together and here's to wishing for the best forever future ahead 💖`
   },
   
@@ -162,7 +162,7 @@ function MemoryCard({ ev, idx, onOpen }: { ev: typeof EVENTS[0]; idx: number; on
         initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
         animate={inView ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: 0.65, ease: "easeOut" }}
-        whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 50px rgba(244,114,182,.28)" }}
+        whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 50px rgba(var(--pink-rgb),.28)" }}
         whileTap={{ scale: 0.98 }}
         className="dk-timeline-card"
         style={{
@@ -174,7 +174,7 @@ function MemoryCard({ ev, idx, onOpen }: { ev: typeof EVENTS[0]; idx: number; on
           textAlign: isLeft ? "right" : "left",
           cursor: "pointer",
           outline: "none",
-          boxShadow: "0 6px 24px rgba(244,114,182,.14)",
+          boxShadow: "0 6px 24px rgba(var(--pink-rgb),.14)",
           position: "relative",
           overflow: "hidden",
         }}
@@ -232,7 +232,7 @@ function MemoryCard({ ev, idx, onOpen }: { ev: typeof EVENTS[0]; idx: number; on
           borderRadius: "50%",
           background: `linear-gradient(135deg, ${ev.color}, var(--pink-deep))`,
           border: "3px solid #fff",
-          boxShadow: `0 0 0 3px ${ev.color}, 0 6px 18px rgba(236,72,153,.25)`,
+          boxShadow: `0 0 0 3px ${ev.color}, 0 6px 18px rgba(var(--pink-deep-rgb),.25)`,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: "1.3rem",
           zIndex: 2,
@@ -265,7 +265,7 @@ export default function Timeline() {
         display: "flex", flexDirection: "column",
         alignItems: "center",
         padding: "6rem 2rem 8rem",
-        background: "linear-gradient(180deg,var(--cream) 0%,#fff5f9 50%,var(--cream) 100%)",
+        background: "linear-gradient(180deg,var(--cream) 0%,var(--rose) 50%,var(--cream) 100%)",
         position: "relative", overflow: "hidden",
       }}
     >
@@ -310,7 +310,7 @@ export default function Timeline() {
           left: "50%", top: 0, bottom: 0,
           width: 3,
           transform: "translateX(-50%)",
-          background: "linear-gradient(to bottom, transparent, #f9a8d4 8%, #f9a8d4 92%, transparent)",
+          background: "linear-gradient(to bottom, transparent, var(--pink) 8%, var(--pink) 92%, transparent)",
           borderRadius: 4,
           zIndex: 1,
         }} />
@@ -330,7 +330,7 @@ export default function Timeline() {
             width: 56, height: 56, borderRadius: "50%",
             background: "linear-gradient(135deg,var(--pink),var(--pink-deep))",
             border: "3px solid #fff",
-            boxShadow: "0 0 0 4px #f9a8d4, 0 8px 24px rgba(236,72,153,.35)",
+            boxShadow: "0 0 0 4px var(--pink), 0 8px 24px rgba(var(--pink-deep-rgb),.35)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "1.5rem",
           }}
@@ -365,18 +365,18 @@ export default function Timeline() {
                 position:"fixed", bottom:0, left:0, right:0, zIndex:9998,
                 maxHeight:"80vh", borderRadius:"28px 28px 0 0",
                 background:"#fff",
-                boxShadow:"0 -12px 60px rgba(236,72,153,.22)",
+                boxShadow:"0 -12px 60px rgba(var(--pink-deep-rgb),.22)",
                 display:"flex", flexDirection:"column", overflow:"hidden",
               }}
             >
               {/* drag handle */}
               <div style={{ display:"flex", justifyContent:"center", padding:"0.9rem 0 0" }}>
-                <div style={{ width:44, height:5, borderRadius:99, background:"#f9a8d4" }} />
+                <div style={{ width:44, height:5, borderRadius:99, background:"var(--pink)" }} />
               </div>
 
               {/* header */}
               <div style={{
-                background: `linear-gradient(135deg,${EVENTS[active].color},#f9a8d4)`,
+                background: `linear-gradient(135deg,${EVENTS[active].color},var(--pink))`,
                 padding:"1.4rem 2rem 1.2rem",
                 flexShrink:0, position:"relative", overflow:"hidden",
               }}>
@@ -397,18 +397,18 @@ export default function Timeline() {
               {/* lined body */}
               <div style={{
                 flex:1, overflowY:"auto", padding:"1.8rem 2rem 1.5rem",
-                backgroundImage:"repeating-linear-gradient(to bottom,transparent,transparent 31px,#f9a8d418 31px,#f9a8d418 32px)",
+                backgroundImage:"repeating-linear-gradient(to bottom,transparent,transparent 31px,var(--pink)18 31px,var(--pink)18 32px)",
                 backgroundAttachment:"local",
               }}>
                 <div style={{ display:"flex", alignItems:"center", gap:"0.6rem", marginBottom:"1.2rem" }}>
                   <motion.span animate={{ rotate:[-5,5,-5] }} transition={{ repeat:Infinity, duration:2 }} style={{ fontSize:"1.2rem" }}>💌</motion.span>
-                  <div style={{ flex:1, height:1, background:"linear-gradient(to right,#f9a8d4,transparent)" }} />
+                  <div style={{ flex:1, height:1, background:"linear-gradient(to right,var(--pink),transparent)" }} />
                 </div>
                 <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1.22rem", color:"var(--text)", lineHeight:"2rem", whiteSpace:"pre-wrap" }}>
                   {EVENTS[active].letter}
                 </p>
                 <div style={{ display:"flex", alignItems:"center", gap:"0.6rem", marginTop:"1.5rem" }}>
-                  <div style={{ flex:1, height:1, background:"linear-gradient(to left,#f9a8d4,transparent)" }} />
+                  <div style={{ flex:1, height:1, background:"linear-gradient(to left,var(--pink),transparent)" }} />
                   <span style={{ fontFamily:"var(--font-caveat)", fontSize:"0.95rem", color:"var(--pink-deep)" }}>— with all my love 🩷</span>
                 </div>
               </div>
@@ -421,7 +421,7 @@ export default function Timeline() {
                   style={{
                     fontFamily:"var(--font-caveat)", fontSize:"1.1rem",
                     color:"var(--pink-deep)", background:"var(--pink-light)",
-                    border:"2px solid #f9a8d4", borderRadius:50,
+                    border:"2px solid var(--pink)", borderRadius:50,
                     padding:"0.65rem 2.4rem", cursor:"pointer",
                   }}
                 >

@@ -38,7 +38,7 @@ export default function OpeningScreen() {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(160deg, #fff1f2 0%, #fce7f3 50%, #fff5f9 100%)",
+            background: "linear-gradient(160deg, var(--rose) 0%, var(--pink-light) 50%, var(--rose) 100%)",
           }}
         >
           {/* Swaying thread */}
@@ -50,7 +50,7 @@ export default function OpeningScreen() {
               translateX: "-50%",
               width: 2,
               height: "10vh",
-              background: "linear-gradient(to bottom, transparent, #f9a8d4)",
+              background: "linear-gradient(to bottom, transparent, var(--pink))",
               transformOrigin: "top center",
             }}
             animate={{ rotate: [-5, 5, -5] }}
@@ -65,11 +65,11 @@ export default function OpeningScreen() {
             transition={{ type: "spring", stiffness: 80, damping: 15, delay: 0.1 }}
           >
             <div style={{
-              background: "linear-gradient(145deg,#fff5f9,#fce7f3)",
-              border: "2.5px solid #f9a8d4",
+              background: "linear-gradient(145deg,var(--rose),var(--pink-light))",
+              border: "2.5px solid var(--pink)",
               borderRadius: 32,
               padding: "clamp(2.5rem, 6vw, 4.5rem) clamp(2rem, 5vw, 4rem)",
-              boxShadow: "0 32px 100px rgba(236,72,153,.28)",
+              boxShadow: "0 32px 100px rgba(var(--pink-deep-rgb),.28)",
               textAlign: "center",
               position: "relative",
               overflow: "hidden",
@@ -134,12 +134,12 @@ export default function OpeningScreen() {
                   fontFamily: "var(--font-caveat)",
                   fontSize: "clamp(1.15rem, 2.5vw, 1.5rem)",
                   color: "#fff",
-                  background: "linear-gradient(135deg, #f472b6, #ec4899)",
+                  background: "linear-gradient(135deg, var(--pink), var(--pink-deep))",
                   border: "none",
                   borderRadius: 50,
                   padding: "1rem 3.5rem",
                   cursor: "pointer",
-                  boxShadow: "0 8px 30px rgba(236,72,153,.42)",
+                  boxShadow: "0 8px 30px rgba(var(--pink-deep-rgb),.42)",
                   letterSpacing: "0.03em",
                 }}
               >

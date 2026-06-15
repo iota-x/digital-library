@@ -7,11 +7,11 @@ import SectionSkeleton from "@/components/SectionSkeleton";
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
-/* ── Palette slot 2: #c9447a → #9d174d — warm deep rose ── */
+/* ── Palette slot 2: #c9447a → var(--pink-deep) — warm deep rose ── */
 const BG   = "linear-gradient(180deg,#c9447a 0%,#a01e5a 40%,#7e0b48 80%,#61063b 100%)";
-const ACC  = "#fce7f3";
-const DIM  = "rgba(252,231,243,.55)";
-const GLOW = "rgba(252,231,243,.15)";
+const ACC  = "var(--pink-light)";
+const DIM  = "rgba(var(--pink-light-rgb),.55)";
+const GLOW = "rgba(var(--pink-light-rgb),.15)";
 
 export default function StreakTracker() {
   const { data, loading } = useCalendarData();
@@ -37,7 +37,7 @@ export default function StreakTracker() {
     return { streak: cur, longest: max, todayDone: dates.has(todayKey), celebrate: cur >= 7 };
   }, [data]);
 
-  if (loading) return <SectionSkeleton bg={BG} accent="rgba(252,231,243,.2)" lines={5}/>;
+  if (loading) return <SectionSkeleton bg={BG} accent="rgba(var(--pink-light-rgb),.2)" lines={5}/>;
 
   const milestones    = [3,7,14,30,60,100];
   const nextMilestone = milestones.find(m=>m>streak) ?? streak+10;
@@ -61,14 +61,14 @@ export default function StreakTracker() {
                 animate={{y:"-10%",rotate:Math.random()*720-360,opacity:0}}
                 transition={{duration:2+Math.random(),ease:"easeOut",delay:Math.random()*0.6}}
                 style={{position:"absolute",width:8,height:8,borderRadius:Math.random()>.5?"50%":2,
-                  background:["#fce7f3","#f9a8d4","#fda4af","#f472b6","#fbcfe8"][Math.floor(Math.random()*5)]}}/>
+                  background:["var(--pink-light)","var(--pink)","var(--pink)","var(--pink)","var(--pink-mid)"][Math.floor(Math.random()*5)]}}/>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Soft glow */}
-      <div style={{position:"absolute",top:"30%",left:"50%",transform:"translateX(-50%)",width:"60%",height:"40%",borderRadius:"50%",background:"rgba(252,231,243,.06)",filter:"blur(80px)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:"30%",left:"50%",transform:"translateX(-50%)",width:"60%",height:"40%",borderRadius:"50%",background:"rgba(var(--pink-light-rgb),.06)",filter:"blur(80px)",pointerEvents:"none"}}/>
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
         style={{maxWidth:520,width:"100%",textAlign:"center",position:"relative",zIndex:2}}>
@@ -94,7 +94,7 @@ export default function StreakTracker() {
             background:"rgba(0,0,0,.2)",
             border:`1px solid ${ACC}30`,
             borderRadius:32,padding:"2.5rem 5rem",marginBottom:"2.5rem",
-            boxShadow:`0 0 80px rgba(252,231,243,.08),inset 0 0 40px rgba(0,0,0,.2)`,
+            boxShadow:`0 0 80px rgba(var(--pink-light-rgb),.08),inset 0 0 40px rgba(0,0,0,.2)`,
             position:"relative",overflow:"hidden",
           }}>
           <div style={{position:"absolute",inset:0,background:`radial-gradient(circle at 50% 30%,${GLOW} 0%,transparent 65%)`,pointerEvents:"none"}}/>

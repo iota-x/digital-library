@@ -42,16 +42,16 @@ export default function CapsuleTeaser() {
     <section style={{
       width: "100%",
       padding: "clamp(2rem,5vh,3rem) clamp(1rem,4vw,2.5rem)",
-      background: "linear-gradient(160deg,#fff5f9,#fce7f3)",
+      background: "linear-gradient(160deg,var(--rose),var(--pink-light))",
     }}>
       <div style={{ maxWidth: 540, margin: "0 auto" }}>
 
         <div style={{ display:"flex", alignItems:"center", gap:"0.8rem", marginBottom:"1.1rem" }}>
-          <div style={{ width:30, height:1, background:"linear-gradient(90deg,transparent,rgba(190,24,93,.3))" }}/>
-          <span style={{ fontFamily:SANS, fontSize:"0.68rem", color:"rgba(190,24,93,.5)", letterSpacing:"0.18em", textTransform:"uppercase" }}>
+          <div style={{ width:30, height:1, background:"linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.3))" }}/>
+          <span style={{ fontFamily:SANS, fontSize:"0.68rem", color:"rgba(var(--pink-deep-rgb),.5)", letterSpacing:"0.18em", textTransform:"uppercase" }}>
             sealed letters
           </span>
-          <div style={{ flex:1, height:1, background:"linear-gradient(90deg,rgba(190,24,93,.3),transparent)" }}/>
+          <div style={{ flex:1, height:1, background:"linear-gradient(90deg,rgba(var(--pink-deep-rgb),.3),transparent)" }}/>
         </div>
 
         <div style={{ display:"flex", flexDirection:"column", gap:"0.55rem" }}>
@@ -63,11 +63,11 @@ export default function CapsuleTeaser() {
                 transition={{ delay: i * 0.07 }}
                 style={{
                   background: "rgba(255,255,255,.82)",
-                  border: "1px solid rgba(190,24,93,.14)",
+                  border: "1px solid rgba(var(--pink-deep-rgb),.14)",
                   borderRadius: 16,
                   padding: "0.9rem 1.15rem",
                   display: "flex", alignItems: "center", gap: "0.85rem",
-                  boxShadow: "0 2px 12px rgba(190,24,93,.06)",
+                  boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.06)",
                 }}
               >
                 <span style={{ fontSize:"1.3rem", flexShrink:0 }}>🔒</span>
@@ -75,15 +75,15 @@ export default function CapsuleTeaser() {
                   <p style={{ fontFamily:SERIF, fontStyle:"italic", fontSize:"0.88rem", color:"#4a1628", margin:0, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
                     {p.from ? `from ${p.from}` : "a sealed letter"} — unlocks {fmt(p.unlockDate)}
                   </p>
-                  <p style={{ fontFamily:SANS, fontSize:"0.66rem", color:"rgba(190,24,93,.5)", margin:"0.12rem 0 0" }}>
+                  <p style={{ fontFamily:SANS, fontSize:"0.66rem", color:"rgba(var(--pink-deep-rgb),.5)", margin:"0.12rem 0 0" }}>
                     {days > 0 ? `${days} day${days !== 1 ? "s" : ""} to go` : "unlocking soon…"}
                   </p>
                 </div>
-                <div style={{ width:40, height:4, borderRadius:2, background:"rgba(190,24,93,.1)", overflow:"hidden", flexShrink:0 }}>
+                <div style={{ width:40, height:4, borderRadius:2, background:"rgba(var(--pink-deep-rgb),.1)", overflow:"hidden", flexShrink:0 }}>
                   <div style={{
                     height:"100%",
                     width:`${Math.max(5, 100 - Math.min(100, (days / 365) * 100))}%`,
-                    background:"linear-gradient(90deg,#f9a8d4,#be185d)",
+                    background:"linear-gradient(90deg,var(--pink),var(--pink-deep))",
                     borderRadius:2,
                   }}/>
                 </div>
@@ -94,7 +94,7 @@ export default function CapsuleTeaser() {
 
         <div style={{ textAlign:"center", marginTop:"0.9rem" }}>
           <Link href="/capsule" style={{ textDecoration:"none" }}>
-            <span style={{ fontFamily:SCRIPT, fontSize:"1rem", color:"rgba(190,24,93,.48)", cursor:"pointer" }}>
+            <span style={{ fontFamily:SCRIPT, fontSize:"1rem", color:"rgba(var(--pink-deep-rgb),.48)", cursor:"pointer" }}>
               see all capsules →
             </span>
           </Link>

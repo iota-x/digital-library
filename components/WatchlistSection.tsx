@@ -16,7 +16,7 @@ interface WatchItem {
 }
 
 const STATUS: Record<WatchStatus,{label:string;bg:string;text:string}> = {
-  "plan-to-watch": {label:"plan to watch",bg:"rgba(249,168,212,.28)",  text:"#9d174d"},
+  "plan-to-watch": {label:"plan to watch",bg:"rgba(var(--pink-rgb),.28)",  text:"var(--pink-deep)"},
   watching:        {label:"watching",      bg:"rgba(251,191,36,.22)",   text:"#78350f"},
   completed:       {label:"completed ✓",   bg:"rgba(52,211,153,.22)",   text:"#065f46"},
 };
@@ -108,24 +108,24 @@ export default function WatchlistSection() {
     <section style={{
       position:"relative",width:"100%",minHeight:"100vh",
       padding:"clamp(3.5rem,7vh,5.5rem) clamp(1rem,4vw,2.5rem)",
-      background:"linear-gradient(160deg,#fdf4ff 0%,#fce7f3 55%,#fff5f9 100%)",
+      background:"linear-gradient(160deg,var(--pink-light) 0%,var(--pink-light) 55%,var(--rose) 100%)",
       overflow:"hidden",
     }}>
       <style>{`
         .wl-card { transition: transform .2s ease, box-shadow .2s ease; }
         .wl-card:hover { transform: translateY(-6px) scale(1.02) !important;
-          box-shadow: 0 20px 48px rgba(190,24,93,.16) !important; }
+          box-shadow: 0 20px 48px rgba(var(--pink-deep-rgb),.16) !important; }
         .wl-actions { opacity:0; transition: opacity .18s; }
         .wl-card:hover .wl-actions { opacity:1; }
-        .wl-inp:focus { border-color:rgba(236,72,153,.45)!important;
-          box-shadow:0 0 0 3px rgba(236,72,153,.1)!important;outline:none; }
+        .wl-inp:focus { border-color:rgba(var(--pink-deep-rgb),.45)!important;
+          box-shadow:0 0 0 3px rgba(var(--pink-deep-rgb),.1)!important;outline:none; }
         .wl-tab  { transition: all .18s; cursor:pointer; }
         .wl-poster:hover { transform:scale(1.07); box-shadow:0 8px 24px rgba(0,0,0,.22)!important; }
         .wl-poster { transition: transform .15s, box-shadow .15s; cursor:pointer; }
       `}</style>
 
       {/* Orbs */}
-      {[{l:"5%",t:"4%",c:"rgba(249,168,212,.16)",w:260},{l:"70%",t:"6%",c:"rgba(216,180,254,.12)",w:200},{l:"45%",t:"68%",c:"rgba(244,114,182,.09)",w:230}].map((o,i)=>(
+      {[{l:"5%",t:"4%",c:"rgba(var(--pink-rgb),.16)",w:260},{l:"70%",t:"6%",c:"rgba(216,180,254,.12)",w:200},{l:"45%",t:"68%",c:"rgba(var(--pink-rgb),.09)",w:230}].map((o,i)=>(
         <div key={i} style={{position:"absolute",left:o.l,top:o.t,width:o.w,height:o.w,
           borderRadius:"50%",background:o.c,filter:"blur(60px)",pointerEvents:"none",zIndex:0}} />
       ))}
@@ -135,15 +135,15 @@ export default function WatchlistSection() {
         {/* ── Header (same style as SpotifySection) ── */}
         <div style={{textAlign:"center",marginBottom:"2.2rem"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"0.9rem",marginBottom:"0.8rem"}}>
-            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,transparent,rgba(190,24,93,.28))"}}/>
-            <span style={{fontFamily:SCRIPT,fontSize:"1rem",color:"rgba(190,24,93,.38)",letterSpacing:"0.08em"}}>🎬 ✦ 🍿</span>
-            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,rgba(190,24,93,.28),transparent)"}}/>
+            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.28))"}}/>
+            <span style={{fontFamily:SCRIPT,fontSize:"1rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.08em"}}>🎬 ✦ 🍿</span>
+            <div style={{flex:1,maxWidth:55,height:1,background:"linear-gradient(90deg,rgba(var(--pink-deep-rgb),.28),transparent)"}}/>
           </div>
           <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontWeight:400,
-            fontSize:"clamp(2rem,5vw,2.8rem)",color:"#9d174d",margin:"0 0 0.4rem",letterSpacing:"-0.01em"}}>
+            fontSize:"clamp(2rem,5vw,2.8rem)",color:"var(--pink-deep)",margin:"0 0 0.4rem",letterSpacing:"-0.01em"}}>
             our watchlist
           </h2>
-          <p style={{fontFamily:SCRIPT,fontSize:"clamp(1rem,2.5vw,1.2rem)",color:"rgba(157,23,77,.45)",margin:"0 0 1.1rem"}}>
+          <p style={{fontFamily:SCRIPT,fontSize:"clamp(1rem,2.5vw,1.2rem)",color:"rgba(var(--pink-deep-rgb),.45)",margin:"0 0 1.1rem"}}>
             movies, series & anime to watch together 🌸
           </p>
 
@@ -151,7 +151,7 @@ export default function WatchlistSection() {
           {items.length > 0 && (
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"0.55rem",flexWrap:"wrap"}}>
               {done>0 && <span style={PILL_STYLE("rgba(52,211,153,.18)","rgba(52,211,153,.35)","#065f46")}>✓ {done} watched</span>}
-              {planned>0 && <span style={PILL_STYLE("rgba(249,168,212,.2)","rgba(249,168,212,.4)","#9d174d")}>📋 {planned} planned</span>}
+              {planned>0 && <span style={PILL_STYLE("rgba(var(--pink-rgb),.2)","rgba(var(--pink-rgb),.4)","var(--pink-deep)")}>📋 {planned} planned</span>}
             </div>
           )}
         </div>
@@ -160,7 +160,7 @@ export default function WatchlistSection() {
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
           flexWrap:"wrap",gap:"0.75rem",marginBottom:"1.6rem"}}>
           <div style={{display:"flex",gap:"0.28rem",
-            background:"rgba(255,255,255,.6)",border:"1px solid rgba(236,72,153,.18)",
+            background:"rgba(255,255,255,.6)",border:"1px solid rgba(var(--pink-deep-rgb),.18)",
             borderRadius:50,padding:"0.28rem",flexWrap:"wrap"}}>
             {TABS.map(t=>{
               const active=tab===t.key;
@@ -168,17 +168,17 @@ export default function WatchlistSection() {
               return (
                 <button key={t.key} onClick={()=>setTab(t.key)} className="wl-tab" style={{
                   fontFamily:SANS,fontSize:"0.73rem",fontWeight:active?700:500,
-                  color:active?"#fff":"rgba(190,24,93,.65)",
-                  background:active?"linear-gradient(135deg,#f9a8d4,#ec4899)":"transparent",
-                  boxShadow:active?"0 2px 12px rgba(236,72,153,.3)":"none",
+                  color:active?"#fff":"rgba(var(--pink-deep-rgb),.65)",
+                  background:active?"linear-gradient(135deg,var(--pink),var(--pink-deep))":"transparent",
+                  boxShadow:active?"0 2px 12px rgba(var(--pink-deep-rgb),.3)":"none",
                   border:"none",borderRadius:40,
                   padding:"0.38rem 0.8rem",
                   display:"flex",alignItems:"center",gap:"0.3rem",
                 }}>
                   {t.label}
-                  {cnt>0&&<span style={{background:active?"rgba(255,255,255,.25)":"rgba(236,72,153,.12)",
+                  {cnt>0&&<span style={{background:active?"rgba(255,255,255,.25)":"rgba(var(--pink-deep-rgb),.12)",
                     borderRadius:50,padding:"0.02rem 0.38rem",fontSize:"0.62rem",fontWeight:700,
-                    color:active?"#fff":"rgba(190,24,93,.6)"}}>{cnt}</span>}
+                    color:active?"#fff":"rgba(var(--pink-deep-rgb),.6)"}}>{cnt}</span>}
                 </button>
               );
             })}
@@ -186,9 +186,9 @@ export default function WatchlistSection() {
           <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}}
             onClick={()=>{setShowForm(true);setEditId(null);setForm(BLANK);setPosters([]);}}
             style={{fontFamily:SANS,fontSize:"0.82rem",fontWeight:700,color:"#fff",
-              background:"linear-gradient(135deg,#f9a8d4,#ec4899)",
+              background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
               border:"none",borderRadius:50,padding:"0.55rem 1.4rem",cursor:"pointer",
-              boxShadow:"0 4px 18px rgba(236,72,153,.3)",
+              boxShadow:"0 4px 18px rgba(var(--pink-deep-rgb),.3)",
               display:"flex",alignItems:"center",gap:"0.45rem"}}>
             <span style={{fontSize:"1.1rem",lineHeight:1}}>+</span> add
           </motion.button>
@@ -199,16 +199,16 @@ export default function WatchlistSection() {
           {showForm && (
             <motion.div initial={{opacity:0,y:-14}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-14}}
               style={{
-                background:"rgba(255,255,255,.94)",border:"1.5px solid rgba(236,72,153,.2)",
+                background:"rgba(255,255,255,.94)",border:"1.5px solid rgba(var(--pink-deep-rgb),.2)",
                 borderRadius:24,padding:"clamp(1.2rem,4vw,1.8rem)",marginBottom:"1.5rem",
-                boxShadow:"0 12px 48px rgba(190,24,93,.1)",
+                boxShadow:"0 12px 48px rgba(var(--pink-deep-rgb),.1)",
               }}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"1.1rem"}}>
-                <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.1rem",color:"#9d174d",margin:0}}>
+                <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.1rem",color:"var(--pink-deep)",margin:0}}>
                   {editId?"edit entry":"add to the queue"}
                 </p>
                 <button onClick={closeForm} style={{background:"none",border:"none",cursor:"pointer",
-                  fontSize:"1.1rem",color:"rgba(190,24,93,.4)",lineHeight:1}}>✕</button>
+                  fontSize:"1.1rem",color:"rgba(var(--pink-deep-rgb),.4)",lineHeight:1}}>✕</button>
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:"0.7rem"}}>
@@ -239,15 +239,15 @@ export default function WatchlistSection() {
               <div style={{marginTop:"1rem"}}>
                 <div style={{display:"flex",alignItems:"center",gap:"0.6rem",marginBottom:"0.7rem"}}>
                   <span style={{fontFamily:SANS,fontSize:"0.66rem",fontWeight:700,
-                    letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(190,24,93,.4)"}}>
+                    letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(var(--pink-deep-rgb),.4)"}}>
                     poster
                   </span>
-                  <div style={{flex:1,height:1,background:"rgba(236,72,153,.15)"}}/>
+                  <div style={{flex:1,height:1,background:"rgba(var(--pink-deep-rgb),.15)"}}/>
                   <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}}
                     onClick={findPosters} disabled={!form.title.trim()||searching}
                     style={{fontFamily:SANS,fontSize:"0.7rem",fontWeight:700,
-                      color:"#be185d",background:"rgba(190,24,93,.1)",
-                      border:"1px solid rgba(190,24,93,.22)",borderRadius:50,
+                      color:"var(--pink-deep)",background:"rgba(var(--pink-deep-rgb),.1)",
+                      border:"1px solid rgba(var(--pink-deep-rgb),.22)",borderRadius:50,
                       padding:"0.33rem 0.85rem",cursor:"pointer",
                       opacity:!form.title.trim()||searching?0.5:1}}>
                     {searching?"searching…":"🔍 find poster"}
@@ -256,7 +256,7 @@ export default function WatchlistSection() {
 
                 {posters.length>0&&(
                   <div style={{marginBottom:"0.7rem"}}>
-                    <p style={{fontFamily:SANS,fontSize:"0.66rem",color:"rgba(190,24,93,.4)",margin:"0 0 0.5rem"}}>
+                    <p style={{fontFamily:SANS,fontSize:"0.66rem",color:"rgba(var(--pink-deep-rgb),.4)",margin:"0 0 0.5rem"}}>
                       click to select
                     </p>
                     <div style={{display:"flex",gap:"0.55rem",overflowX:"auto",paddingBottom:"0.4rem",scrollbarWidth:"none"}}>
@@ -264,7 +264,7 @@ export default function WatchlistSection() {
                         <div key={i} className="wl-poster"
                           onClick={()=>setForm(f=>({...f,coverImage:url}))}
                           style={{flexShrink:0,width:72,height:108,borderRadius:10,overflow:"hidden",
-                            border:`2.5px solid ${form.coverImage===url?"#ec4899":"transparent"}`,
+                            border:`2.5px solid ${form.coverImage===url?"var(--pink-deep)":"transparent"}`,
                             boxShadow:"0 4px 14px rgba(0,0,0,.18)"}}>
                           <img src={url} alt="" loading="lazy" decoding="async"
                             style={{width:"100%",height:"100%",objectFit:"cover"}} />
@@ -282,13 +282,13 @@ export default function WatchlistSection() {
                 {form.coverImage&&(
                   <div style={{marginTop:"0.55rem",display:"flex",alignItems:"center",gap:"0.65rem"}}>
                     <div style={{width:42,height:64,borderRadius:8,overflow:"hidden",flexShrink:0,
-                      border:"1.5px solid rgba(236,72,153,.2)"}}>
+                      border:"1.5px solid rgba(var(--pink-deep-rgb),.2)"}}>
                       <img src={form.coverImage} alt="" loading="lazy" decoding="async"
                         style={{width:"100%",height:"100%",objectFit:"cover"}} />
                     </div>
                     <button onClick={()=>setForm(f=>({...f,coverImage:""}))}
-                      style={{fontFamily:SANS,fontSize:"0.68rem",color:"#be185d",
-                        background:"rgba(190,24,93,.08)",border:"none",
+                      style={{fontFamily:SANS,fontSize:"0.68rem",color:"var(--pink-deep)",
+                        background:"rgba(var(--pink-deep-rgb),.08)",border:"none",
                         borderRadius:8,padding:"0.25rem 0.6rem",cursor:"pointer"}}>
                       remove
                     </button>
@@ -298,10 +298,10 @@ export default function WatchlistSection() {
 
               <div style={{display:"flex",gap:"0.6rem",marginTop:"1.2rem",justifyContent:"flex-end"}}>
                 <button onClick={closeForm}
-                  style={{...BTN,background:"rgba(190,24,93,.08)",color:"#9d174d"}}>cancel</button>
+                  style={{...BTN,background:"rgba(var(--pink-deep-rgb),.08)",color:"var(--pink-deep)"}}>cancel</button>
                 <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}}
                   onClick={save} disabled={saving||!form.title.trim()}
-                  style={{...BTN,background:"linear-gradient(135deg,#f9a8d4,#ec4899)",color:"#fff",
+                  style={{...BTN,background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",color:"#fff",
                     opacity:saving||!form.title.trim()?0.55:1}}>
                   {saving?"saving…":"save"}
                 </motion.button>
@@ -313,7 +313,7 @@ export default function WatchlistSection() {
         {/* ── Grid ── */}
         {loading ? (
           <div style={{textAlign:"center",padding:"5rem",
-            fontFamily:SCRIPT,fontSize:"1.2rem",color:"rgba(190,24,93,.35)"}}>
+            fontFamily:SCRIPT,fontSize:"1.2rem",color:"rgba(var(--pink-deep-rgb),.35)"}}>
             loading… 🌸
           </div>
         ) : visible.length===0 ? (
@@ -321,8 +321,8 @@ export default function WatchlistSection() {
             style={{textAlign:"center",padding:"5rem 2rem"}}>
             <div style={{fontSize:"3rem",marginBottom:"0.9rem"}}>🎞️</div>
             <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.25rem",
-              color:"rgba(157,23,77,.38)",margin:"0 0 0.3rem"}}>nothing here yet</p>
-            <p style={{fontFamily:SCRIPT,fontSize:"1.05rem",color:"rgba(157,23,77,.3)",margin:0}}>
+              color:"rgba(var(--pink-deep-rgb),.38)",margin:"0 0 0.3rem"}}>nothing here yet</p>
+            <p style={{fontFamily:SCRIPT,fontSize:"1.05rem",color:"rgba(var(--pink-deep-rgb),.3)",margin:0}}>
               add something to watch together ✨
             </p>
           </motion.div>
@@ -344,13 +344,13 @@ export default function WatchlistSection() {
                     style={{
                       borderRadius:18,overflow:"hidden",
                       background:"rgba(255,255,255,.9)",
-                      border:"1.5px solid rgba(236,72,153,.16)",
-                      boxShadow:"0 4px 22px rgba(190,24,93,.08)",
+                      border:"1.5px solid rgba(var(--pink-deep-rgb),.16)",
+                      boxShadow:"0 4px 22px rgba(var(--pink-deep-rgb),.08)",
                       display:"flex",flexDirection:"column",
                     }}>
                     {/* Poster */}
                     <div style={{width:"100%",aspectRatio:"2/3",position:"relative",overflow:"hidden",
-                      background:"linear-gradient(160deg,#fce7f3,#fdf4ff)",
+                      background:"linear-gradient(160deg,var(--pink-light),var(--pink-light))",
                       display:"flex",alignItems:"center",justifyContent:"center"}}>
                       {item.coverImage ? (
                         <>
@@ -394,16 +394,16 @@ export default function WatchlistSection() {
                         WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
                         {item.title}
                       </p>
-                      <span style={{fontFamily:SANS,fontSize:"0.62rem",color:"rgba(157,23,77,.4)"}}>
+                      <span style={{fontFamily:SANS,fontSize:"0.62rem",color:"rgba(var(--pink-deep-rgb),.4)"}}>
                         {TYPE_EMOJI[item.type]} {item.type}
                       </span>
                       {stars!=null&&(
-                        <p style={{fontFamily:SANS,fontSize:"0.68rem",color:"rgba(190,24,93,.55)",margin:0}}>
+                        <p style={{fontFamily:SANS,fontSize:"0.68rem",color:"rgba(var(--pink-deep-rgb),.55)",margin:0}}>
                           {"★".repeat(stars)}{"☆".repeat(5-stars)} {item.rating}/10
                         </p>
                       )}
                       {item.notes&&(
-                        <p style={{fontFamily:SCRIPT,fontSize:"0.76rem",color:"rgba(157,23,77,.42)",
+                        <p style={{fontFamily:SCRIPT,fontSize:"0.76rem",color:"rgba(var(--pink-deep-rgb),.42)",
                           margin:0,overflow:"hidden",display:"-webkit-box",
                           WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
                           {item.notes}
@@ -427,7 +427,7 @@ function PILL_STYLE(bg:string,border:string,color:string):React.CSSProperties {
 }
 const INP:React.CSSProperties = {
   fontFamily:SANS,fontSize:"0.85rem",color:"#7c3f58",
-  background:"rgba(252,231,243,.4)",border:"1px solid rgba(236,72,153,.2)",
+  background:"rgba(var(--pink-light-rgb),.4)",border:"1px solid rgba(var(--pink-deep-rgb),.2)",
   borderRadius:10,padding:"0.6rem 0.9rem",
   width:"100%",boxSizing:"border-box",transition:"border-color .2s,box-shadow .2s",
 };

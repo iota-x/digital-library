@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useUserData } from "@/lib/userStore";
 
 const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
@@ -65,10 +66,10 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
       exit={{ opacity: 0, scale: 0.95 }}
       style={{
         background: "rgba(255,255,255,.85)",
-        border: "1.5px solid #f9a8d4",
+        border: "1.5px solid var(--pink)",
         borderRadius: 20,
         padding: "1.4rem 1.6rem",
-        boxShadow: "0 4px 24px rgba(244,114,182,.15)",
+        boxShadow: "0 4px 24px rgba(var(--pink-rgb),.15)",
         backdropFilter: "blur(8px)",
       }}
     >
@@ -78,13 +79,13 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
           <p style={{ margin: 0, fontFamily: SERIF, fontStyle: "italic", fontSize: "0.95rem", color: "#4a1628" }}>
             {note.label || (note.from ? `from ${note.from}` : "a voice note")}
           </p>
-          <p style={{ margin: "0.1rem 0 0", fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,.5)" }}>
+          <p style={{ margin: "0.1rem 0 0", fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-deep-rgb),.5)" }}>
             {note.from && note.label ? `from ${note.from} · ` : ""}{fmtDate(note.createdAt)}
           </p>
         </div>
         <button
           onClick={() => onDelete(note.id)}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(190,24,93,.3)", fontSize: "1rem", padding: "2px 4px" }}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--pink-deep-rgb),.3)", fontSize: "1rem", padding: "2px 4px" }}
           title="delete"
         >×</button>
       </div>
@@ -93,7 +94,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
       <div style={{ display: "flex", alignItems: "center", gap: 3, height: 36, marginBottom: "0.8rem" }}>
         {WAVE_HEIGHTS.map((h, i) => (
           <motion.div key={i}
-            style={{ width: 4, borderRadius: 2, background: "linear-gradient(to top,#f9a8d4,#be185d)" }}
+            style={{ width: 4, borderRadius: 2, background: "linear-gradient(to top,var(--pink),var(--pink-deep))" }}
             animate={playing
               ? { height: [h * 0.5, h, h * 0.5], opacity: [0.5, 1, 0.5] }
               : { height: h * 0.35, opacity: 0.35 }}
@@ -107,17 +108,17 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
           whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
           style={{
             width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
-            background: "linear-gradient(135deg,#f472b6,#be185d)", border: "none",
+            background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", border: "none",
             cursor: "pointer", fontSize: "1rem", color: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 4px 16px rgba(236,72,153,.35)",
+            boxShadow: "0 4px 16px rgba(var(--pink-deep-rgb),.35)",
           }}>
           {playing ? "⏸" : "▶"}
         </motion.button>
-        <div onClick={seek} style={{ flex: 1, height: 7, background: "#fce7f3", borderRadius: 7, cursor: "pointer", overflow: "hidden" }}>
-          <div style={{ height: "100%", background: "linear-gradient(to right,#f9a8d4,#be185d)", borderRadius: 7, width: `${progress}%`, transition: "width 0.1s" }} />
+        <div onClick={seek} style={{ flex: 1, height: 7, background: "var(--pink-light)", borderRadius: 7, cursor: "pointer", overflow: "hidden" }}>
+          <div style={{ height: "100%", background: "linear-gradient(to right,var(--pink),var(--pink-deep))", borderRadius: 7, width: `${progress}%`, transition: "width 0.1s" }} />
         </div>
-        <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,.5)", flexShrink: 0, minWidth: 32 }}>{timeStr}</span>
+        <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-deep-rgb),.5)", flexShrink: 0, minWidth: 32 }}>{timeStr}</span>
       </div>
       <audio ref={audioRef} src={note.url} preload="metadata" />
     </motion.div>
@@ -125,11 +126,12 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
 }
 
 export default function VoiceNote() {
+  const userData = useUserData();
   const [notes, setNotes] = useState<VNote[]>([]);
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
-  const [from, setFrom] = useState("");
+  const [from, setFrom] = useState(userData?.name ?? "");
   const [label, setLabel] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -139,6 +141,11 @@ export default function VoiceNote() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  // Auto-populate from field with user name
+  useEffect(() => {
+    if (userData?.name && !from) setFrom(userData.name);
+  }, [userData?.name, from]);
 
   useEffect(() => {
     fetch("/api/voicenotes").then(r => r.json()).then((data: VNote[]) => {
@@ -233,7 +240,7 @@ export default function VoiceNote() {
         alignItems: "center",
         justifyContent: "center",
         padding: "clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
-        background: "linear-gradient(160deg,#fff5f9,#fce7f3)",
+        background: "linear-gradient(160deg,var(--rose),var(--pink-light))",
       }}
     >
       <motion.div
@@ -245,25 +252,25 @@ export default function VoiceNote() {
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.8rem" }}>
-            <div style={{ width: 40, height: 1, background: "linear-gradient(90deg,transparent,rgba(190,24,93,.4))" }} />
+            <div style={{ width: 40, height: 1, background: "linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.4))" }} />
             <motion.span style={{ fontSize: "2rem" }} animate={{ y: [-3, 3, -3] }} transition={{ repeat: Infinity, duration: 3 }}>🎙️</motion.span>
-            <div style={{ width: 40, height: 1, background: "linear-gradient(90deg,rgba(190,24,93,.4),transparent)" }} />
+            <div style={{ width: 40, height: 1, background: "linear-gradient(90deg,rgba(var(--pink-deep-rgb),.4),transparent)" }} />
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}>
-            <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.8rem,4vw,2.6rem)", color: "#be185d", margin: "0 0 0.3rem", fontWeight: 400 }}>
+            <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.8rem,4vw,2.6rem)", color: "var(--pink-deep)", margin: "0 0 0.3rem", fontWeight: 400 }}>
               voice notes, just for us
             </h2>
             <AnimatePresence>
               {hasNew && (
                 <motion.span
                   initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }}
-                  style={{ fontFamily: SANS, fontSize: "0.62rem", fontWeight: 700, background: "linear-gradient(135deg,#f472b6,#be185d)", color: "#fff", borderRadius: 20, padding: "0.18rem 0.6rem", letterSpacing: "0.06em", boxShadow: "0 2px 10px rgba(190,24,93,.35)", alignSelf: "flex-start", marginTop: "0.5rem", whiteSpace: "nowrap" }}>
+                  style={{ fontFamily: SANS, fontSize: "0.62rem", fontWeight: 700, background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff", borderRadius: 20, padding: "0.18rem 0.6rem", letterSpacing: "0.06em", boxShadow: "0 2px 10px rgba(var(--pink-deep-rgb),.35)", alignSelf: "flex-start", marginTop: "0.5rem", whiteSpace: "nowrap" }}>
                   ✨ new
                 </motion.span>
               )}
             </AnimatePresence>
           </div>
-          <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(190,24,93,.55)", margin: 0 }}>
+          <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(var(--pink-deep-rgb),.55)", margin: 0 }}>
             record a little something — it lives here forever 💗
           </p>
         </div>
@@ -272,7 +279,7 @@ export default function VoiceNote() {
         <AnimatePresence>
           {saved && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-              style={{ background: "rgba(190,24,93,.08)", border: "1px solid rgba(190,24,93,.25)", borderRadius: 12, padding: "0.8rem 1.2rem", marginBottom: "1.2rem", textAlign: "center", fontFamily: SANS, fontSize: "0.88rem", color: "#be185d" }}>
+              style={{ background: "rgba(var(--pink-deep-rgb),.08)", border: "1px solid rgba(var(--pink-deep-rgb),.25)", borderRadius: 12, padding: "0.8rem 1.2rem", marginBottom: "1.2rem", textAlign: "center", fontFamily: SANS, fontSize: "0.88rem", color: "var(--pink-deep)" }}>
               🎙️ Voice note saved!
             </motion.div>
           )}
@@ -283,14 +290,14 @@ export default function VoiceNote() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.15 }}
-          style={{ background: "#fff", border: "2px solid #f9a8d4", borderRadius: 24, padding: "2rem 1.8rem", marginBottom: "1.5rem", boxShadow: "0 8px 40px rgba(244,114,182,.18)" }}
+          style={{ background: "#fff", border: "2px solid var(--pink)", borderRadius: 24, padding: "2rem 1.8rem", marginBottom: "1.5rem", boxShadow: "0 8px 40px rgba(var(--pink-rgb),.18)" }}
         >
           {!showForm && !recording && !uploading && (
             <motion.button
               onClick={() => setShowForm(true)}
-              whileHover={{ scale: 1.02, y: -2, boxShadow: "0 10px 32px rgba(190,24,93,.22)" }}
+              whileHover={{ scale: 1.02, y: -2, boxShadow: "0 10px 32px rgba(var(--pink-deep-rgb),.22)" }}
               whileTap={{ scale: 0.97 }}
-              style={{ width: "100%", padding: "1.1rem", border: "1.5px dashed rgba(190,24,93,.4)", borderRadius: 16, background: "rgba(252,231,243,.3)", cursor: "pointer", fontFamily: SERIF, fontStyle: "italic", fontSize: "1.05rem", color: "#be185d", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}
+              style={{ width: "100%", padding: "1.1rem", border: "1.5px dashed rgba(var(--pink-deep-rgb),.4)", borderRadius: 16, background: "rgba(var(--pink-light-rgb),.3)", cursor: "pointer", fontFamily: SERIF, fontStyle: "italic", fontSize: "1.05rem", color: "var(--pink-deep)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}
             >
               🎙️ record a new voice note
             </motion.button>
@@ -299,20 +306,20 @@ export default function VoiceNote() {
           <AnimatePresence>
             {showForm && !recording && !uploading && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
-                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(190,24,93,.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>from</p>
+                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>from</p>
                 <input value={from} onChange={e => setFrom(e.target.value)} placeholder="your name"
-                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(190,24,93,.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(252,231,243,.3)", boxSizing: "border-box", marginBottom: "0.9rem" }} />
-                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(190,24,93,.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>label (optional)</p>
+                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", marginBottom: "0.9rem" }} />
+                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>label (optional)</p>
                 <input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. good morning, goodnight, i miss you…"
-                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(190,24,93,.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(252,231,243,.3)", boxSizing: "border-box", marginBottom: "1.2rem" }} />
+                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", marginBottom: "1.2rem" }} />
                 <div style={{ display: "flex", gap: "0.7rem" }}>
                   <motion.button onClick={startRecording}
                     whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                    style={{ flex: 1, padding: "0.95rem", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f472b6,#be185d)", color: "#fff", fontFamily: SANS, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(190,24,93,.3)" }}>
+                    style={{ flex: 1, padding: "0.95rem", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff", fontFamily: SANS, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(var(--pink-deep-rgb),.3)" }}>
                     start recording 🎙️
                   </motion.button>
                   <button onClick={() => setShowForm(false)}
-                    style={{ padding: "0.95rem 1rem", borderRadius: 12, border: "1px solid rgba(190,24,93,.25)", background: "transparent", color: "rgba(190,24,93,.6)", fontFamily: SANS, fontSize: "0.88rem", cursor: "pointer" }}>
+                    style={{ padding: "0.95rem 1rem", borderRadius: 12, border: "1px solid rgba(var(--pink-deep-rgb),.25)", background: "transparent", color: "rgba(var(--pink-deep-rgb),.6)", fontFamily: SANS, fontSize: "0.88rem", cursor: "pointer" }}>
                     cancel
                   </button>
                 </div>
@@ -325,21 +332,21 @@ export default function VoiceNote() {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, height: 52, marginBottom: "1rem" }}>
                   {WAVE_HEIGHTS.map((h, i) => (
                     <motion.div key={i}
-                      style={{ width: 5, borderRadius: 3, background: "linear-gradient(to top,#f9a8d4,#be185d)" }}
+                      style={{ width: 5, borderRadius: 3, background: "linear-gradient(to top,var(--pink),var(--pink-deep))" }}
                       animate={{ height: [h * 0.4, h, h * 0.4], opacity: [0.5, 1, 0.5] }}
                       transition={{ duration: 0.7 + i * 0.03, delay: i * 0.04, repeat: Infinity, ease: "easeInOut" }}
                     />
                   ))}
                 </div>
                 <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(190,24,93,.08)", padding: "0.4rem 1rem", borderRadius: 20, marginBottom: "1.2rem" }}>
-                  <span style={{ width: 8, height: 8, background: "#be185d", borderRadius: "50%", display: "inline-block" }} />
-                  <span style={{ fontFamily: SANS, fontSize: "0.88rem", color: "#be185d", fontWeight: 600 }}>recording · {fmt(recSecs)}</span>
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(var(--pink-deep-rgb),.08)", padding: "0.4rem 1rem", borderRadius: 20, marginBottom: "1.2rem" }}>
+                  <span style={{ width: 8, height: 8, background: "var(--pink-deep)", borderRadius: "50%", display: "inline-block" }} />
+                  <span style={{ fontFamily: SANS, fontSize: "0.88rem", color: "var(--pink-deep)", fontWeight: 600 }}>recording · {fmt(recSecs)}</span>
                 </motion.div>
                 <br />
                 <motion.button onClick={stopAndUpload}
                   whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                  style={{ padding: "0.9rem 2.5rem", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f472b6,#be185d)", color: "#fff", fontFamily: SANS, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(190,24,93,.3)" }}>
+                  style={{ padding: "0.9rem 2.5rem", borderRadius: 12, border: "none", background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff", fontFamily: SANS, fontSize: "0.95rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 18px rgba(var(--pink-deep-rgb),.3)" }}>
                   stop & save ⏹
                 </motion.button>
               </motion.div>
@@ -349,7 +356,7 @@ export default function VoiceNote() {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ textAlign: "center", padding: "1.5rem 0" }}>
                 <motion.span animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
                   style={{ display: "inline-block", fontSize: "1.8rem", marginBottom: "0.6rem" }}>🌀</motion.span>
-                <p style={{ fontFamily: SANS, fontSize: "0.9rem", color: "#be185d", margin: 0 }}>uploading your voice…</p>
+                <p style={{ fontFamily: SANS, fontSize: "0.9rem", color: "var(--pink-deep)", margin: 0 }}>uploading your voice…</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -359,7 +366,7 @@ export default function VoiceNote() {
         <AnimatePresence>
           {notes.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
-              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(190,24,93,.45)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.2rem" }}>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.45)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.2rem" }}>
                 saved ({notes.length})
               </p>
               {notes.map(n => <NotePlayer key={n.id} note={n} onDelete={deleteNote} />)}
@@ -369,9 +376,9 @@ export default function VoiceNote() {
 
         {notes.length === 0 && !showForm && !recording && (
           <div style={{ textAlign: "center", padding: "2rem 0" }}>
-            <p style={{ fontFamily: SCRIPT, fontSize: "1.1rem", color: "rgba(190,24,93,.4)", lineHeight: 1.8, margin: 0 }}>
+            <p style={{ fontFamily: SCRIPT, fontSize: "1.1rem", color: "rgba(var(--pink-deep-rgb),.4)", lineHeight: 1.8, margin: 0 }}>
               because hearing your voice is my favourite thing.<br />
-              <strong style={{ color: "#be185d" }}>so i thought maybe you should hear mine too.</strong>
+              <strong style={{ color: "var(--pink-deep)" }}>so i thought maybe you should hear mine too.</strong>
             </p>
           </div>
         )}

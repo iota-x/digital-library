@@ -30,6 +30,7 @@ let _cache: CalEntry[] | null = null;
 let _inflight: Promise<CalEntry[]> | null = null;
 let _sseSource: EventSource | null = null;
 let _refreshing = false;
+let _coupleId = "";
 
 function notify(data: CalEntry[]) {
   listeners.forEach(fn => fn(data));
@@ -48,11 +49,13 @@ function applySSEEvent(event: { type: string; entry?: CalEntry; date?: string })
   notify([..._cache]);
 }
 
-function startSSE() {
+function startSSE(coupleId?: string) {
   if (typeof window === "undefined") return;
   if (_sseSource) return;
+  const id = coupleId ?? _coupleId;
   try {
-    const es = new EventSource("/api/calendar/stream");
+    const url = `/api/calendar/stream${id ? `?coupleId=${encodeURIComponent(id)}` : ""}`;
+    const es = new EventSource(url);
     _sseSource = es;
     es.onmessage = (e) => {
       try {
@@ -64,7 +67,7 @@ function startSSE() {
     es.onerror = () => {
       es.close();
       _sseSource = null;
-      setTimeout(startSSE, 3000);
+      setTimeout(() => startSSE(id), 3000);
     };
   } catch {}
 }
@@ -126,6 +129,7 @@ export async function fetchCalendarData(force = false): Promise<CalEntry[]> {
 export function invalidateCalendarCache() {
   _cache = null;
   _inflight = null;
+  _coupleId = "";
   _sseSource?.close();
   _sseSource = null;
   try { localStorage.removeItem(SESSION_KEY); } catch {}
@@ -145,6 +149,19 @@ export function deleteFromCalendarCache(date: string) {
   _cache = _cache.filter(e => e.date !== date);
   writeSession(_cache);
   notify([..._cache]);
+}
+
+/** Initialize the calendar store with the couple's ID and start fetching + SSE */
+export function initCalendarStore(coupleId: string) {
+  _coupleId = coupleId;
+  // Close any existing SSE connection so it reopens with the right coupleId
+  if (_sseSource) {
+    _sseSource.close();
+    _sseSource = null;
+  }
+  fetchCalendarData(true).then(() => {
+    startSSE(coupleId);
+  });
 }
 
 export function useCalendarData(): { data: CalEntry[]; loading: boolean } {

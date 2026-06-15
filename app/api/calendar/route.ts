@@ -1,22 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
+import { getCol } from "@/lib/mongo";
 import { broadcastCalendarUpdate } from "@/lib/sseBroadcast";
+import { getSession } from "@/lib/auth";
 
-declare global { var _mongoClientPromise: Promise<MongoClient> | undefined; }
-if (!global._mongoClientPromise) {
-  global._mongoClientPromise = new MongoClient(process.env.MONGODB_URI!).connect();
-}
-const clientPromise = global._mongoClientPromise;
-
-async function getCollection() {
-  const c = await clientPromise;
-  return c.db("anniversary").collection("calendar");
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const col = await getCollection();
-    const entries = await col.find({}).toArray();
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+    const col = await getCol("calendar");
+    const entries = await col.find({ coupleId: session.coupleId }).toArray();
     return NextResponse.json(entries);
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
@@ -25,12 +18,17 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const { date, note, photos, special, specialLabel, mood, pinnedNote } = body;
     if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
-    const col = await getCollection();
+
+    const col = await getCol("calendar");
     const doc = {
       date,
+      coupleId: session.coupleId,
       note: note || "",
       photos: photos || [],
       special: !!special,
@@ -38,8 +36,8 @@ export async function POST(req: NextRequest) {
       mood: mood || "",
       pinnedNote: pinnedNote || "",
     };
-    await col.updateOne({ date }, { $set: doc }, { upsert: true });
-    broadcastCalendarUpdate({ type: "update", entry: doc });
+    await col.updateOne({ date, coupleId: session.coupleId }, { $set: doc }, { upsert: true });
+    broadcastCalendarUpdate(session.coupleId, { type: "update", entry: doc });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Failed to save" }, { status: 500 });
@@ -48,11 +46,15 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const { date } = await req.json();
     if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
-    const col = await getCollection();
-    await col.deleteOne({ date });
-    broadcastCalendarUpdate({ type: "delete", date });
+
+    const col = await getCol("calendar");
+    await col.deleteOne({ date, coupleId: session.coupleId });
+    broadcastCalendarUpdate(session.coupleId, { type: "delete", date });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });

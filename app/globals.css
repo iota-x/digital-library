@@ -3,6 +3,93 @@
 @tailwind utilities;
 
 /* ══════════════════════════════════════════════════════════════════
+   COLOUR THEMES  (must come before dark-mode rules so dark wins)
+   Each adds a class to <html> e.g. html.theme-purple
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Lavender / Purple */
+html.theme-purple {
+  --pink:       #a78bfa;
+  --pink-deep:  #7c3aed;
+  --pink-light: #ede9fe;
+  --pink-mid:   #ddd6fe;
+  --rose:       #f5f3ff;
+  --cream:      #faf5ff;
+  --text:       #2e1065;
+  --muted:      #7c6faa;
+  --pink-rgb:       167, 139, 250;
+  --pink-deep-rgb:  124,  58, 237;
+  --pink-mid-rgb:   221, 214, 254;
+  --pink-light-rgb: 237, 233, 254;
+}
+html.theme-purple:not(.dark) section {
+  background: linear-gradient(160deg, #f8f5ff 0%, #ede9fe 35%, #f5f3ff 65%, #faf5ff 100%) !important;
+}
+html.theme-purple:not(.dark) body { background: #faf5ff; }
+
+/* Ocean / Blue */
+html.theme-blue {
+  --pink:       #38bdf8;
+  --pink-deep:  #0284c7;
+  --pink-light: #e0f2fe;
+  --pink-mid:   #bae6fd;
+  --rose:       #f0f9ff;
+  --cream:      #f8faff;
+  --text:       #0c2340;
+  --muted:      #4d7fa0;
+  --pink-rgb:        56, 189, 248;
+  --pink-deep-rgb:    2, 132, 199;
+  --pink-mid-rgb:   186, 230, 253;
+  --pink-light-rgb: 224, 242, 254;
+}
+html.theme-blue:not(.dark) section {
+  background: linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 35%, #f8fbff 65%, #f0f9ff 100%) !important;
+}
+html.theme-blue:not(.dark) body { background: #f8faff; }
+
+/* Forest / Green */
+html.theme-green {
+  --pink:       #34d399;
+  --pink-deep:  #059669;
+  --pink-light: #d1fae5;
+  --pink-mid:   #a7f3d0;
+  --rose:       #ecfdf5;
+  --cream:      #f0fdf9;
+  --text:       #064e3b;
+  --muted:      #3d8a6a;
+  --pink-rgb:        52, 211, 153;
+  --pink-deep-rgb:    5, 150, 105;
+  --pink-mid-rgb:   167, 243, 208;
+  --pink-light-rgb: 209, 250, 229;
+}
+html.theme-green:not(.dark) section {
+  background: linear-gradient(160deg, #ecfdf5 0%, #d1fae5 35%, #f0fdf9 65%, #ecfdf5 100%) !important;
+}
+html.theme-green:not(.dark) body { background: #f0fdf9; }
+
+/* Golden */
+html.theme-gold {
+  --pink:       #fbbf24;
+  --pink-deep:  #d97706;
+  --pink-light: #fef3c7;
+  --pink-mid:   #fde68a;
+  --rose:       #fffbeb;
+  --cream:      #fffef5;
+  --text:       #451a03;
+  --muted:      #92691a;
+  --pink-rgb:       251, 191,  36;
+  --pink-deep-rgb:  217, 119,   6;
+  --pink-mid-rgb:   253, 230, 138;
+  --pink-light-rgb: 254, 243, 199;
+}
+html.theme-gold:not(.dark) section {
+  background: linear-gradient(160deg, #fffbeb 0%, #fef3c7 35%, #fffef5 65%, #fffbeb 100%) !important;
+}
+html.theme-gold:not(.dark) body { background: #fffef5; }
+
+/* Pink is the default — no class needed, :root vars handle it */
+
+/* ══════════════════════════════════════════════════════════════════
    DARK PLUM + BLACK MODE
    Class-based selectors are added directly to components so these
    rules are guaranteed to match — no brittle [style*=""] hacks.
@@ -24,7 +111,7 @@ html.dark {
 
 html.dark body {
   background: #09000f !important;
-  color: #eeddf8 !important;
+  color: var(--text) !important;
 }
 
 /* ── All <section> backgrounds → dark plum ── */
@@ -57,7 +144,7 @@ html.dark .dk-journal-header {
 html.dark .dk-journal-header h1,
 html.dark .dk-journal-header p,
 html.dark .dk-journal-header span {
-  color: #eeddf8 !important;
+  color: var(--text) !important;
 }
 
 /* Timeline memory cards — lighter plum so content stands out */
@@ -68,7 +155,7 @@ html.dark .dk-timeline-card {
 }
 html.dark .dk-timeline-card p,
 html.dark .dk-timeline-card span {
-  color: #f0e4ff !important;
+  color: var(--text) !important;
 }
 
 /* Timeline letter drawer (full-screen bottom sheet) */
@@ -76,7 +163,7 @@ html.dark .dk-timeline-drawer {
   background: #180030 !important;
 }
 html.dark .dk-timeline-drawer p {
-  color: #eeddf8 !important;
+  color: var(--text) !important;
 }
 
 /* Memory cards (home page pastel sticky notes) */
@@ -87,7 +174,7 @@ html.dark .dk-mem-card {
 html.dark .dk-mem-card h3,
 html.dark .dk-mem-card p,
 html.dark .dk-mem-card span {
-  color: #f0e4ff !important;
+  color: var(--text) !important;
 }
 
 /* Memory card modal popup */
@@ -97,7 +184,7 @@ html.dark .dk-mem-modal {
 }
 html.dark .dk-mem-modal h2,
 html.dark .dk-mem-modal p {
-  color: #eeddf8 !important;
+  color: var(--text) !important;
 }
 
 /* Final.tsx — love letter book pages */
@@ -106,7 +193,7 @@ html.dark .dk-book-page {
   border-color: rgba(200, 100, 255, 0.25) !important;
 }
 html.dark .dk-book-page p {
-  color: #f0e4ff !important;
+  color: var(--text) !important;
 }
 
 /* Final.tsx — "I love you" game section */
@@ -115,13 +202,13 @@ html.dark .dk-ily-game {
   border-color: rgba(180, 70, 255, 0.15) !important;
 }
 html.dark .dk-ily-game p {
-  color: #f0e4ff !important;
+  color: var(--text) !important;
 }
 
 /* Footer text */
 html.dark footer p,
 html.dark footer span {
-  color: #e8d0f8 !important;
+  color: var(--text) !important;
 }
 
 /* /shared page hero banner */
@@ -131,7 +218,7 @@ html.dark .dk-shared-hero {
 html.dark .dk-shared-hero h1,
 html.dark .dk-shared-hero p,
 html.dark .dk-shared-hero span {
-  color: #e8d8f8 !important;
+  color: var(--text) !important;
 }
 
 /* BucketList diary paper */
@@ -159,10 +246,10 @@ html.dark .dk-bucket-form {
 }
 html.dark .dk-bucket-form p,
 html.dark .dk-bucket-form input {
-  color: #e8d8f8 !important;
+  color: var(--text) !important;
 }
 html.dark .dk-bucket-form input::placeholder {
-  color: rgba(200, 160, 232, 0.5) !important;
+  color: rgba(var(--pink-mid-rgb,200,160,232), 0.5) !important;
 }
 
 /* BucketList items container */
@@ -171,7 +258,7 @@ html.dark .dk-bucket-list {
   border-color: rgba(180, 80, 255, 0.1) !important;
 }
 html.dark .dk-bucket-list p {
-  color: #e8d8f8 !important;
+  color: var(--text) !important;
 }
 
 /* Calendar main card (white body) */
@@ -187,7 +274,7 @@ html.dark .dk-cal-card > div:nth-child(2) {
 
 /* Day number text inside cells */
 html.dark .dk-cal-card .occ-day span:first-child {
-  color: #e8d0f8 !important;
+  color: var(--text) !important;
 }
 
 /* Day names row text */
@@ -208,13 +295,157 @@ html.dark .dk-cal-legend span {
 html.dark .dk-cal-chip {
   background: rgba(28, 5, 52, 0.9) !important;
   border-color: rgba(180, 80, 255, 0.22) !important;
-  color: #e8d0f8 !important;
+  color: var(--text) !important;
 }
 
 /* ── Scrollbar ── */
 html.dark ::-webkit-scrollbar-track { background: #0c0018; }
 html.dark ::-webkit-scrollbar-thumb { background: #7c3aed; }
 html.dark ::-webkit-scrollbar-thumb:hover { background: #9d5ef5; }
+
+/* ══════════════════════════════════════════════════════════════════
+   DARK + THEMED ACCENT OVERRIDES
+   html.dark.theme-X has higher specificity than html.dark, so these
+   accent variables win while all dark-background rules are preserved.
+   ══════════════════════════════════════════════════════════════════ */
+
+html.dark.theme-purple {
+  --pink:       #a78bfa;
+  --pink-deep:  #a78bfa;
+  --pink-light: #1a0840;
+  --pink-mid:   #22085a;
+  --muted:      #b8a0e8;
+  --cream:      #0a001e;
+  --rose:       #080018;
+  --text:       #e8d8fc;
+  --pink-rgb:       167, 139, 250;
+  --pink-deep-rgb:  167, 139, 250;
+}
+html.dark.theme-purple section {
+  background: linear-gradient(160deg, #0c0022 0%, #18003c 45%, #0c0022 100%) !important;
+}
+html.dark.theme-purple body   { background: #0a001e !important; }
+html.dark.theme-purple footer { background: linear-gradient(135deg, #120038, #1e005a, #140042) !important; border-color: rgba(167,139,250,.22) !important; }
+html.dark.theme-purple nav    { background: rgba(10, 0, 30, 0.88) !important; border-color: rgba(167,139,250,.18) !important; }
+html.dark.theme-purple ::-webkit-scrollbar-thumb { background: #7c3aed; }
+html.dark.theme-purple ::-webkit-scrollbar-thumb:hover { background: #9d5ef5; }
+/* component cards */
+html.dark.theme-purple .dk-timeline-card  { background: #2a0848 !important; border-color: rgba(167,139,250,.35) !important; }
+html.dark.theme-purple .dk-timeline-drawer { background: #180030 !important; }
+html.dark.theme-purple .dk-mem-card  { background: #2a0848 !important; box-shadow: 4px 4px 18px rgba(100,0,160,.28) !important; }
+html.dark.theme-purple .dk-mem-modal { background: #1e0038 !important; }
+html.dark.theme-purple .dk-book-page { background: linear-gradient(160deg,#1e0438 0%,#2a0850 50%,#180330 100%) !important; border-color: rgba(167,139,250,.25) !important; }
+html.dark.theme-purple .dk-ily-game  { background: linear-gradient(180deg,#0c0018,#160030,#0c0018) !important; }
+html.dark.theme-purple .dk-cal-card  { background: rgba(18,3,34,.97) !important; box-shadow: 0 16px 70px rgba(100,0,180,.22),0 4px 16px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(167,139,250,.18) !important; }
+html.dark.theme-purple .dk-cal-chip  { background: rgba(28,5,52,.9) !important; border-color: rgba(167,139,250,.22) !important; }
+
+html.dark.theme-blue {
+  --pink:       #38bdf8;
+  --pink-deep:  #38bdf8;
+  --pink-light: #061828;
+  --pink-mid:   #082438;
+  --muted:      #70b8d8;
+  --cream:      #000810;
+  --rose:       #00060e;
+  --text:       #d0eaf8;
+  --pink-rgb:       56, 189, 248;
+  --pink-deep-rgb:  56, 189, 248;
+}
+html.dark.theme-blue section {
+  background: linear-gradient(160deg, #000d1c 0%, #001628 45%, #000d1c 100%) !important;
+}
+html.dark.theme-blue body   { background: #000810 !important; }
+html.dark.theme-blue footer { background: linear-gradient(135deg, #001428, #002040, #001030) !important; border-color: rgba(56,189,248,.22) !important; }
+html.dark.theme-blue nav    { background: rgba(0, 8, 20, 0.88) !important; border-color: rgba(56,189,248,.18) !important; }
+html.dark.theme-blue ::-webkit-scrollbar-thumb { background: #0284c7; }
+html.dark.theme-blue ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+/* component cards */
+html.dark.theme-blue .dk-timeline-card  { background: #082038 !important; border-color: rgba(56,189,248,.35) !important; box-shadow: 0 6px 24px rgba(0,80,160,.25) !important; }
+html.dark.theme-blue .dk-timeline-drawer { background: #041428 !important; }
+html.dark.theme-blue .dk-mem-card  { background: #082038 !important; box-shadow: 4px 4px 18px rgba(0,80,160,.28) !important; }
+html.dark.theme-blue .dk-mem-modal { background: #041428 !important; }
+html.dark.theme-blue .dk-book-page { background: linear-gradient(160deg,#08203a 0%,#0a2c50 50%,#061830 100%) !important; border-color: rgba(56,189,248,.25) !important; }
+html.dark.theme-blue .dk-ily-game  { background: linear-gradient(180deg,#060f1e,#0a1828,#060f1e) !important; border-color: rgba(56,189,248,.15) !important; }
+html.dark.theme-blue .dk-shared-hero { background: linear-gradient(180deg,#000d1c 0%,#001628 60%,rgba(0,8,14,0) 100%) !important; }
+html.dark.theme-blue .dk-bucket-paper { background: #020e1c !important; background-image: repeating-linear-gradient(180deg,transparent,transparent 31px,rgba(56,189,248,.07) 31px,rgba(56,189,248,.07) 32px) !important; }
+html.dark.theme-blue .dk-bucket-tabs { background: rgba(4,16,30,.88) !important; border-color: rgba(56,189,248,.22) !important; }
+html.dark.theme-blue .dk-bucket-form { background: rgba(4,16,32,.95) !important; border-color: rgba(56,189,248,.22) !important; }
+html.dark.theme-blue .dk-bucket-list { background: rgba(4,14,28,.9) !important; border-color: rgba(56,189,248,.1) !important; }
+html.dark.theme-blue .dk-cal-card  { background: rgba(4,14,28,.97) !important; box-shadow: 0 16px 70px rgba(0,80,160,.22),0 4px 16px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(56,189,248,.18) !important; }
+html.dark.theme-blue .dk-cal-chip  { background: rgba(4,16,32,.9) !important; border-color: rgba(56,189,248,.22) !important; }
+html.dark.theme-blue .dk-journal-header { border-color: rgba(56,189,248,.15) !important; }
+
+html.dark.theme-green {
+  --pink:       #34d399;
+  --pink-deep:  #34d399;
+  --pink-light: #03200e;
+  --pink-mid:   #042e14;
+  --muted:      #58b888;
+  --cream:      #010c05;
+  --rose:       #010a04;
+  --text:       #c0e8d0;
+  --pink-rgb:       52, 211, 153;
+  --pink-deep-rgb:  52, 211, 153;
+}
+html.dark.theme-green section {
+  background: linear-gradient(160deg, #010f07 0%, #021808 45%, #010f07 100%) !important;
+}
+html.dark.theme-green body   { background: #010c05 !important; }
+html.dark.theme-green footer { background: linear-gradient(135deg, #021410, #031e16, #021410) !important; border-color: rgba(52,211,153,.22) !important; }
+html.dark.theme-green nav    { background: rgba(1, 10, 6, 0.88) !important; border-color: rgba(52,211,153,.18) !important; }
+html.dark.theme-green ::-webkit-scrollbar-thumb { background: #059669; }
+html.dark.theme-green ::-webkit-scrollbar-thumb:hover { background: #34d399; }
+/* component cards */
+html.dark.theme-green .dk-timeline-card  { background: #062816 !important; border-color: rgba(52,211,153,.35) !important; box-shadow: 0 6px 24px rgba(0,100,60,.25) !important; }
+html.dark.theme-green .dk-timeline-drawer { background: #031408 !important; }
+html.dark.theme-green .dk-mem-card  { background: #062816 !important; box-shadow: 4px 4px 18px rgba(0,100,60,.28) !important; }
+html.dark.theme-green .dk-mem-modal { background: #031408 !important; }
+html.dark.theme-green .dk-book-page { background: linear-gradient(160deg,#062816 0%,#083820 50%,#042010 100%) !important; border-color: rgba(52,211,153,.25) !important; }
+html.dark.theme-green .dk-ily-game  { background: linear-gradient(180deg,#020f06,#031808,#020f06) !important; border-color: rgba(52,211,153,.15) !important; }
+html.dark.theme-green .dk-shared-hero { background: linear-gradient(180deg,#010f07 0%,#021808 60%,rgba(1,8,4,0) 100%) !important; }
+html.dark.theme-green .dk-bucket-paper { background: #020e06 !important; background-image: repeating-linear-gradient(180deg,transparent,transparent 31px,rgba(52,211,153,.07) 31px,rgba(52,211,153,.07) 32px) !important; }
+html.dark.theme-green .dk-bucket-tabs { background: rgba(4,18,8,.88) !important; border-color: rgba(52,211,153,.22) !important; }
+html.dark.theme-green .dk-bucket-form { background: rgba(4,18,10,.95) !important; border-color: rgba(52,211,153,.22) !important; }
+html.dark.theme-green .dk-bucket-list { background: rgba(4,16,8,.9) !important; border-color: rgba(52,211,153,.1) !important; }
+html.dark.theme-green .dk-cal-card  { background: rgba(4,16,8,.97) !important; box-shadow: 0 16px 70px rgba(0,100,60,.22),0 4px 16px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(52,211,153,.18) !important; }
+html.dark.theme-green .dk-cal-chip  { background: rgba(4,18,10,.9) !important; border-color: rgba(52,211,153,.22) !important; }
+html.dark.theme-green .dk-journal-header { border-color: rgba(52,211,153,.15) !important; }
+
+html.dark.theme-gold {
+  --pink:       #fbbf24;
+  --pink-deep:  #fbbf24;
+  --pink-light: #1e1000;
+  --pink-mid:   #2c1800;
+  --muted:      #c09030;
+  --cream:      #090500;
+  --rose:       #070400;
+  --text:       #f0dea8;
+  --pink-rgb:       251, 191,  36;
+  --pink-deep-rgb:  251, 191,  36;
+}
+html.dark.theme-gold section {
+  background: linear-gradient(160deg, #0e0800 0%, #181000 45%, #0e0800 100%) !important;
+}
+html.dark.theme-gold body   { background: #090500 !important; }
+html.dark.theme-gold footer { background: linear-gradient(135deg, #1a0e00, #281800, #1a0e00) !important; border-color: rgba(251,191,36,.22) !important; }
+html.dark.theme-gold nav    { background: rgba(10, 6, 0, 0.88) !important; border-color: rgba(251,191,36,.18) !important; }
+html.dark.theme-gold ::-webkit-scrollbar-thumb { background: #d97706; }
+html.dark.theme-gold ::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
+/* component cards */
+html.dark.theme-gold .dk-timeline-card  { background: #2a1600 !important; border-color: rgba(251,191,36,.35) !important; box-shadow: 0 6px 24px rgba(160,80,0,.25) !important; }
+html.dark.theme-gold .dk-timeline-drawer { background: #160a00 !important; }
+html.dark.theme-gold .dk-mem-card  { background: #2a1600 !important; box-shadow: 4px 4px 18px rgba(160,80,0,.28) !important; }
+html.dark.theme-gold .dk-mem-modal { background: #160a00 !important; }
+html.dark.theme-gold .dk-book-page { background: linear-gradient(160deg,#2a1600 0%,#381e00 50%,#201000 100%) !important; border-color: rgba(251,191,36,.25) !important; }
+html.dark.theme-gold .dk-ily-game  { background: linear-gradient(180deg,#100800,#1c1000,#100800) !important; border-color: rgba(251,191,36,.15) !important; }
+html.dark.theme-gold .dk-shared-hero { background: linear-gradient(180deg,#0e0800 0%,#181000 60%,rgba(8,4,0,0) 100%) !important; }
+html.dark.theme-gold .dk-bucket-paper { background: #0e0800 !important; background-image: repeating-linear-gradient(180deg,transparent,transparent 31px,rgba(251,191,36,.07) 31px,rgba(251,191,36,.07) 32px) !important; }
+html.dark.theme-gold .dk-bucket-tabs { background: rgba(22,12,0,.88) !important; border-color: rgba(251,191,36,.22) !important; }
+html.dark.theme-gold .dk-bucket-form { background: rgba(22,12,0,.95) !important; border-color: rgba(251,191,36,.22) !important; }
+html.dark.theme-gold .dk-bucket-list { background: rgba(18,10,0,.9) !important; border-color: rgba(251,191,36,.1) !important; }
+html.dark.theme-gold .dk-cal-card  { background: rgba(18,10,0,.97) !important; box-shadow: 0 16px 70px rgba(150,80,0,.22),0 4px 16px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(251,191,36,.18) !important; }
+html.dark.theme-gold .dk-cal-chip  { background: rgba(22,12,0,.9) !important; border-color: rgba(251,191,36,.22) !important; }
+html.dark.theme-gold .dk-journal-header { border-color: rgba(251,191,36,.15) !important; }
 
 :root {
   --font-playfair: "Playfair Display", serif;
@@ -228,6 +459,11 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: #9d5ef5; }
   --cream: #fffbf7;
   --text: #3d1f2b;
   --muted: #9d6b80;
+  /* RGB component triplets for rgba() usage in JS */
+  --pink-rgb: 244, 114, 182;
+  --pink-deep-rgb: 236, 72, 153;
+  --pink-mid-rgb: 251, 207, 232;
+  --pink-light-rgb: 252, 231, 243;
 
   /* Component tokens — changed by html.dark so CSS vars win even inside Framer Motion */
   --cal-card-bg:     rgba(255,255,255,.96);

@@ -1,0 +1,67 @@
+"use client";
+import { useState, useEffect } from "react";
+import { DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
+
+export interface UserInfo {
+  userId:      string;
+  coupleId:    string;
+  name:        string;
+  role:        "creator" | "partner";
+  partnerName: string | null;
+  inviteCode:  string | null;
+  startDate:   string;
+  settings:    CoupleSettings;
+}
+
+let _user: UserInfo | null = null;
+const _listeners: Set<(u: UserInfo | null) => void> = new Set();
+
+function notify(u: UserInfo | null) { _listeners.forEach(fn => fn(u)); }
+
+export async function fetchUserData(): Promise<UserInfo | null> {
+  try {
+    const res  = await fetch("/api/auth/me");
+    const data = await res.json();
+    if (!data.ok) { _user = null; notify(null); return null; }
+    const u: UserInfo = {
+      userId:      data.userId,
+      coupleId:    data.coupleId,
+      name:        data.name,
+      role:        data.role,
+      partnerName: data.partnerName ?? null,
+      inviteCode:  data.inviteCode  ?? null,
+      startDate:   data.startDate   ?? "2026-03-11",
+      settings:    data.settings    ?? DEFAULT_SETTINGS,
+    };
+    _user = u; notify(u); return u;
+  } catch {
+    _user = null; notify(null); return null;
+  }
+}
+
+export function setUser(u: UserInfo): void        { _user = u; notify(u); }
+export function clearUserData(): void              { _user = null; notify(null); }
+export function getStartDate(): Date               { return _user?.startDate ? new Date(_user.startDate) : new Date("2026-03-11"); }
+
+export function updateSettings(settings: CoupleSettings): void {
+  if (!_user) return;
+  _user = { ..._user, settings };
+  notify(_user);
+}
+
+export function updateUserData(updates: Partial<UserInfo>): void {
+  if (!_user) return;
+  _user = { ..._user, ...updates };
+  notify(_user);
+}
+
+export function useUserData(): UserInfo | null {
+  const [user, setUserState] = useState<UserInfo | null>(_user);
+  useEffect(() => {
+    setUserState(_user);
+    const handler = (u: UserInfo | null) => setUserState(u);
+    _listeners.add(handler);
+    return () => { _listeners.delete(handler); };
+  }, []);
+  return user;
+}

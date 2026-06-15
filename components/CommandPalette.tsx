@@ -116,14 +116,14 @@ export default function CommandPalette() {
             style={{
               width:"min(580px,92vw)",
               background:"rgba(255,249,253,.98)",
-              border:"1.5px solid rgba(236,72,153,.22)",
+              border:"1.5px solid rgba(var(--pink-deep-rgb),.22)",
               borderRadius:22,
-              boxShadow:"0 28px 80px rgba(190,24,93,.22),0 0 0 1px rgba(249,168,212,.15)",
+              boxShadow:"0 28px 80px rgba(var(--pink-deep-rgb),.22),0 0 0 1px rgba(var(--pink-rgb),.15)",
               overflow:"hidden",
             }}>
 
             {/* Search bar */}
-            <div style={{display:"flex",alignItems:"center",gap:"0.8rem",padding:"1rem 1.25rem",borderBottom:"1px solid rgba(236,72,153,.1)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:"0.8rem",padding:"1rem 1.25rem",borderBottom:"1px solid rgba(var(--pink-deep-rgb),.1)"}}>
               <span style={{fontSize:"1rem",opacity:.4,flexShrink:0,lineHeight:1}}>🔍</span>
               <input
                 ref={inputRef}
@@ -139,7 +139,7 @@ export default function CommandPalette() {
             <div style={{maxHeight:380, overflowY:"auto", scrollbarWidth:"none" as const}}>
               {/* Entries section header */}
               {filteredRoutes.length > 0 && matchingEntries.length > 0 && (
-                <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(190,24,93,.35)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.7rem 1.25rem 0.2rem",margin:0}}>
+                <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(var(--pink-deep-rgb),.35)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.7rem 1.25rem 0.2rem",margin:0}}>
                   pages
                 </p>
               )}
@@ -152,7 +152,7 @@ export default function CommandPalette() {
 
               {/* Journal entries section header */}
               {matchingEntries.length > 0 && (
-                <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(190,24,93,.35)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.7rem 1.25rem 0.2rem",margin:0}}>
+                <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(var(--pink-deep-rgb),.35)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.7rem 1.25rem 0.2rem",margin:0}}>
                   journal entries
                 </p>
               )}
@@ -164,14 +164,14 @@ export default function CommandPalette() {
               ))}
 
               {totalItems === 0 && (
-                <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.95rem",color:"rgba(157,23,77,.35)",textAlign:"center",padding:"1.5rem",margin:0}}>
+                <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.95rem",color:"rgba(var(--pink-deep-rgb),.35)",textAlign:"center",padding:"1.5rem",margin:0}}>
                   nothing found 🌸
                 </p>
               )}
             </div>
 
             {/* Footer */}
-            <div style={{display:"flex",gap:"1.2rem",justifyContent:"center",alignItems:"center",padding:"0.62rem 1.2rem",borderTop:"1px solid rgba(236,72,153,.07)",fontFamily:SANS,fontSize:"0.62rem",color:"rgba(190,24,93,.3)",letterSpacing:"0.04em"}}>
+            <div style={{display:"flex",gap:"1.2rem",justifyContent:"center",alignItems:"center",padding:"0.62rem 1.2rem",borderTop:"1px solid rgba(var(--pink-deep-rgb),.07)",fontFamily:SANS,fontSize:"0.62rem",color:"rgba(var(--pink-deep-rgb),.3)",letterSpacing:"0.04em"}}>
               <span>↑↓ navigate</span>
               <span style={{opacity:.4}}>·</span>
               <span>↵ open</span>
@@ -200,16 +200,16 @@ function ResultRow({ r, idx, sel, onSelect, onClick }: {
         display:"flex", alignItems:"center", gap:"1rem",
         padding:"0.88rem 1.25rem",
         cursor:"pointer",
-        background: sel === idx ? "rgba(236,72,153,.07)" : "transparent",
-        borderLeft:`3px solid ${sel === idx ? "#ec4899" : "transparent"}`,
+        background: sel === idx ? "rgba(var(--pink-deep-rgb),.07)" : "transparent",
+        borderLeft:`3px solid ${sel === idx ? "var(--pink-deep)" : "transparent"}`,
         transition:"background .1s",
       }}>
       <span style={{fontSize:r.isEntry?"1rem":"1.25rem",lineHeight:1,flexShrink:0}}>{r.emoji}</span>
       <div style={{flex:1,minWidth:0}}>
-        <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:sel===idx?"#9d174d":"#7c3f58",margin:"0 0 0.06rem",fontWeight:400}}>
+        <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:sel===idx?"var(--pink-deep)":"#7c3f58",margin:"0 0 0.06rem",fontWeight:400}}>
           {r.label}
         </p>
-        <p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(157,23,77,.42)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+        <p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-deep-rgb),.42)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
           {r.desc}
         </p>
       </div>
@@ -220,7 +220,7 @@ function ResultRow({ r, idx, sel, onSelect, onClick }: {
 
 const KBD: React.CSSProperties = {
   fontFamily:SANS, fontSize:"0.6rem", fontWeight:700,
-  color:"rgba(190,24,93,.4)", background:"rgba(190,24,93,.07)",
-  border:"1px solid rgba(190,24,93,.13)", borderRadius:6,
+  color:"rgba(var(--pink-deep-rgb),.4)", background:"rgba(var(--pink-deep-rgb),.07)",
+  border:"1px solid rgba(var(--pink-deep-rgb),.13)", borderRadius:6,
   padding:"0.18rem 0.45rem", flexShrink:0, whiteSpace:"nowrap",
 };

@@ -22,7 +22,7 @@ const STARS = Array.from({length:35},(_,i)=>({
 /* ── Palette slot 4: #4E0535 → #3B032F — darkest, end of scroll ── */
 const BG   = "linear-gradient(180deg,#4e0535 0%,#3b032f 60%,#1a0812 100%)";
 const ACC  = "#e879f9";
-const SOFT = "#fdf4ff";
+const SOFT = "var(--pink-light)";
 const DIM  = "rgba(232,121,249,.55)";
 
 export default function MonthlyRecap() {

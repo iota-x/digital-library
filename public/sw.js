@@ -1,4 +1,4 @@
-const CACHE = "ann-v2";
+const CACHE = "ann-v3";
 const NAV_ROUTES = ["/", "/journal", "/timeline", "/capsule", "/shared"];
 
 self.addEventListener("install", e => {

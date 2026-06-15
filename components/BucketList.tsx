@@ -19,7 +19,7 @@ interface BucketItem {
 }
 
 const CATS: { key: Category; label: string; emoji: string; color: string; bg: string }[] = [
-  { key:"dates",       label:"dates",       emoji:"💕", color:"#be185d", bg:"rgba(249,168,212,.25)" },
+  { key:"dates",       label:"dates",       emoji:"💕", color:"var(--pink-deep)", bg:"rgba(var(--pink-rgb),.25)" },
   { key:"travel",      label:"travel",      emoji:"✈️",  color:"#0369a1", bg:"rgba(186,230,253,.3)"  },
   { key:"experiences", label:"experiences", emoji:"🌟", color:"#92400e", bg:"rgba(253,230,138,.3)"  },
   { key:"firsts",      label:"firsts",      emoji:"🎊", color:"#5b21b6", bg:"rgba(221,214,254,.3)"  },
@@ -108,7 +108,7 @@ export default function BucketList() {
         .bl-item:hover .bl-del { opacity:1; }
         .bl-del { opacity:0; transition:opacity .18s; }
         .bl-item { transition:background .18s; }
-        .bl-item:hover { background:rgba(236,72,153,.04) !important; }
+        .bl-item:hover { background:rgba(var(--pink-deep-rgb),.04) !important; }
         .bl-check-btn { transition:transform .15s; cursor:pointer; }
         .bl-check-btn:hover { transform:scale(1.2); }
         .bl-tab { transition:all .18s; cursor:pointer; }
@@ -125,7 +125,7 @@ export default function BucketList() {
       {/* Left margin line */}
       <div style={{
         position: "absolute", left: "clamp(48px,10vw,88px)", top: 0, bottom: 0, width: 2,
-        background: "rgba(236,72,153,.12)",
+        background: "rgba(var(--pink-deep-rgb),.12)",
       }} />
 
       {/* Floating doodles */}
@@ -147,15 +147,15 @@ export default function BucketList() {
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           {/* Diary title decoration */}
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.8rem", marginBottom:"0.7rem" }}>
-            <div style={{ flex:1, maxWidth:55, height:1, background:"linear-gradient(90deg,transparent,rgba(190,24,93,.25))" }}/>
-            <span style={{ fontFamily:SCRIPT, fontSize:"1rem", color:"rgba(190,24,93,.38)", letterSpacing:"0.08em" }}>💕 ✦ 💕</span>
-            <div style={{ flex:1, maxWidth:55, height:1, background:"linear-gradient(90deg,rgba(190,24,93,.25),transparent)" }}/>
+            <div style={{ flex:1, maxWidth:55, height:1, background:"linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.25))" }}/>
+            <span style={{ fontFamily:SCRIPT, fontSize:"1rem", color:"rgba(var(--pink-deep-rgb),.38)", letterSpacing:"0.08em" }}>💕 ✦ 💕</span>
+            <div style={{ flex:1, maxWidth:55, height:1, background:"linear-gradient(90deg,rgba(var(--pink-deep-rgb),.25),transparent)" }}/>
           </div>
           <h2 style={{ fontFamily:SERIF, fontStyle:"italic", fontWeight:400,
-            fontSize:"clamp(2rem,5vw,2.8rem)", color:"#9d174d", margin:"0 0 0.35rem", letterSpacing:"-0.01em" }}>
+            fontSize:"clamp(2rem,5vw,2.8rem)", color:"var(--pink-deep)", margin:"0 0 0.35rem", letterSpacing:"-0.01em" }}>
             our bucket list
           </h2>
-          <p style={{ fontFamily:SCRIPT, fontSize:"clamp(1rem,2.5vw,1.2rem)", color:"rgba(157,23,77,.45)", margin:"0 0 1rem" }}>
+          <p style={{ fontFamily:SCRIPT, fontSize:"clamp(1rem,2.5vw,1.2rem)", color:"rgba(var(--pink-deep-rgb),.45)", margin:"0 0 1rem" }}>
             dreams we want to live together 🌸
           </p>
 
@@ -163,16 +163,16 @@ export default function BucketList() {
           {items.length > 0 && (
             <div style={{ display:"inline-flex", flexDirection:"column", alignItems:"center", gap:"0.4rem" }}>
               <div style={{ display:"flex", alignItems:"center", gap:"0.55rem" }}>
-                <span style={{ fontFamily:SCRIPT, fontSize:"1rem", color:"rgba(157,23,77,.5)" }}>
+                <span style={{ fontFamily:SCRIPT, fontSize:"1rem", color:"rgba(var(--pink-deep-rgb),.5)" }}>
                   {doneCount} of {items.length} done
                 </span>
                 <span style={{ fontSize:"0.9rem" }}>{doneCount === items.length && items.length > 0 ? "🎉" : "💗"}</span>
               </div>
               {/* Progress bar */}
-              <div style={{ width:160, height:5, background:"rgba(236,72,153,.12)", borderRadius:10, overflow:"hidden" }}>
+              <div style={{ width:160, height:5, background:"rgba(var(--pink-deep-rgb),.12)", borderRadius:10, overflow:"hidden" }}>
                 <div style={{
                   height:"100%", borderRadius:10,
-                  background:"linear-gradient(90deg,#f9a8d4,#ec4899)",
+                  background:"linear-gradient(90deg,var(--pink),var(--pink-deep))",
                   width:`${items.length ? (doneCount/items.length)*100 : 0}%`,
                   transition:"width .5s ease",
                 }} />
@@ -185,16 +185,16 @@ export default function BucketList() {
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           flexWrap:"wrap", gap:"0.75rem", marginBottom:"1.6rem" }}>
           <div className="dk-bucket-tabs" style={{ display:"flex", gap:"0.25rem",
-            background:"var(--bucket-tabs-bg)", border:"1px solid rgba(236,72,153,.18)",
+            background:"var(--bucket-tabs-bg)", border:"1px solid rgba(var(--pink-deep-rgb),.18)",
             borderRadius:50, padding:"0.28rem" }}>
             {TABS.map(t => {
               const active = tab === t.key;
               return (
                 <button key={t.key} onClick={() => setTab(t.key)} className="bl-tab" style={{
                   fontFamily:SANS, fontSize:"0.76rem", fontWeight: active ? 700 : 500,
-                  color: active ? "#fff" : "rgba(190,24,93,.65)",
-                  background: active ? "linear-gradient(135deg,#f9a8d4,#ec4899)" : "transparent",
-                  boxShadow: active ? "0 2px 12px rgba(236,72,153,.3)" : "none",
+                  color: active ? "#fff" : "rgba(var(--pink-deep-rgb),.65)",
+                  background: active ? "linear-gradient(135deg,var(--pink),var(--pink-deep))" : "transparent",
+                  boxShadow: active ? "0 2px 12px rgba(var(--pink-deep-rgb),.3)" : "none",
                   border:"none", borderRadius:40, padding:"0.38rem 0.9rem", cursor:"pointer",
                 }}>
                   {t.label}
@@ -206,9 +206,9 @@ export default function BucketList() {
             onClick={() => setShowInput(s => !s)}
             style={{
               fontFamily:SANS, fontSize:"0.82rem", fontWeight:700, color:"#fff",
-              background:"linear-gradient(135deg,#f9a8d4,#ec4899)",
+              background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
               border:"none", borderRadius:50, padding:"0.5rem 1.3rem",
-              cursor:"pointer", boxShadow:"0 4px 18px rgba(236,72,153,.28)",
+              cursor:"pointer", boxShadow:"0 4px 18px rgba(var(--pink-deep-rgb),.28)",
               display:"flex", alignItems:"center", gap:"0.4rem",
             }}>
             ✏️ write a dream
@@ -222,11 +222,11 @@ export default function BucketList() {
               style={{ marginBottom:"1.5rem", overflow:"hidden" }}>
               <div className="dk-bucket-form" style={{
                 background:"var(--bucket-form-bg)",
-                border:"1.5px solid rgba(236,72,153,.2)",
+                border:"1.5px solid rgba(var(--pink-deep-rgb),.2)",
                 borderRadius:20, padding:"1.3rem 1.5rem",
-                boxShadow:"0 8px 32px rgba(190,24,93,.08)",
+                boxShadow:"0 8px 32px rgba(var(--pink-deep-rgb),.08)",
               }}>
-                <p style={{ fontFamily:SCRIPT, fontSize:"1.15rem", color:"#9d174d", margin:"0 0 1rem" }}>
+                <p style={{ fontFamily:SCRIPT, fontSize:"1.15rem", color:"var(--pink-deep)", margin:"0 0 1rem" }}>
                   ✍️ add a dream…
                 </p>
                 <input ref={inputRef}
@@ -238,7 +238,7 @@ export default function BucketList() {
                     width:"100%", boxSizing:"border-box",
                     fontFamily:SANS, fontSize:"1rem", color:"#7c3f58",
                     background:"transparent",
-                    border:"none", borderBottom:"2px solid rgba(236,72,153,.25)",
+                    border:"none", borderBottom:"2px solid rgba(var(--pink-deep-rgb),.25)",
                     padding:"0.4rem 0", outline:"none",
                     marginBottom:"1rem",
                   }} />
@@ -259,7 +259,7 @@ export default function BucketList() {
                 </div>
                 <div style={{ display:"flex", gap:"0.55rem", justifyContent:"flex-end" }}>
                   <button onClick={() => { setShowInput(false); setNewText(""); }}
-                    style={{ fontFamily:SANS, fontSize:"0.8rem", fontWeight:500, color:"rgba(190,24,93,.5)",
+                    style={{ fontFamily:SANS, fontSize:"0.8rem", fontWeight:500, color:"rgba(var(--pink-deep-rgb),.5)",
                       background:"none", border:"none", cursor:"pointer" }}>
                     cancel
                   </button>
@@ -267,7 +267,7 @@ export default function BucketList() {
                     onClick={addItem} disabled={adding || !newText.trim()}
                     style={{
                       fontFamily:SANS, fontSize:"0.82rem", fontWeight:700, color:"#fff",
-                      background:"linear-gradient(135deg,#f9a8d4,#ec4899)",
+                      background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
                       border:"none", borderRadius:50, padding:"0.45rem 1.2rem",
                       cursor:"pointer", opacity:adding||!newText.trim()?0.55:1,
                     }}>
@@ -282,7 +282,7 @@ export default function BucketList() {
         {/* ── List ── */}
         {loading ? (
           <div style={{ textAlign:"center", padding:"4rem",
-            fontFamily:SCRIPT, fontSize:"1.2rem", color:"rgba(190,24,93,.35)" }}>
+            fontFamily:SCRIPT, fontSize:"1.2rem", color:"rgba(var(--pink-deep-rgb),.35)" }}>
             opening the diary… 🌸
           </div>
         ) : visible.length === 0 ? (
@@ -290,17 +290,17 @@ export default function BucketList() {
             style={{ textAlign:"center", padding:"4rem 2rem" }}>
             <div style={{ fontSize:"3rem", marginBottom:"0.8rem" }}>📖</div>
             <p style={{ fontFamily:SERIF, fontStyle:"italic", fontSize:"1.2rem",
-              color:"rgba(157,23,77,.38)", margin:"0 0 0.3rem" }}>
+              color:"rgba(var(--pink-deep-rgb),.38)", margin:"0 0 0.3rem" }}>
               {tab==="done" ? "nothing done yet — go make memories!" : "this page is empty"}
             </p>
-            <p style={{ fontFamily:SCRIPT, fontSize:"1.05rem", color:"rgba(157,23,77,.3)", margin:0 }}>
+            <p style={{ fontFamily:SCRIPT, fontSize:"1.05rem", color:"rgba(var(--pink-deep-rgb),.3)", margin:0 }}>
               {tab==="done" ? "" : "write your first dream together ✨"}
             </p>
           </motion.div>
         ) : (
           <div className="dk-bucket-list" style={{
             background:"var(--bucket-list-bg)",
-            border:"1px solid rgba(236,72,153,.14)",
+            border:"1px solid rgba(var(--pink-deep-rgb),.14)",
             borderRadius:20, overflow:"hidden",
           }}>
             <AnimatePresence initial={false}>
@@ -314,8 +314,8 @@ export default function BucketList() {
                     style={{
                       display:"flex", alignItems:"center", gap:"0.9rem",
                       padding:"0.9rem 1.1rem",
-                      borderBottom: i<visible.length-1 ? "1px solid rgba(236,72,153,.07)" : "none",
-                      background: item.completed ? "rgba(236,72,153,.025)" : "transparent",
+                      borderBottom: i<visible.length-1 ? "1px solid rgba(var(--pink-deep-rgb),.07)" : "none",
+                      background: item.completed ? "rgba(var(--pink-deep-rgb),.025)" : "transparent",
                     }}>
 
                     {/* Checkbox — heart toggle */}
@@ -335,10 +335,10 @@ export default function BucketList() {
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{
                         fontFamily:SANS, fontSize:"0.95rem", fontWeight:500,
-                        color: item.completed ? "rgba(157,23,77,.38)" : "var(--text)",
+                        color: item.completed ? "rgba(var(--pink-deep-rgb),.38)" : "var(--text)",
                         margin:0, lineHeight:1.45, position:"relative",
                         textDecoration: item.completed ? "line-through" : "none",
-                        textDecorationColor: "rgba(190,24,93,.4)",
+                        textDecorationColor: "rgba(var(--pink-deep-rgb),.4)",
                       }}>
                         {item.text}
                       </p>
@@ -351,7 +351,7 @@ export default function BucketList() {
                           {cat.emoji} {cat.label}
                         </span>
                         {item.completed && item.completedAt && (
-                          <span style={{ fontFamily:SCRIPT, fontSize:"0.78rem", color:"rgba(157,23,77,.4)" }}>
+                          <span style={{ fontFamily:SCRIPT, fontSize:"0.78rem", color:"rgba(var(--pink-deep-rgb),.4)" }}>
                             done ✓
                           </span>
                         )}
@@ -361,7 +361,7 @@ export default function BucketList() {
                     {/* Delete */}
                     <button className="bl-del" onClick={() => del(item._id)}
                       style={{ background:"none", border:"none", cursor:"pointer",
-                        fontSize:"0.9rem", color:"rgba(190,24,93,.3)", flexShrink:0,
+                        fontSize:"0.9rem", color:"rgba(var(--pink-deep-rgb),.3)", flexShrink:0,
                         padding:"0.2rem 0.3rem", borderRadius:6,
                         lineHeight:1 }}>
                       ✕
@@ -377,7 +377,7 @@ export default function BucketList() {
         {doneCount > 0 && doneCount === items.length && !loading && (
           <motion.div initial={{opacity:0,y:12}} animate={{opacity:1,y:0}}
             style={{ textAlign:"center", padding:"1.5rem 0 0" }}>
-            <p style={{ fontFamily:SCRIPT, fontSize:"1.3rem", color:"rgba(157,23,77,.55)", margin:0 }}>
+            <p style={{ fontFamily:SCRIPT, fontSize:"1.3rem", color:"rgba(var(--pink-deep-rgb),.55)", margin:0 }}>
               you did everything! time to dream bigger 🎉💕
             </p>
           </motion.div>

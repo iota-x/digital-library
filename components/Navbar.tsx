@@ -3,6 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { useUserData, clearUserData } from "@/lib/userStore";
+import { invalidateCalendarCache } from "@/lib/calendarStore";
 
 const ROUTES = [
   { href: "/",         label: "home",      emoji: "🌸" },
@@ -23,10 +25,13 @@ function hasNewVoiceNote(): boolean {
 
 export default function Navbar() {
   const path        = usePathname();
+  const user        = useUserData();
   const [scrolled,    setScrolled]    = useState(false);
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const [dark,        setDark]        = useState(false);
   const [vnBadge,     setVnBadge]     = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [copied,       setCopied]       = useState(false);
 
   /* scroll shadow */
   useEffect(() => {
@@ -38,7 +43,9 @@ export default function Navbar() {
   /* close mobile menu on route change or ESC */
   useEffect(() => setMobileOpen(false), [path]);
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileOpen(false); };
+    const fn = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setMobileOpen(false); setUserMenuOpen(false); }
+    };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, []);
@@ -68,6 +75,22 @@ export default function Navbar() {
     window.dispatchEvent(new Event("annapp:theme"));
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    clearUserData();
+    invalidateCalendarCache();
+    window.location.href = "/";
+  };
+
+  const copyInviteCode = () => {
+    if (!user?.inviteCode) return;
+    navigator.clipboard.writeText(user.inviteCode).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <>
       <motion.nav
@@ -83,11 +106,11 @@ export default function Navbar() {
           justifyContent: "space-between",
           padding: "0.75rem clamp(1rem, 4vw, 2.5rem)",
           background: scrolled
-            ? "rgba(255,245,249,0.85)"
+            ? `rgba(var(--pink-light-rgb,255,245,249),0.88)`
             : "rgba(255,255,255,0.0)",
           backdropFilter: scrolled ? "blur(20px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? "1px solid rgba(249,168,212,0.2)" : "none",
+          borderBottom: scrolled ? `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)` : "none",
           transition: "background 0.4s, border 0.4s, backdrop-filter 0.4s",
         }}
       >
@@ -100,7 +123,7 @@ export default function Navbar() {
               fontFamily: '"Georgia", "Times New Roman", serif',
               fontStyle: "italic",
               fontSize: "1.05rem",
-              color: "#be185d",
+              color: "var(--pink-deep)",
               letterSpacing: "0.02em",
             }}>
               us
@@ -111,8 +134,8 @@ export default function Navbar() {
         {/* Desktop tabs */}
         <div style={{
           display: "flex", gap: "0.25rem", alignItems: "center",
-          background: "rgba(252,231,243,0.6)",
-          border: "1px solid rgba(249,168,212,0.35)",
+          background: "rgba(var(--pink-light-rgb,252,231,243),0.6)",
+          border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
           borderRadius: 50,
           padding: "0.3rem",
           backdropFilter: "blur(12px)",
@@ -132,8 +155,8 @@ export default function Navbar() {
                     padding: "0.45rem 1.1rem",
                     borderRadius: 40,
                     display: "flex", alignItems: "center", gap: "0.4rem",
-                    background: active ? "linear-gradient(135deg,#f9a8d4,#ec4899)" : "transparent",
-                    boxShadow: active ? "0 2px 14px rgba(236,72,153,0.35)" : "none",
+                    background: active ? "linear-gradient(135deg,var(--pink),var(--pink-deep))" : "transparent",
+                    boxShadow: active ? `0 2px 14px rgba(var(--pink-deep-rgb,236,72,153),0.35)` : "none",
                     transition: "background 0.25s, box-shadow 0.25s",
                   }}>
                   <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>{r.emoji}</span>
@@ -141,7 +164,7 @@ export default function Navbar() {
                     fontFamily: "var(--font-lato), 'Inter', system-ui, sans-serif",
                     fontSize: "0.82rem",
                     fontWeight: active ? 700 : 500,
-                    color: active ? "#fff" : "rgba(190,24,93,0.7)",
+                    color: active ? "#fff" : `rgba(var(--pink-deep-rgb,190,24,93),0.7)`,
                     letterSpacing: "0.04em",
                     transition: "color 0.25s",
                   }}>
@@ -151,8 +174,8 @@ export default function Navbar() {
                     <span style={{
                       position: "absolute", top: 4, right: 4,
                       width: 7, height: 7, borderRadius: "50%",
-                      background: "#ec4899",
-                      boxShadow: "0 0 6px rgba(236,72,153,.7)",
+                      background: "var(--pink-deep)",
+                      boxShadow: `0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
                     }}/>
                   )}
                 </motion.div>
@@ -161,7 +184,7 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Right cluster: dark toggle + ⌘K */}
+        {/* Right cluster: dark toggle + user pill + ⌘K + hamburger */}
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
           {/* Dark mode toggle */}
           <motion.button
@@ -171,13 +194,125 @@ export default function Navbar() {
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               width: 34, height: 34, borderRadius: "50%",
-              background: "rgba(252,231,243,.55)",
-              border: "1px solid rgba(249,168,212,.35)",
+              background: "rgba(var(--pink-light-rgb,252,231,243),.55)",
+              border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)",
               cursor: "pointer", fontSize: "1rem",
             }}
           >
             {dark ? "☀️" : "🌙"}
           </motion.button>
+
+          {/* User pill — desktop only */}
+          {user && (
+            <div style={{ position: "relative" }} className="nav-desktop">
+              <motion.button
+                onClick={() => setUserMenuOpen(o => !o)}
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                style={{
+                  display: "flex", alignItems: "center", gap: "0.4rem",
+                  background: "rgba(var(--pink-light-rgb,252,231,243),.7)",
+                  border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                  borderRadius: 50,
+                  padding: "0.32rem 0.8rem",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
+                  fontSize: "0.78rem",
+                  color: "var(--pink-deep)",
+                  fontWeight: 600,
+                }}
+              >
+                <span>🌸</span>
+                <span>{user.name}</span>
+              </motion.button>
+
+              {/* User dropdown */}
+              <AnimatePresence>
+                {userMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                    transition={{ duration: 0.18 }}
+                    style={{
+                      position: "absolute", top: "calc(100% + 0.5rem)", right: 0,
+                      background: "var(--cream)",
+                      backdropFilter: "blur(20px)",
+                      border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
+                      borderRadius: 16,
+                      padding: "1rem",
+                      minWidth: 220,
+                      boxShadow: `0 12px 40px rgba(var(--pink-rgb,244,114,182),0.2)`,
+                      zIndex: 600,
+                    }}
+                  >
+                    <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.72rem", color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 0.4rem" }}>signed in as</p>
+                    <p style={{ fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "1rem", color: "var(--pink-deep)", margin: "0 0 0.8rem", fontWeight: 400 }}>{user.name}</p>
+
+                    {user.partnerName ? (
+                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 0.8rem" }}>
+                        with {user.partnerName} 💗
+                      </p>
+                    ) : (
+                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--muted)", margin: "0 0 0.8rem", fontStyle: "italic", opacity: 0.7 }}>
+                        partner not joined yet
+                      </p>
+                    )}
+
+                    {user.inviteCode && (
+                      <div style={{ marginBottom: "0.8rem" }}>
+                        <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>invite code</p>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                          <span style={{ fontFamily: '"Georgia","Times New Roman",serif', fontSize: "1.1rem", color: "var(--pink-deep)", letterSpacing: "0.25em", fontWeight: 700 }}>
+                            {user.inviteCode}
+                          </span>
+                          <button
+                            onClick={copyInviteCode}
+                            style={{ background: "rgba(var(--pink-mid-rgb,249,168,212),0.2)", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--pink-deep)" }}
+                          >
+                            {copied ? "✓" : "copy"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ borderTop: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)", paddingTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                      <button
+                        onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new Event("annapp:settings")); }}
+                        style={{
+                          width: "100%", padding: "0.6rem 0.8rem",
+                          borderRadius: 10,
+                          border: `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`,
+                          background: `rgba(var(--pink-light-rgb,252,231,243),0.4)`,
+                          cursor: "pointer",
+                          fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
+                          fontSize: "0.82rem", color: "var(--pink-deep)",
+                          textAlign: "left" as const,
+                          fontWeight: 600,
+                        }}
+                      >
+                        🎨 customize
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        style={{
+                          width: "100%", padding: "0.6rem 0.8rem",
+                          borderRadius: 10,
+                          border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)",
+                          background: "transparent",
+                          cursor: "pointer",
+                          fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
+                          fontSize: "0.82rem", color: "var(--muted)",
+                          textAlign: "left" as const,
+                        }}
+                      >
+                        sign out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
 
           {/* ⌘K shortcut hint — desktop only */}
           <button
@@ -185,13 +320,13 @@ export default function Navbar() {
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
             style={{
               display:"flex", alignItems:"center", gap:"0.35rem",
-              background:"rgba(252,231,243,.55)",
-              border:"1px solid rgba(249,168,212,.35)",
+              background:`rgba(var(--pink-light-rgb,252,231,243),.55)`,
+              border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)`,
               borderRadius:8, padding:"0.32rem 0.65rem",
               cursor:"pointer",
               fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif",
               fontSize:"0.62rem", fontWeight:700,
-              color:"rgba(190,24,93,.5)",
+              color:`rgba(var(--pink-deep-rgb,190,24,93),.5)`,
               letterSpacing:"0.06em",
             }}>
             <span>⌘K</span>
@@ -203,8 +338,8 @@ export default function Navbar() {
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             className="nav-mobile-btn"
             style={{
-              background: "rgba(252,231,243,0.7)",
-              border: "1px solid rgba(249,168,212,0.35)",
+              background:`rgba(var(--pink-light-rgb,252,231,243),0.7)`,
+              border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)`,
               borderRadius: 10, width: 40, height: 40,
               cursor: "pointer", display: "none",
               alignItems: "center", justifyContent: "center",
@@ -219,7 +354,7 @@ export default function Navbar() {
                   opacity: i === 1 ? 0 : 1,
                 } : { rotate: 0, y: 0, opacity: 1 }}
                 transition={{ duration: 0.25 }}
-                style={{ width: 18, height: 2, background: "#ec4899", borderRadius: 1 }}
+                style={{ width: 18, height: 2, background: "var(--pink-deep)", borderRadius: 1 }}
               />
             ))}
             {/* Voice note badge on hamburger */}
@@ -227,8 +362,8 @@ export default function Navbar() {
               <span style={{
                 position:"absolute",top:6,right:6,
                 width:7,height:7,borderRadius:"50%",
-                background:"#ec4899",
-                boxShadow:"0 0 6px rgba(236,72,153,.7)",
+                background:"var(--pink-deep)",
+                boxShadow:`0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
               }}/>
             )}
           </motion.button>
@@ -247,12 +382,12 @@ export default function Navbar() {
               position: "fixed",
               top: 60, left: "1rem", right: "1rem",
               zIndex: 499,
-              background: "rgba(255,245,249,0.96)",
+              background: "var(--cream)",
               backdropFilter: "blur(24px)",
-              border: "1px solid rgba(249,168,212,0.3)",
+              border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)",
               borderRadius: 20,
               padding: "1rem",
-              boxShadow: "0 16px 48px rgba(244,114,182,0.2)",
+              boxShadow: `0 16px 48px rgba(var(--pink-rgb,244,114,182),0.2)`,
               display: "flex", flexDirection: "column", gap: "0.4rem",
             }}>
             {ROUTES.map((r, i) => {
@@ -267,8 +402,8 @@ export default function Navbar() {
                     <div style={{
                       padding: "0.85rem 1.2rem",
                       borderRadius: 14,
-                      background: active ? "linear-gradient(135deg,rgba(249,168,212,0.3),rgba(236,72,153,0.15))" : "transparent",
-                      border: active ? "1px solid rgba(236,72,153,0.25)" : "1px solid transparent",
+                      background: active ? `linear-gradient(135deg,rgba(var(--pink-rgb,249,168,212),0.3),rgba(var(--pink-deep-rgb,236,72,153),0.15))` : "transparent",
+                      border: active ? `1px solid rgba(var(--pink-deep-rgb,236,72,153),0.25)` : "1px solid transparent",
                       display: "flex", alignItems: "center", gap: "0.8rem",
                       position: "relative",
                     }}>
@@ -277,7 +412,7 @@ export default function Navbar() {
                         fontFamily: '"Georgia","Times New Roman",serif',
                         fontStyle: "italic",
                         fontSize: "1.05rem",
-                        color: active ? "#be185d" : "rgba(190,24,93,0.6)",
+                        color: active ? "var(--pink-deep)" : `rgba(var(--pink-deep-rgb,190,24,93),0.6)`,
                         fontWeight: active ? 600 : 400,
                         flex: 1,
                       }}>
@@ -286,8 +421,8 @@ export default function Navbar() {
                       {showBadge && (
                         <span style={{
                           width:8,height:8,borderRadius:"50%",
-                          background:"#ec4899",flexShrink:0,
-                          boxShadow:"0 0 6px rgba(236,72,153,.7)",
+                          background:"var(--pink-deep)",flexShrink:0,
+                          boxShadow:`0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
                         }}/>
                       )}
                     </div>
@@ -297,24 +432,79 @@ export default function Navbar() {
             })}
 
             {/* Dark mode row in mobile menu */}
-            <div style={{ borderTop:"1px solid rgba(249,168,212,.2)", marginTop:"0.3rem", paddingTop:"0.6rem" }}>
+            <div style={{ borderTop:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.3rem", paddingTop:"0.6rem" }}>
               <button
                 onClick={toggleDark}
                 style={{
                   width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                  border:"1px solid rgba(249,168,212,.2)", background:"transparent",
+                  border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
                   display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
                 }}
               >
                 <span style={{ fontSize:"1.2rem" }}>{dark ? "☀️" : "🌙"}</span>
                 <span style={{
                   fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
-                  fontSize:"1.05rem", color:"rgba(190,24,93,.6)",
+                  fontSize:"1.05rem", color:"var(--muted)",
                 }}>
                   {dark ? "light mode" : "dark mode"}
                 </span>
               </button>
             </div>
+
+            {/* User info + customize + logout in mobile menu */}
+            {user && (
+              <div style={{ borderTop:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.1rem", paddingTop:"0.6rem" }}>
+                <div style={{ padding:"0.5rem 1.2rem", marginBottom:"0.4rem" }}>
+                  <p style={{ fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic", fontSize:"0.95rem", color:"var(--pink-deep)", margin:0 }}>
+                    🌸 {user.name}
+                  </p>
+                  {user.partnerName && (
+                    <p style={{ fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.75rem", color:"var(--muted)", margin:"0.15rem 0 0" }}>
+                      with {user.partnerName} 💗
+                    </p>
+                  )}
+                  {user.inviteCode && (
+                    <p style={{ fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.72rem", color:"var(--muted)", margin:"0.2rem 0 0", opacity:0.75 }}>
+                      invite: <strong style={{ letterSpacing:"0.2em" }}>{user.inviteCode}</strong>
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => { setMobileOpen(false); window.dispatchEvent(new Event("annapp:settings")); }}
+                  style={{
+                    width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
+                    border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`,
+                    background:`rgba(var(--pink-light-rgb,252,231,243),0.4)`,
+                    display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
+                    marginBottom:"0.3rem",
+                  }}
+                >
+                  <span style={{ fontSize:"1.2rem" }}>🎨</span>
+                  <span style={{
+                    fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
+                    fontSize:"1.05rem", color:"var(--pink-deep)", fontWeight:600,
+                  }}>
+                    customize
+                  </span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
+                    border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
+                    display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
+                  }}
+                >
+                  <span style={{ fontSize:"1.2rem" }}>👋</span>
+                  <span style={{
+                    fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
+                    fontSize:"1.05rem", color:"var(--muted)",
+                  }}>
+                    sign out
+                  </span>
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

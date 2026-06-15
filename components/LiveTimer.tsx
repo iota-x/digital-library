@@ -1,15 +1,15 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useUserData } from "@/lib/userStore";
 
-const START = new Date("2026-03-11T00:00:00");
+function pad(n: number) { return String(n).padStart(2,"0"); }
 
-function getElapsed() {
-  const diff = Math.max(0, Date.now() - START.getTime());
+function getElapsed(start: Date) {
+  const diff = Math.max(0, Date.now() - start.getTime());
   const s = Math.floor(diff / 1000);
   return { days: Math.floor(s/86400), hours: Math.floor(s/3600)%24, mins: Math.floor(s/60)%60, secs: s%60 };
 }
-function pad(n: number) { return String(n).padStart(2,"0"); }
 
 /* ── individual flip-style counter ── */
 function CounterBox({ label, value, delay, inView }: { label:string; value:number; delay:number; inView:boolean }) {
@@ -36,8 +36,8 @@ function CounterBox({ label, value, delay, inView }: { label:string; value:numbe
         position:"relative", width:"clamp(90px,16vw,130px)", height:"clamp(90px,16vw,130px)",
         borderRadius:20,
         background:"rgba(255,255,255,0.92)",
-        border:"2px solid rgba(249,168,212,0.6)",
-        boxShadow:"0 8px 32px rgba(244,114,182,.18), inset 0 1px 0 rgba(255,255,255,.9)",
+        border:"2px solid rgba(var(--pink-rgb),0.6)",
+        boxShadow:"0 8px 32px rgba(var(--pink-rgb),.18), inset 0 1px 0 rgba(255,255,255,.9)",
         display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
       }}>
         {/* shimmer */}
@@ -105,15 +105,18 @@ const SIDE_NOTES = [
 ];
 
 export default function LiveTimer() {
+  const userData = useUserData();
+  const START = userData?.startDate ? new Date(userData.startDate + "T00:00:00") : new Date("2026-03-11T00:00:00");
   const [time, setTime] = useState<ReturnType<typeof getElapsed>|null>(null);
   const ref    = useRef(null);
   const inView = useInView(ref, { once:true, margin:"-80px" });
 
   useEffect(() => {
-    setTime(getElapsed());
-    const id = setInterval(() => setTime(getElapsed()), 1000);
+    setTime(getElapsed(START));
+    const id = setInterval(() => setTime(getElapsed(START)), 1000);
     return () => clearInterval(id);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [START.getTime()]);
 
   return (
     <section
@@ -125,7 +128,7 @@ export default function LiveTimer() {
         alignItems:"center", justifyContent:"center",
         padding:"5rem 2rem",
         position:"relative", overflow:"hidden",
-        background:"linear-gradient(160deg,#fff0f5 0%,#fce7f3 45%,#fff5f9 100%)",
+        background:"linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 45%,var(--rose) 100%)",
         textAlign:"center",
       }}
     >
@@ -145,11 +148,11 @@ export default function LiveTimer() {
           style={{
             position:"absolute", ...n.pos,
             background:"rgba(255,255,255,0.75)",
-            border:"1.5px solid #f9a8d4",
+            border:"1.5px solid var(--pink)",
             borderRadius:14,
             padding:"0.6rem 1rem",
             maxWidth:160,
-            boxShadow:"0 4px 18px rgba(244,114,182,.14)",
+            boxShadow:"0 4px 18px rgba(var(--pink-rgb),.14)",
             fontFamily:"var(--font-caveat)",
             fontSize:"0.95rem",
             color:"var(--pink-deep)",
@@ -182,7 +185,10 @@ export default function LiveTimer() {
           transition={{ duration:0.7, delay:0.1 }}
           style={{ fontFamily:"var(--font-playfair)", fontSize:"clamp(1.8rem,4vw,2.8rem)", color:"var(--pink-deep)", marginBottom:"0.4rem" }}
         >
-          we&apos;ve been <em>us</em> for…
+          {userData?.settings?.coupleName
+            ? <><em>{userData.settings.coupleName}</em> for…</>
+            : <>we&apos;ve been <em>us</em> for…</>
+          }
         </motion.h2>
 
         <motion.p
@@ -205,7 +211,7 @@ export default function LiveTimer() {
             </>
           ) : (
             [0,1,2,3].map(i => (
-              <div key={i} style={{ width:"clamp(90px,16vw,130px)", height:"clamp(90px,16vw,130px)", borderRadius:20, background:"rgba(255,255,255,.6)", border:"2px solid #f9a8d4" }} />
+              <div key={i} style={{ width:"clamp(90px,16vw,130px)", height:"clamp(90px,16vw,130px)", borderRadius:20, background:"rgba(255,255,255,.6)", border:"2px solid var(--pink)" }} />
             ))
           )}
         </div>
@@ -218,10 +224,10 @@ export default function LiveTimer() {
           style={{
             display:"inline-flex", alignItems:"center", gap:"0.8rem",
             background:"rgba(255,255,255,.9)",
-            border:"1.5px solid #f9a8d4",
+            border:"1.5px solid var(--pink)",
             borderRadius:50,
             padding:"0.7rem 1.8rem",
-            boxShadow:"0 4px 20px rgba(244,114,182,.15)",
+            boxShadow:"0 4px 20px rgba(var(--pink-rgb),.15)",
           }}
         >
           <span className="occ-heart" style={{ fontSize:"1rem" }}>💗</span>
@@ -254,7 +260,7 @@ export default function LiveTimer() {
                 fontFamily:"var(--font-caveat)", fontSize:"1rem",
                 color:"var(--pink-deep)",
                 background:"rgba(255,255,255,.75)",
-                border:"1.5px solid #f9a8d4",
+                border:"1.5px solid var(--pink)",
                 borderRadius:50,
                 padding:"0.35rem 1rem",
               }}

@@ -6,25 +6,25 @@ const PAGES = [
   {
     icon: "🌷",
     accent: "#ffb3c6",
-    bg: "linear-gradient(160deg,#fff0f5,#ffe0ec)",
+    bg: "linear-gradient(160deg,var(--rose),var(--pink-light))",
     text: `I know i'm not that cool, I don't understand a lotta stuff which is very common knowledge among people our age — but one thing I'm certain of is that my love for you is very pure and comes with no conditions whatsoever 💗`,
   },
   {
     icon: "🌸",
-    accent: "#f9a8d4",
-    bg: "linear-gradient(160deg,#fff5f9,#fce7f3)",
+    accent: "var(--pink)",
+    bg: "linear-gradient(160deg,var(--rose),var(--pink-light))",
     text: `Going back, I feel like choosing you is the best decision I've made in my entire life abhi tak. And I never regret it — not even for a second. (I don't know what makes u think I do, but I never have.)`,
   },
   {
     icon: "💗",
-    accent: "#ec4899",
-    bg: "linear-gradient(160deg,#fce7f3,#ffd6e0)",
+    accent: "var(--pink-deep)",
+    bg: "linear-gradient(160deg,var(--pink-light),#ffd6e0)",
     text: `We will grow and learn together and we both will make efforts for each other — one thing I'm sure of is that I do plan on spending the rest of my life with you. It's not a hasty decision. I've thought about it properly and it's something I want you to know. 🩷`,
   },
   {
     icon: "✨",
-    accent: "#f472b6",
-    bg: "linear-gradient(160deg,#fff0f5,#ffccd5)",
+    accent: "var(--pink)",
+    bg: "linear-gradient(160deg,var(--rose),var(--pink-mid))",
     text: `You truly make me the happiest. Having you feels very very veryyyy warm and comfy and I have this sense of calm whenever I'm with you — which is otherwise just chaos. Thank you for being mine. 🌷`,
   },
 ];
@@ -52,8 +52,8 @@ function Stars() {
           if (p.a <= 0.1 || p.a >= 1) p.da *= -1;
           ctx.beginPath();
           ctx.arc(p.x * c.width, p.y * c.height, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(244,114,182,${p.a * 0.6})`;
-          ctx.shadowBlur = 5; ctx.shadowColor = "#f9a8d4"; ctx.fill();
+          ctx.fillStyle = `rgba(var(--pink-rgb),${p.a * 0.6})`;
+          ctx.shadowBlur = 5; ctx.shadowColor = "var(--pink)"; ctx.fill();
         });
       }
       raf = requestAnimationFrame(draw);
@@ -167,9 +167,9 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
         alignItems:"center", justifyContent:"center",
         gap:"2rem",
         padding:"6rem 2rem",
-        background:"linear-gradient(180deg,#fce7f3,#fff0f5,#fce7f3)",
+        background:"linear-gradient(180deg,var(--pink-light),var(--rose),var(--pink-light))",
         overflow:"hidden",
-        borderTop:"1px solid rgba(249,168,212,.25)",
+        borderTop:"1px solid rgba(var(--pink-rgb),.25)",
       }}
     >
       {/* ── hologram heart — gets clearer + bigger as progress increases ── */}
@@ -227,7 +227,7 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
           borderRadius: "50%",
           transform: "translate(-50%, -50%)",
           background:
-            "radial-gradient(circle, rgba(244,114,182,.5) 0%, rgba(236,72,153,.16) 45%, transparent 72%)",
+            "radial-gradient(circle, rgba(var(--pink-rgb),.5) 0%, rgba(var(--pink-deep-rgb),.16) 45%, transparent 72%)",
           filter: `blur(${Math.max(8, heartBlur * 0.45)}px)`,
           pointerEvents: "none",
           zIndex: 0,
@@ -263,18 +263,18 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
             one last thing before you go… 🌷
           </p>
           <motion.button
-            whileHover={{ scale:1.08, y:-4, boxShadow:"0 16px 40px rgba(236,72,153,.4)" }}
+            whileHover={{ scale:1.08, y:-4, boxShadow:"0 16px 40px rgba(var(--pink-deep-rgb),.4)" }}
             whileTap={{ scale:0.96 }}
             onClick={advance}
             style={{
               fontFamily:"var(--font-caveat)",
               fontSize:"clamp(1.4rem,3.5vw,2rem)",
               color:"#fff",
-              background:"linear-gradient(135deg,#f472b6,#ec4899,#be185d)",
+              background:"linear-gradient(135deg,var(--pink),var(--pink-deep),var(--pink-deep))",
               border:"none", borderRadius:50,
               padding:"1.2rem 3.5rem",
               cursor:"pointer",
-              boxShadow:"0 8px 30px rgba(236,72,153,.45)",
+              boxShadow:"0 8px 30px rgba(var(--pink-deep-rgb),.45)",
               letterSpacing:"0.04em",
             }}
           >
@@ -307,10 +307,10 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
                     : step <= 1
                     ? "clamp(1.6rem,4.5vw,2.4rem)"
                     : "clamp(2rem,6vw,3.5rem)",
-                  color: isFinal ? "#be185d" : "var(--pink-deep)",
+                  color: isFinal ? "var(--pink-deep)" : "var(--pink-deep)",
                   lineHeight:1.5,
                   marginBottom:"2.5rem",
-                  textShadow: step >= 3 ? "0 2px 24px rgba(244,114,182,.35)" : "none",
+                  textShadow: step >= 3 ? "0 2px 24px rgba(var(--pink-rgb),.35)" : "none",
                   fontWeight: step >= 3 ? 600 : 400,
                 }}
               >
@@ -342,12 +342,12 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
                   fontSize:"clamp(1.2rem,3vw,1.6rem)",
                   color:"#fff",
                   background: step >= 3
-                    ? "linear-gradient(135deg,#f472b6,#ec4899,#be185d)"
-                    : "linear-gradient(135deg,#f9a8d4,#ec4899)",
+                    ? "linear-gradient(135deg,var(--pink),var(--pink-deep),var(--pink-deep))"
+                    : "linear-gradient(135deg,var(--pink),var(--pink-deep))",
                   border:"none", borderRadius:50,
                   padding:"1rem 3rem",
                   cursor:"pointer",
-                  boxShadow:"0 8px 28px rgba(236,72,153,.38)",
+                  boxShadow:"0 8px 28px rgba(var(--pink-deep-rgb),.38)",
                   letterSpacing:"0.03em",
                 }}
               >
@@ -398,7 +398,7 @@ function Book({ active, prev, dir }: { active: number; prev: number; dir: "next"
             background: p.bg,
             borderRadius: 24,
             border: `1.5px solid ${p.accent}55`,
-            boxShadow: `0 24px 64px rgba(236,72,153,.2), 0 0 0 1.5px ${p.accent}33`,
+            boxShadow: `0 24px 64px rgba(var(--pink-deep-rgb),.2), 0 0 0 1.5px ${p.accent}33`,
             display: "flex", flexDirection: "column",
             padding: "2.8rem 2.8rem 2rem",
             overflow: "hidden",
@@ -452,8 +452,8 @@ function Book({ active, prev, dir }: { active: number; prev: number; dir: "next"
                 }}
               >
                 <div>
-                  <div style={{ width:"100%", height:1, background:"linear-gradient(90deg,rgba(249,168,212,.5),transparent)", marginBottom:"0.8rem" }} />
-                  <p style={{ fontFamily:"var(--font-playfair)", fontStyle:"italic", fontSize:"1.1rem", color:"#be185d", margin:0 }}>
+                  <div style={{ width:"100%", height:1, background:"linear-gradient(90deg,rgba(var(--pink-rgb),.5),transparent)", marginBottom:"0.8rem" }} />
+                  <p style={{ fontFamily:"var(--font-playfair)", fontStyle:"italic", fontSize:"1.1rem", color:"var(--pink-deep)", margin:0 }}>
                     — forever yours 🩷
                   </p>
                   <motion.div style={{ fontSize:"1.1rem", marginTop:"0.4rem" }}
@@ -468,8 +468,8 @@ function Book({ active, prev, dir }: { active: number; prev: number; dir: "next"
                   transition={{ type:"spring", stiffness:180, damping:16, delay:0.5 }}
                   style={{
                     width:64, height:64, borderRadius:"50%",
-                    background:"radial-gradient(circle at 38% 36%,#f472b6,#be185d 60%,#9d174d)",
-                    boxShadow:"0 4px 20px rgba(190,24,93,.4),inset 0 2px 6px rgba(255,255,255,.25)",
+                    background:"radial-gradient(circle at 38% 36%,var(--pink),var(--pink-deep) 60%,var(--pink-deep))",
+                    boxShadow:"0 4px 20px rgba(var(--pink-deep-rgb),.4),inset 0 2px 6px rgba(255,255,255,.25)",
                     display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
                     gap:1, position:"relative",
                   }}
@@ -501,12 +501,12 @@ function Arrow({ dir, onClick, disabled }: { dir:"left"|"right"; onClick:()=>voi
       style={{
         width:48, height:48, borderRadius:"50%", flexShrink:0,
         background: disabled ? "rgba(255,255,255,.3)" : "rgba(255,255,255,.8)",
-        border: "1.5px solid #f9a8d4",
-        boxShadow: disabled ? "none" : "0 4px 16px rgba(244,114,182,.18)",
+        border: "1.5px solid var(--pink)",
+        boxShadow: disabled ? "none" : "0 4px 16px rgba(var(--pink-rgb),.18)",
         cursor: disabled ? "not-allowed" : "pointer",
         display:"flex", alignItems:"center", justifyContent:"center",
         fontSize:"1.2rem",
-        color: disabled ? "#f9a8d499" : "var(--pink-deep)",
+        color: disabled ? "var(--pink)99" : "var(--pink-deep)",
         outline:"none",
         backdropFilter:"blur(8px)",
         transition:"background 0.2s, box-shadow 0.2s",
@@ -533,7 +533,7 @@ function Dots({ active, total, onGoTo }: { active:number; total:number; onGoTo:(
             cursor:"pointer", flexShrink:0,
             background: i <= active
               ? "linear-gradient(90deg,var(--pink),var(--pink-deep))"
-              : "#f9a8d4",
+              : "var(--pink)",
           }}
         />
       ))}
@@ -567,16 +567,16 @@ export default function Final() {
           alignItems:"center", justifyContent:"center",
           padding:"6rem 2rem",
           position:"relative", overflow:"hidden",
-          background:"linear-gradient(180deg,var(--cream),#fdf2f8 40%,#fce7f3)",
+          background:"linear-gradient(180deg,var(--cream),var(--pink-light) 40%,var(--pink-light))",
         }}
       >
         <Stars />
 
         {/* ambient orbs */}
         {[
-          {l:"5%",  t:"12%", w:260, c:"rgba(249,168,212,.17)"},
-          {l:"70%", t:"8%",  w:200, c:"rgba(253,186,213,.14)"},
-          {l:"62%", t:"68%", w:240, c:"rgba(244,114,182,.10)"},
+          {l:"5%",  t:"12%", w:260, c:"rgba(var(--pink-rgb),.17)"},
+          {l:"70%", t:"8%",  w:200, c:"rgba(var(--pink-rgb),.14)"},
+          {l:"62%", t:"68%", w:240, c:"rgba(var(--pink-rgb),.10)"},
         ].map((o,i) => (
           <div key={i} style={{
             position:"absolute", left:o.l, top:o.t,
@@ -600,7 +600,7 @@ export default function Final() {
           >🌸 💌 🌸</motion.div>
           <h2 style={{
             fontFamily:"var(--font-playfair)", fontStyle:"italic",
-            fontSize:"clamp(1.6rem,4vw,2.4rem)", color:"#be185d", margin:0,
+            fontSize:"clamp(1.6rem,4vw,2.4rem)", color:"var(--pink-deep)", margin:0,
           }}>just so you know…</h2>
           <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1rem", color:"var(--muted)", marginTop:"0.4rem" }}>
             four things i need you to always remember 🌷
@@ -650,7 +650,7 @@ export default function Final() {
               <p style={{
                 fontFamily:"var(--font-playfair)", fontStyle:"italic",
                 fontSize:"clamp(1rem,2.5vw,1.25rem)",
-                color:"#be185d", maxWidth:360, margin:"0 auto", lineHeight:1.7,
+                color:"var(--pink-deep)", maxWidth:360, margin:"0 auto", lineHeight:1.7,
               }}>
                 &ldquo;and i&apos;d choose you again, in every version of this life.&rdquo;
               </p>
@@ -664,8 +664,8 @@ export default function Final() {
 
       <footer style={{
         width:"100%",
-        background:"linear-gradient(135deg,#fce7f3,#fbcfe8,#fda4af)",
-        borderTop:"1px solid rgba(249,168,212,.4)",
+        background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid),var(--pink))",
+        borderTop:"1px solid rgba(var(--pink-rgb),.4)",
         padding:"3rem 2rem", textAlign:"center",
         position:"relative", overflow:"hidden",
       }}>
@@ -682,7 +682,7 @@ export default function Final() {
           <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1.2rem", color:"#9d3f68", margin:"0 0 0.4rem" }}>
             made with way too much love by yours truly, for the one whom I love the most in this universe 🌸
           </p>
-          <p style={{ fontFamily:"var(--font-playfair)", fontStyle:"italic", fontSize:"1.05rem", color:"#be185d", margin:0 }}>
+          <p style={{ fontFamily:"var(--font-playfair)", fontStyle:"italic", fontSize:"1.05rem", color:"var(--pink-deep)", margin:0 }}>
             march 11, 2026 → forever 💗
           </p>
         </motion.div>

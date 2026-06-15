@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
+import { getSession } from "@/lib/auth";
 
 async function sendUnlockEmail(capsules: { letter: string; from: string; unlockDate: string }[]) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -38,12 +39,15 @@ async function sendUnlockEmail(capsules: { letter: string; from: string; unlockD
 }
 
 // GET — return only capsules whose unlockDate <= today, and send emails for newly unlocked ones
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const col   = await getCol("capsules");
     const today = new Date().toISOString().slice(0, 10);
     const docs  = await col
-      .find({ unlockDate: { $lte: today } }, { projection: { _id: 1, letter: 1, unlockDate: 1, from: 1, createdAt: 1, emailSent: 1, imageUrl: 1 } })
+      .find({ coupleId: session.coupleId, unlockDate: { $lte: today } }, { projection: { _id: 1, letter: 1, unlockDate: 1, from: 1, createdAt: 1, emailSent: 1, imageUrl: 1 } })
       .sort({ unlockDate: 1 })
       .toArray();
 
@@ -65,6 +69,9 @@ export async function GET() {
 // POST — create a new capsule
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const { letter, unlockDate, from, imageUrl } = await req.json();
     if (!letter || !unlockDate) return NextResponse.json({ error: "missing fields" }, { status: 400 });
 
@@ -74,6 +81,7 @@ export async function POST(req: NextRequest) {
       unlockDate,
       from: from || "",
       imageUrl: imageUrl || "",
+      coupleId: session.coupleId,
       createdAt: new Date().toISOString(),
       emailSent: false,
     });
@@ -86,9 +94,12 @@ export async function POST(req: NextRequest) {
 // DELETE — remove a capsule by id
 export async function DELETE(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const { id } = await req.json();
     const col = await getCol("capsules");
-    await col.deleteOne({ _id: new ObjectId(id) });
+    await col.deleteOne({ _id: new ObjectId(id), coupleId: session.coupleId });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

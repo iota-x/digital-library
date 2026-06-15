@@ -37,7 +37,7 @@ export default function MemoryMap() {
 
   const makeIcon = useCallback((L: any) => L.divIcon({
     className: "",
-    html: `<div style="font-size:1.8rem;line-height:1;filter:drop-shadow(0 3px 8px rgba(190,24,93,.55));transform:translate(-50%,-100%);cursor:pointer;user-select:none">💗</div>`,
+    html: `<div style="font-size:1.8rem;line-height:1;filter:drop-shadow(0 3px 8px rgba(var(--pink-deep-rgb),.55));transform:translate(-50%,-100%);cursor:pointer;user-select:none">💗</div>`,
     iconSize: [0, 0],
     iconAnchor: [0, 0],
     popupAnchor: [0, -4],
@@ -137,11 +137,11 @@ export default function MemoryMap() {
             transition={{ delay: 1 }}
             style={{
               position: "absolute", bottom: "5rem", left: "50%", transform: "translateX(-50%)",
-              zIndex: 800, background: "rgba(255,245,249,.92)", border: "1px solid rgba(190,24,93,.2)",
+              zIndex: 800, background: "rgba(255,245,249,.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
               borderRadius: 50, padding: "0.6rem 1.4rem", backdropFilter: "blur(12px)",
-              boxShadow: "0 4px 20px rgba(190,24,93,.15)", pointerEvents: "none",
+              boxShadow: "0 4px 20px rgba(var(--pink-deep-rgb),.15)", pointerEvents: "none",
             }}>
-            <p style={{ fontFamily: SANS, fontSize: "0.82rem", color: "#be185d", margin: 0, whiteSpace: "nowrap" }}>
+            <p style={{ fontFamily: SANS, fontSize: "0.82rem", color: "var(--pink-deep)", margin: 0, whiteSpace: "nowrap" }}>
               💗 tap anywhere on the map to pin a memory
             </p>
           </motion.div>
@@ -152,11 +152,11 @@ export default function MemoryMap() {
       {pins.length > 0 && (
         <div style={{
           position: "absolute", top: "1rem", right: "1rem", zIndex: 800,
-          background: "rgba(255,245,249,.92)", border: "1px solid rgba(190,24,93,.2)",
+          background: "rgba(255,245,249,.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
           borderRadius: 50, padding: "0.4rem 1rem", backdropFilter: "blur(12px)",
-          boxShadow: "0 2px 12px rgba(190,24,93,.15)",
+          boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.15)",
         }}>
-          <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "#be185d", margin: 0 }}>
+          <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "var(--pink-deep)", margin: 0 }}>
             💗 {pins.length} place{pins.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function MemoryMap() {
       <AnimatePresence>
         {saved && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            style={{ position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)", zIndex: 900, background: "rgba(190,24,93,.9)", borderRadius: 50, padding: "0.55rem 1.4rem", color: "#fff", fontFamily: SANS, fontSize: "0.85rem", boxShadow: "0 4px 20px rgba(190,24,93,.4)" }}>
+            style={{ position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)", zIndex: 900, background: "rgba(var(--pink-deep-rgb),.9)", borderRadius: 50, padding: "0.55rem 1.4rem", color: "#fff", fontFamily: SANS, fontSize: "0.85rem", boxShadow: "0 4px 20px rgba(var(--pink-deep-rgb),.4)" }}>
             💗 pinned!
           </motion.div>
         )}
@@ -186,45 +186,45 @@ export default function MemoryMap() {
                 position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
                 zIndex: 900, background: "rgba(255,245,249,.97)",
                 borderRadius: 24, padding: "1.8rem", width: "min(92vw,380px)",
-                boxShadow: "0 24px 70px rgba(0,0,0,.35)", border: "1px solid rgba(190,24,93,.18)",
+                boxShadow: "0 24px 70px rgba(0,0,0,.35)", border: "1px solid rgba(var(--pink-deep-rgb),.18)",
               }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "1.3rem" }}>
                 <span style={{ fontSize: "1.5rem" }}>📍</span>
-                <h3 style={{ fontFamily: SERIF, fontStyle: "italic", color: "#be185d", margin: 0, fontSize: "1.25rem", fontWeight: 400 }}>
+                <h3 style={{ fontFamily: SERIF, fontStyle: "italic", color: "var(--pink-deep)", margin: 0, fontSize: "1.25rem", fontWeight: 400 }}>
                   pin this place
                 </h3>
               </div>
 
-              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(190,24,93,.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>place name</p>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>place name</p>
               <input
                 autoFocus value={title} onChange={e => setTitle(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && savePin()}
                 placeholder="our favourite café, where we first met…"
-                style={{ width: "100%", padding: "0.72rem 1rem", border: "1px solid rgba(190,24,93,.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(252,231,243,.3)", boxSizing: "border-box", marginBottom: "0.9rem" }}
+                style={{ width: "100%", padding: "0.72rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", marginBottom: "0.9rem" }}
               />
 
-              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(190,24,93,.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>date (optional)</p>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>date (optional)</p>
               <input
                 type="date" value={date} onChange={e => setDate(e.target.value)}
-                style={{ width: "100%", padding: "0.72rem 1rem", border: "1px solid rgba(190,24,93,.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(252,231,243,.3)", boxSizing: "border-box", marginBottom: "0.9rem" }}
+                style={{ width: "100%", padding: "0.72rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", marginBottom: "0.9rem" }}
               />
 
-              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(190,24,93,.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>memory (optional)</p>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>memory (optional)</p>
               <textarea
                 value={note} onChange={e => setNote(e.target.value)}
                 placeholder="what happened here…"
                 rows={3}
-                style={{ width: "100%", padding: "0.72rem 1rem", border: "1px solid rgba(190,24,93,.2)", borderRadius: 10, fontFamily: SERIF, fontStyle: "italic", fontSize: "0.92rem", color: "#4a1628", outline: "none", background: "rgba(252,231,243,.3)", boxSizing: "border-box", resize: "none", lineHeight: 1.7, marginBottom: "1.2rem" }}
+                style={{ width: "100%", padding: "0.72rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SERIF, fontStyle: "italic", fontSize: "0.92rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", resize: "none", lineHeight: 1.7, marginBottom: "1.2rem" }}
               />
 
               <div style={{ display: "flex", gap: "0.7rem" }}>
                 <motion.button onClick={savePin} disabled={saving || !title.trim()}
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                  style={{ flex: 1, padding: "0.9rem", borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#f472b6,#be185d)", color: "#fff", fontFamily: SANS, fontSize: "0.92rem", fontWeight: 700, opacity: !title.trim() ? 0.45 : 1, boxShadow: "0 4px 18px rgba(190,24,93,.3)" }}>
+                  style={{ flex: 1, padding: "0.9rem", borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff", fontFamily: SANS, fontSize: "0.92rem", fontWeight: 700, opacity: !title.trim() ? 0.45 : 1, boxShadow: "0 4px 18px rgba(var(--pink-deep-rgb),.3)" }}>
                   {saving ? "saving…" : "pin it 💗"}
                 </motion.button>
                 <button onClick={() => setAdding(null)}
-                  style={{ padding: "0.9rem 1rem", borderRadius: 12, border: "1px solid rgba(190,24,93,.25)", background: "transparent", color: "rgba(190,24,93,.6)", fontFamily: SANS, fontSize: "0.88rem", cursor: "pointer" }}>
+                  style={{ padding: "0.9rem 1rem", borderRadius: 12, border: "1px solid rgba(var(--pink-deep-rgb),.25)", background: "transparent", color: "rgba(var(--pink-deep-rgb),.6)", fontFamily: SANS, fontSize: "0.88rem", cursor: "pointer" }}>
                   cancel
                 </button>
               </div>
@@ -247,24 +247,24 @@ export default function MemoryMap() {
                 position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)",
                 zIndex: 900, background: "rgba(255,245,249,.97)",
                 borderRadius: 24, padding: "1.6rem", width: "min(92vw,380px)",
-                boxShadow: "0 16px 50px rgba(0,0,0,.3)", border: "1px solid rgba(190,24,93,.18)",
+                boxShadow: "0 16px 50px rgba(0,0,0,.3)", border: "1px solid rgba(var(--pink-deep-rgb),.18)",
               }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: "0.7rem" }}>
                 <span style={{ fontSize: "1.6rem", flexShrink: 0 }}>💗</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3 style={{ fontFamily: SERIF, fontStyle: "italic", color: "#be185d", margin: "0 0 0.2rem", fontSize: "1.15rem", fontWeight: 400 }}>{active.title}</h3>
+                  <h3 style={{ fontFamily: SERIF, fontStyle: "italic", color: "var(--pink-deep)", margin: "0 0 0.2rem", fontSize: "1.15rem", fontWeight: 400 }}>{active.title}</h3>
                   {active.date && (
-                    <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,.5)", margin: "0 0 0.5rem" }}>{fmtDate(active.date)}</p>
+                    <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(var(--pink-deep-rgb),.5)", margin: "0 0 0.5rem" }}>{fmtDate(active.date)}</p>
                   )}
                   {active.note && (
                     <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "0.92rem", color: "#4a1628", lineHeight: 1.75, margin: "0 0 0.8rem" }}>"{active.note}"</p>
                   )}
                 </div>
                 <button onClick={() => setActive(null)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(190,24,93,.3)", fontSize: "1.1rem", padding: 0, flexShrink: 0 }}>✕</button>
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--pink-deep-rgb),.3)", fontSize: "1.1rem", padding: 0, flexShrink: 0 }}>✕</button>
               </div>
               <button onClick={() => deletePin(active.id)}
-                style={{ fontFamily: SANS, fontSize: "0.75rem", color: "rgba(190,24,93,.4)", background: "none", border: "none", cursor: "pointer", padding: "0.3rem 0 0", display: "block" }}>
+                style={{ fontFamily: SANS, fontSize: "0.75rem", color: "rgba(var(--pink-deep-rgb),.4)", background: "none", border: "none", cursor: "pointer", padding: "0.3rem 0 0", display: "block" }}>
                 remove pin
               </button>
             </motion.div>

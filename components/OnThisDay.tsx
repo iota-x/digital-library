@@ -68,11 +68,11 @@ export default function OnThisDay() {
       >
         {/* Section label */}
         <div style={{ display:"flex", alignItems:"center", gap:"0.8rem", marginBottom:"0.2rem" }}>
-          <div style={{ width:40, height:1, background:"linear-gradient(90deg,transparent,rgba(190,24,93,.3))" }}/>
-          <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"rgba(190,24,93,.55)", letterSpacing:"0.18em", textTransform:"uppercase" }}>
+          <div style={{ width:40, height:1, background:"linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.3))" }}/>
+          <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"rgba(var(--pink-deep-rgb),.55)", letterSpacing:"0.18em", textTransform:"uppercase" }}>
             on this day
           </span>
-          <div style={{ width:40, height:1, background:"linear-gradient(90deg,rgba(190,24,93,.3),transparent)" }}/>
+          <div style={{ width:40, height:1, background:"linear-gradient(90deg,rgba(var(--pink-deep-rgb),.3),transparent)" }}/>
         </div>
 
         {memories.map((m, i) => (
@@ -83,10 +83,10 @@ export default function OnThisDay() {
             transition={{ delay: i * 0.1, duration: 0.45, ease: "easeOut" }}
             style={{
               background: "rgba(255,255,255,.78)",
-              border: "1px solid rgba(190,24,93,.15)",
+              border: "1px solid rgba(var(--pink-deep-rgb),.15)",
               borderRadius: 18,
               padding: "1rem 1.3rem 1rem 1.6rem",
-              boxShadow: "0 4px 20px rgba(190,24,93,.1), 0 1px 4px rgba(0,0,0,.04)",
+              boxShadow: "0 4px 20px rgba(var(--pink-deep-rgb),.1), 0 1px 4px rgba(0,0,0,.04)",
               display: "flex",
               gap: "1rem",
               alignItems: "flex-start",
@@ -97,7 +97,7 @@ export default function OnThisDay() {
             {/* Left accent bar */}
             <div style={{
               position:"absolute", left:0, top:0, bottom:0, width:4,
-              background:"linear-gradient(180deg,#f9a8d4,#be185d)",
+              background:"linear-gradient(180deg,var(--pink),var(--pink-deep))",
               borderRadius:"18px 0 0 18px",
             }}/>
 
@@ -110,8 +110,8 @@ export default function OnThisDay() {
                   width:68, height:68, flexShrink:0,
                   borderRadius:12, overflow:"hidden",
                   cursor:"pointer",
-                  border:"2px solid rgba(249,168,212,.4)",
-                  boxShadow:"0 4px 16px rgba(190,24,93,.15)",
+                  border:"2px solid rgba(var(--pink-rgb),.4)",
+                  boxShadow:"0 4px 16px rgba(var(--pink-deep-rgb),.15)",
                 }}
               >
                 <img src={cldThumb(m.entry.photos[0], 128)} loading="lazy" decoding="async" alt=""
@@ -124,7 +124,7 @@ export default function OnThisDay() {
               <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom:"0.3rem", flexWrap:"wrap" }}>
                 <span style={{ fontSize:"1rem" }}>{m.emoji}</span>
                 <span style={{
-                  fontFamily:SANS, fontSize:"0.7rem", color:"#be185d",
+                  fontFamily:SANS, fontSize:"0.7rem", color:"var(--pink-deep)",
                   fontWeight:700, letterSpacing:"0.08em", textTransform:"uppercase",
                 }}>
                   {m.label}
@@ -133,7 +133,7 @@ export default function OnThisDay() {
                 {m.entry.special && (
                   <span style={{
                     fontFamily:SANS, fontSize:"0.65rem",
-                    background:"linear-gradient(135deg,#fda4af,#ec4899)",
+                    background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
                     color:"#fff", borderRadius:8, padding:"0.1rem 0.45rem",
                   }}>⭐ {m.entry.specialLabel||"special"}</span>
                 )}
@@ -143,7 +143,7 @@ export default function OnThisDay() {
               <p style={{
                 fontFamily:SERIF, fontStyle:"italic",
                 fontSize:"clamp(0.8rem,2vw,0.92rem)",
-                color:"rgba(157,23,77,.6)", margin:"0 0 0.3rem",
+                color:"rgba(var(--pink-deep-rgb),.6)", margin:"0 0 0.3rem",
               }}>
                 {fmtFull(m.key)}
               </p>

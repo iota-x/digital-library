@@ -2,11 +2,12 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useUserData } from "@/lib/userStore";
 
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
 
 const PETAL_SYMBOLS = ["🌸","🌷","💗","🌹","💕","🩷","✨","⭐"];
-const COLORS = ["#f9a8d4","#fbcfe8","#fce7f3","#f472b6","#ec4899","#fda4af","#fff1f2"];
+const COLORS = ["var(--pink)","var(--pink-mid)","var(--pink-light)","var(--pink)","var(--pink-deep)","var(--pink)","var(--rose)"];
 
 function Petal({ delay, left, size, dur, symbol }: Omit<PetalData,"id">) {
   return (
@@ -81,7 +82,7 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
       <motion.div
         style={{
           position:"absolute", inset:-6, borderRadius:4,
-          background:"linear-gradient(135deg,#f9a8d4,#ec4899,#fbcfe8,#f472b6,#f9a8d4)",
+          background:"linear-gradient(135deg,var(--pink),var(--pink-deep),var(--pink-mid),var(--pink),var(--pink))",
           backgroundSize:"300% 300%", filter:"blur(12px)",
           opacity: hovered ? 0.85 : 0.45, zIndex:-1, transition:"opacity 0.3s ease",
         }}
@@ -93,7 +94,7 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
         style={{
           x:sx, y:sy, rotate, background:"#fff",
           padding:"1rem 1rem 0.8rem",
-          boxShadow:"0 8px 32px rgba(244,114,182,0.18)",
+          boxShadow:"0 8px 32px rgba(var(--pink-rgb),0.18)",
           width:"clamp(190px,28vw,285px)", cursor:"pointer", position:"relative",
         }}
         whileHover={{ rotate:0, scale:1.07 }}
@@ -118,7 +119,7 @@ function CurtainReveal({ onDone }: { onDone: () => void }) {
         position:"fixed", inset:0, zIndex:9999,
         display:"flex", alignItems:"center", justifyContent:"center",
         flexDirection:"column", gap:"1.5rem",
-        background:"linear-gradient(135deg,#fce7f3 0%,#fbcfe8 50%,#fda4af 100%)",
+        background:"linear-gradient(135deg,var(--pink-light) 0%,var(--pink-mid) 50%,var(--pink) 100%)",
       }}
       animate={{ opacity:[1,1,1,0], scale:[1,1,1.05,1.05] }}
       transition={{ duration:2.8, times:[0,0.55,0.85,1], ease:"easeInOut" }}
@@ -127,21 +128,21 @@ function CurtainReveal({ onDone }: { onDone: () => void }) {
       {[0,0.35,0.7].map((d,i) => (
         <motion.div key={i} style={{
           position:"absolute", width:180, height:180, borderRadius:"50%",
-          border:"2px solid rgba(236,72,153,0.45)",
+          border:"2px solid rgba(var(--pink-deep-rgb),0.45)",
         }}
           animate={{ scale:[0.4,3.2], opacity:[0.9,0] }}
           transition={{ duration:1.8, delay:d, repeat:Infinity, ease:"easeOut" }}
         />
       ))}
       <motion.div
-        style={{ fontSize:"5rem", zIndex:2, filter:"drop-shadow(0 0 30px rgba(244,114,182,0.8))" }}
+        style={{ fontSize:"5rem", zIndex:2, filter:"drop-shadow(0 0 30px rgba(var(--pink-rgb),0.8))" }}
         animate={{ scale:[0.5,1.35,1,1.25,1], rotate:[-15,10,-8,6,0] }}
         transition={{ duration:1.6, times:[0,0.3,0.5,0.75,1] }}
       >💗</motion.div>
       <motion.p
         style={{
           fontFamily:"var(--font-playfair)", fontStyle:"italic",
-          fontSize:"clamp(1.3rem,3vw,2rem)", color:"#be185d",
+          fontSize:"clamp(1.3rem,3vw,2rem)", color:"var(--pink-deep)",
           zIndex:2, margin:0, textAlign:"center", padding:"0 2rem",
         }}
         initial={{ opacity:0, y:24 }} animate={{ opacity:1, y:0 }}
@@ -214,15 +215,14 @@ function ScrollIndicator({ entered }: { entered: boolean }) {
   );
 }
 
-function computeHeroText() {
-  const start = new Date("2026-03-11");
+function computeHeroText(startDate: Date) {
   const now   = new Date();
-  const ms    = now.getTime() - start.getTime();
+  const ms    = now.getTime() - startDate.getTime();
   if (ms < 0) return "day 1 🌸";
   const totalDays = Math.floor(ms / 86400000);
   if (totalDays < 30) return `${totalDays} day${totalDays !== 1 ? "s" : ""} of us 🌸`;
-  let y = now.getFullYear() - start.getFullYear();
-  let m = now.getMonth()    - start.getMonth();
+  let y = now.getFullYear() - startDate.getFullYear();
+  let m = now.getMonth()    - startDate.getMonth();
   if (m < 0) { m += 12; y--; }
   const totalMonths = y * 12 + m;
   if (totalMonths < 12) return `${totalMonths} month${totalMonths !== 1 ? "s" : ""} of us 🌸`;
@@ -233,6 +233,8 @@ function computeHeroText() {
 }
 
 export default function Polaroids() {
+  const userData = useUserData();
+  const startDate = userData?.startDate ? new Date(userData.startDate) : new Date("2026-03-11");
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target:ref, offset:["start start","end start"] });
   const titleY = useTransform(scrollYProgress,[0,1],[0,60]);
@@ -240,7 +242,7 @@ export default function Polaroids() {
   const [showCurtain, setShowCurtain] = useState(true);
   const [entered, setEntered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const heroText = computeHeroText();
+  const heroText = computeHeroText(startDate);
 
   useEffect(() => {
     setPetals(Array.from({ length:28 },(_,i) => ({
@@ -267,14 +269,14 @@ export default function Polaroids() {
         position:"relative", width:"100%", minHeight:"100vh",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
         padding:"5rem 2rem", overflow:"hidden",
-        background:"linear-gradient(160deg,#fff1f2 0%,#fce7f3 45%,#fff5f9 100%)",
+        background:"linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 45%,var(--rose) 100%)",
       }}>
         <StardustCanvas />
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none", zIndex:0,
           background:[
-            "radial-gradient(ellipse 55% 45% at 28% 38%, rgba(249,168,212,0.32) 0%, transparent 70%)",
-            "radial-gradient(ellipse 45% 40% at 72% 58%, rgba(253,186,213,0.26) 0%, transparent 70%)",
+            "radial-gradient(ellipse 55% 45% at 28% 38%, rgba(var(--pink-rgb),0.32) 0%, transparent 70%)",
+            "radial-gradient(ellipse 45% 40% at 72% 58%, rgba(var(--pink-rgb),0.26) 0%, transparent 70%)",
           ].join(","),
         }} />
 
@@ -300,7 +302,7 @@ export default function Polaroids() {
       
         >
           <MagneticPolaroid rotate={-6} label="her" emoji="🩷">
-            <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#fce7f3,#fbcfe8)" }}>
+            <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))" }}>
               <Image src="/photos/her.jpg" alt="her" fill style={{ objectFit:"cover", objectPosition:"center 30%" }} />
             </div>
           </MagneticPolaroid>
@@ -308,17 +310,17 @@ export default function Polaroids() {
           <motion.div
             style={{
               fontSize:"clamp(3rem,6vw,5rem)", flexShrink:0, zIndex:10,
-              filter:"drop-shadow(0 0 18px rgba(244,114,182,0.55))",
+              filter:"drop-shadow(0 0 18px rgba(var(--pink-rgb),0.55))",
             }}
             animate={{
               scale:[1,1.22,1,1.15,1],
-              filter:["drop-shadow(0 0 10px rgba(244,114,182,0.4))","drop-shadow(0 0 32px rgba(244,114,182,0.95))","drop-shadow(0 0 10px rgba(244,114,182,0.4))"],
+              filter:["drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))","drop-shadow(0 0 32px rgba(var(--pink-rgb),0.95))","drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))"],
             }}
             transition={{ repeat:Infinity, duration:1.5, ease:"easeInOut" }}
           >💗</motion.div>
 
           <MagneticPolaroid rotate={6} label="him" emoji="🤍">
-            <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,#fce7f3,#fbcfe8)" }}>
+            <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))" }}>
               <Image src="/photos/him.jpg" alt="him" fill style={{ objectFit:"cover", objectPosition:"center 25%", transform:"scale(1.4)", transformOrigin:"center 25%" }} />
             </div>
           </MagneticPolaroid>
@@ -336,14 +338,14 @@ export default function Polaroids() {
             animate={entered?{scaleX:1,opacity:1}:{}}
             transition={{ duration:0.9, delay:0.85 }}
           >
-            <div style={{ width:55, height:1, background:"linear-gradient(90deg,transparent,#f9a8d4)" }} />
-            <span style={{ fontSize:"0.9rem", color:"#f9a8d4" }}>✦</span>
-            <div style={{ width:55, height:1, background:"linear-gradient(90deg,#f9a8d4,transparent)" }} />
+            <div style={{ width:55, height:1, background:"linear-gradient(90deg,transparent,var(--pink))" }} />
+            <span style={{ fontSize:"0.9rem", color:"var(--pink)" }}>✦</span>
+            <div style={{ width:55, height:1, background:"linear-gradient(90deg,var(--pink),transparent)" }} />
           </motion.div>
 
           <h1 style={{
             fontFamily:"var(--font-playfair)", fontSize:"clamp(2.1rem,5.5vw,3.6rem)",
-            color:"var(--pink-deep)", margin:0, textShadow:"0 2px 28px rgba(244,114,182,0.2)",
+            color:"var(--pink-deep)", margin:0, textShadow:"0 2px 28px rgba(var(--pink-rgb),0.2)",
           }}>
             {heroText}
           </h1>

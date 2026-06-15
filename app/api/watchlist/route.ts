@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
+import { getSession } from "@/lib/auth";
 
-async function col() {
-  return getCol("watchlist");
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const c = await col();
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+    const c = await getCol("watchlist");
     const items = await c
-      .find({})
+      .find({ coupleId: session.coupleId })
       .sort({ addedAt: -1 })
       .toArray();
 
@@ -27,6 +27,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const { title, type, status, coverImage, notes, rating } = body;
 
@@ -41,13 +44,14 @@ export async function POST(req: NextRequest) {
       title: title as string,
       type: type as "movie" | "series" | "anime",
       status: status as "plan-to-watch" | "watching" | "completed",
+      coupleId: session.coupleId,
       ...(coverImage !== undefined && { coverImage: coverImage as string }),
       ...(notes !== undefined && { notes: notes as string }),
       ...(rating !== undefined && { rating: rating as number }),
       addedAt: new Date().toISOString(),
     };
 
-    const c = await col();
+    const c = await getCol("watchlist");
     const result = await c.insertOne(doc);
 
     return NextResponse.json({ ok: true, _id: result.insertedId.toString() }, { status: 201 });
@@ -58,6 +62,9 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const { _id, ...fields } = body;
 
@@ -65,12 +72,11 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "_id is required" }, { status: 400 });
     }
 
-    // Remove _id from the fields to update if accidentally included
     delete fields._id;
 
-    const c = await col();
+    const c = await getCol("watchlist");
     const result = await c.updateOne(
-      { _id: new ObjectId(_id as string) },
+      { _id: new ObjectId(_id as string), coupleId: session.coupleId },
       { $set: fields }
     );
 
@@ -86,6 +92,9 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
     const body = await req.json();
     const { _id } = body as { _id: string };
 
@@ -93,8 +102,8 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "_id is required" }, { status: 400 });
     }
 
-    const c = await col();
-    const result = await c.deleteOne({ _id: new ObjectId(_id) });
+    const c = await getCol("watchlist");
+    const result = await c.deleteOne({ _id: new ObjectId(_id), coupleId: session.coupleId });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });

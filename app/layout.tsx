@@ -6,6 +6,7 @@ import CommandPalette  from "@/components/CommandPalette";
 import SwipeNav        from "@/components/SwipeNav";
 import PwaRegister     from "@/components/PwaRegister";
 import DarkOverlay     from "@/components/DarkOverlay";
+import AppShell        from "@/components/AppShell";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
         <DarkOverlay />
+        <AppShell />
         <ScrollToTop />
         <Navbar />
         <CommandPalette />
