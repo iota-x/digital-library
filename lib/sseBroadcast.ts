@@ -22,7 +22,7 @@ export function removeSSEClient(id: string) {
   clients.delete(id);
 }
 
-export function broadcastCalendarUpdate(coupleId: string, payload: object) {
+export function broadcastToCouple(coupleId: string, payload: object) {
   const msg = `data: ${JSON.stringify(payload)}\n\n`;
   const dead: string[] = [];
   clients.forEach((client) => {
@@ -35,3 +35,6 @@ export function broadcastCalendarUpdate(coupleId: string, payload: object) {
   });
   dead.forEach(id => clients.delete(id));
 }
+
+// Keep old name as alias for calendarStore compatibility
+export const broadcastCalendarUpdate = broadcastToCouple;

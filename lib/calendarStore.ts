@@ -61,7 +61,13 @@ function startSSE(coupleId?: string) {
       try {
         const data = JSON.parse(e.data);
         if (data.type === "connected") return;
-        applySSEEvent(data);
+        // Calendar events are applied directly; other event types
+        // are forwarded to any listeners registered via onSSEEvent
+        if (data.type === "update" || data.type === "delete") {
+          applySSEEvent(data);
+        } else {
+          window.dispatchEvent(new CustomEvent("annapp:sse", { detail: data }));
+        }
       } catch {}
     };
     es.onerror = () => {

@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useUserData } from "@/lib/userStore";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SERIF = `"Georgia","Times New Roman",serif`;
@@ -7,7 +8,7 @@ const MONO  = `"Courier New",Courier,monospace`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS= ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const START = new Date("2026-03-11");
+// START is loaded from userStore at runtime (see below)
 
 /* ── Capsule palette 2: deep rose → dark plum ── */
 const BG  = "linear-gradient(180deg,#db2777 0%,var(--pink-deep) 40%,#6b0f3a 75%,#3b032f 100%)";
@@ -19,15 +20,24 @@ interface Entry { date:string; note:string; photos:string[]; special:boolean; sp
 
 function fmtDate(d:string){ const dt=new Date(d+"T12:00:00"); return `${MONTHS[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`; }
 function fmtDateShort(d:string){ const dt=new Date(d+"T12:00:00"); return `${String(dt.getDate()).padStart(2,"0")}.${String(dt.getMonth()+1).padStart(2,"0")}.${dt.getFullYear()}`; }
-function dayNum(d:string){ return Math.floor((new Date(d+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
+function makeDayNum(start: Date){ return (d:string) => Math.floor((new Date(d+"T12:00:00").getTime()-start.getTime())/86400000)+1; }
 function dayOfWeek(d:string){ return DAYS[new Date(d+"T12:00:00").getDay()]; }
 
 export default function ExportPDF() {
+  const userData = useUserData();
+  const startDate = useMemo(() =>
+    userData?.startDate ? new Date(userData.startDate + "T00:00:00") : new Date("2026-03-11"),
+  [userData?.startDate]);
+  const dayNum = useMemo(() => makeDayNum(startDate), [startDate]);
+
+  const coupleName = userData?.settings?.coupleName?.trim() ||
+    (userData?.partnerName ? `${userData.name} & ${userData.partnerName}` : "our story");
+
   const [loading,    setLoading]    = useState(false);
   const [preview,    setPreview]    = useState(false);
   const [allEntries, setAllEntries] = useState<Entry[]>([]);
   const [filter,     setFilter]     = useState<"all"|"special"|"photos"|"notes">("all");
-  const [title,      setTitle]      = useState("our story");
+  const [title,      setTitle]      = useState(coupleName);
   const [subtitle,   setSubtitle]   = useState("a collection of days worth keeping");
   const printRef = useRef<HTMLDivElement>(null);
 

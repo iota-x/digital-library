@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
+import BucketListIdeas from "@/components/BucketListIdeas";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -53,6 +54,16 @@ export default function BucketList() {
   useEffect(() => {
     if (showInput) setTimeout(() => inputRef.current?.focus(), 80);
   }, [showInput]);
+
+  // Re-fetch when partner makes changes (via SSE broadcast)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const type = (e as CustomEvent).detail?.type as string;
+      if (type?.startsWith("bucketlist:")) load();
+    };
+    window.addEventListener("annapp:sse", handler);
+    return () => window.removeEventListener("annapp:sse", handler);
+  }, []);
   useEscKey(() => { setShowInput(false); setNewText(""); }, showInput);
 
   const visible = items.filter(i => {
@@ -73,15 +84,16 @@ export default function BucketList() {
     });
   }
 
-  async function addItem() {
-    if (!newText.trim()) return;
+  async function addItem(text = newText, cat = newCat) {
+    if (!text.trim()) return;
     setAdding(true);
     await fetch("/api/bucketlist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: newText.trim(), category: newCat }),
+      body: JSON.stringify({ text: text.trim(), category: cat }),
     });
-    setNewText(""); setAdding(false); setShowInput(false);
+    if (text === newText) { setNewText(""); setShowInput(false); }
+    setAdding(false);
     load();
   }
 
@@ -202,17 +214,20 @@ export default function BucketList() {
               );
             })}
           </div>
-          <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}}
-            onClick={() => setShowInput(s => !s)}
-            style={{
-              fontFamily:SANS, fontSize:"0.82rem", fontWeight:700, color:"#fff",
-              background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
-              border:"none", borderRadius:50, padding:"0.5rem 1.3rem",
-              cursor:"pointer", boxShadow:"0 4px 18px rgba(var(--pink-deep-rgb),.28)",
-              display:"flex", alignItems:"center", gap:"0.4rem",
-            }}>
-            ✏️ write a dream
-          </motion.button>
+          <div style={{ display:"flex", gap:"0.6rem", alignItems:"center" }}>
+            <BucketListIdeas onAdd={(text, cat) => addItem(text, cat)} />
+            <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}}
+              onClick={() => setShowInput(s => !s)}
+              style={{
+                fontFamily:SANS, fontSize:"0.82rem", fontWeight:700, color:"#fff",
+                background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
+                border:"none", borderRadius:50, padding:"0.5rem 1.3rem",
+                cursor:"pointer", boxShadow:"0 4px 18px rgba(var(--pink-deep-rgb),.28)",
+                display:"flex", alignItems:"center", gap:"0.4rem",
+              }}>
+              ✏️ write a dream
+            </motion.button>
+          </div>
         </div>
 
         {/* ── Add form ── */}
@@ -264,7 +279,7 @@ export default function BucketList() {
                     cancel
                   </button>
                   <motion.button whileHover={{scale:1.04}} whileTap={{scale:0.96}}
-                    onClick={addItem} disabled={adding || !newText.trim()}
+                    onClick={() => addItem()} disabled={adding || !newText.trim()}
                     style={{
                       fontFamily:SANS, fontSize:"0.82rem", fontWeight:700, color:"#fff",
                       background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",

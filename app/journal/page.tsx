@@ -11,6 +11,7 @@ import StreakTracker     from "@/components/StreakTracker";
 import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
 import Final             from "@/components/Final";
+import ExportPDF         from "@/components/ExportPDF";
 import { useUserData }   from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
 
@@ -31,6 +32,7 @@ function JournalContent() {
       {sv("showStreak") && <StreakTracker />}
       {sv("showSurpriseMe") && <SurpriseMe />}
       {sv("showMonthlyRecap") && <MonthlyRecap />}
+      <ExportPDF />
     </main>
   );
 }

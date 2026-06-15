@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import ThemeProvider from "@/components/ThemeProvider";
-import SettingsPanel from "@/components/SettingsPanel";
+import ThemeProvider         from "@/components/ThemeProvider";
+import SettingsPanel         from "@/components/SettingsPanel";
+import MilestoneCelebration  from "@/components/MilestoneCelebration";
 
 export default function AppShell() {
   const [open, setOpen] = useState(false);
@@ -17,6 +18,7 @@ export default function AppShell() {
   return (
     <>
       <ThemeProvider />
+      <MilestoneCelebration />
       <SettingsPanel open={open} onClose={handleClose} />
     </>
   );

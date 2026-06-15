@@ -4,6 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
 import { THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 
+const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+
+function urlBase64ToUint8Array(base64: string) {
+  const pad = "=".repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(b64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
@@ -61,18 +70,25 @@ export default function SettingsPanel({ open, onClose }: Props) {
   const [saved,   setSaved]   = useState(false);
   const [saveErr, setSaveErr] = useState("");
   const [draft,   setDraft]   = useState<CoupleSettings>(DEFAULT_SETTINGS);
-  const [startDate, setStartDate] = useState("");
+  const [startDate,   setStartDate]   = useState("");
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [noteInput,   setNoteInput]   = useState("");
 
-  // Track the theme that was active when the panel opened (for cancel-revert)
   const originalThemeRef = useRef("pink");
-  // Tracks whether save completed so the close effect knows not to revert
-  const didSaveRef = useRef(false);
+  const didSaveRef       = useRef(false);
 
-  // Reset save-tracking when panel opens (NOT when settings change mid-open)
+  // Reset save-tracking + check push status when panel opens
   useEffect(() => {
     if (open) {
       setSaveErr("");
       didSaveRef.current = false;
+      // Check current push subscription state
+      if ("serviceWorker" in navigator && "PushManager" in window) {
+        navigator.serviceWorker.ready.then(reg =>
+          reg.pushManager.getSubscription().then(sub => setPushEnabled(!!sub))
+        ).catch(() => {});
+      }
     }
   }, [open]);
 
@@ -81,6 +97,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
     if (open && user?.settings) {
       const merged: CoupleSettings = {
         ...DEFAULT_SETTINGS, ...user.settings,
+        loveNotes: user.settings.loveNotes?.length ? user.settings.loveNotes : DEFAULT_SETTINGS.loveNotes,
         sections: {
           ...DEFAULT_SETTINGS.sections, ...user.settings.sections,
           home:    { ...DEFAULT_SETTINGS.sections.home,    ...user.settings.sections?.home },
@@ -121,11 +138,51 @@ export default function SettingsPanel({ open, onClose }: Props) {
   // Close without saving — effect above handles the revert
   const handleClose = useCallback(() => { onClose(); }, [onClose]);
 
+  const addLoveNote = () => {
+    const t = noteInput.trim();
+    if (!t) return;
+    set("loveNotes", [...(draft.loveNotes ?? []), t]);
+    setNoteInput("");
+  };
+
+  const removeLoveNote = (i: number) => {
+    set("loveNotes", draft.loveNotes.filter((_, idx) => idx !== i));
+  };
+
+  const togglePush = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    setPushLoading(true);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (pushEnabled) {
+        const sub = await reg.pushManager.getSubscription();
+        await sub?.unsubscribe();
+        await fetch("/api/push/subscribe", { method: "DELETE" });
+        setPushEnabled(false);
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") { setPushLoading(false); return; }
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+        });
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sub),
+        });
+        setPushEnabled(true);
+      }
+    } catch {}
+    setPushLoading(false);
+  };
+
   const resetToDefaults = () => {
     const reset: CoupleSettings = {
       ...DEFAULT_SETTINGS,
       coupleName: draft.coupleName,
       spotifyPlaylistId: draft.spotifyPlaylistId,
+      loveNotes: draft.loveNotes,
     };
     setDraft(reset);
     applyThemeClass(DEFAULT_SETTINGS.theme);
@@ -337,13 +394,66 @@ export default function SettingsPanel({ open, onClose }: Props) {
                 />
               )}
 
-              {/* ─── Reset to defaults ─── */}
+              {/* ─── Love notes ─── */}
+              <GroupLabel>💌 love notes</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.5rem", lineHeight: 1.5 }}>
+                These float as sticky notes on the timer page (visible on wider screens).
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "0.6rem" }}>
+                {(draft.loveNotes ?? []).map((note, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,.7)", border: "1px solid var(--pink-mid)", borderRadius: 10, padding: "0.45rem 0.8rem" }}>
+                    <span style={{ flex: 1, fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--text)" }}>{note}</span>
+                    <button onClick={() => removeLoveNote(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "0.8rem", padding: "0 0.2rem" }}>✕</button>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  value={noteInput}
+                  onChange={e => setNoteInput(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && addLoveNote()}
+                  placeholder="add a note…"
+                  style={{
+                    flex: 1, padding: "0.6rem 0.9rem", borderRadius: 10,
+                    border: "1.5px solid var(--pink-mid)", outline: "none",
+                    background: "rgba(255,255,255,.7)", fontFamily: SCRIPT, fontSize: "0.95rem",
+                    color: "var(--text)",
+                  }}
+                />
+                <motion.button onClick={addLoveNote} whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.95 }}
+                  style={{ padding: "0.6rem 1rem", borderRadius: 10, border: "none", background: "var(--pink-deep)", color: "#fff", cursor: "pointer", fontFamily: SANS, fontSize: "0.85rem" }}>
+                  + add
+                </motion.button>
+              </div>
+
+              {/* ─── Push notifications ─── */}
+              {"Notification" in window && (
+                <>
+                  <GroupLabel>🔔 push notifications</GroupLabel>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.6rem 0" }}>
+                    <div>
+                      <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "var(--text)", margin: 0 }}>
+                        {pushEnabled ? "notifications on" : "notifications off"}
+                      </p>
+                      <p style={{ fontFamily: SANS, fontSize: "0.7rem", color: "var(--muted)", margin: "0.1rem 0 0" }}>
+                        get notified when your partner adds a voice note
+                      </p>
+                    </div>
+                    <Toggle on={pushEnabled} onChange={pushLoading ? () => {} : togglePush} />
+                  </div>
+                </>
+              )}
+
+              {/* ─── Reset ─── */}
               <GroupLabel>🔄 reset</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.4rem", lineHeight: 1.5 }}>
+                Resets theme and section toggles only. Couple name, Spotify ID, and love notes are kept.
+              </p>
               <motion.button
                 onClick={resetToDefaults}
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                 style={{
-                  width: "100%", padding: "0.7rem", borderRadius: 10, marginTop: "0.4rem",
+                  width: "100%", padding: "0.7rem", borderRadius: 10,
                   border: "1.5px solid var(--pink-mid)",
                   background: "rgba(255,255,255,.6)",
                   color: "var(--muted)", fontFamily: SANS, fontSize: "0.85rem",

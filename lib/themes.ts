@@ -2,6 +2,7 @@ export interface CoupleSettings {
   theme: string;
   coupleName: string;
   spotifyPlaylistId: string;
+  loveNotes: string[];
   sections: {
     home:    { showTimer: boolean; showMemoryCards: boolean; showVoiceNotes: boolean; showCapsuleTeaser: boolean; showFinal: boolean };
     journal: { showStreak: boolean; showSurpriseMe: boolean; showMonthlyRecap: boolean; showAnniversaryBanner: boolean };
@@ -13,6 +14,12 @@ export const DEFAULT_SETTINGS: CoupleSettings = {
   theme: "pink",
   coupleName: "",
   spotifyPlaylistId: "41LuF5qeH9u3erSTc5LkPw",
+  loveNotes: [
+    "my favourite person 💗",
+    "you make everything better 🌸",
+    "glad it's you 🩷",
+    "my favourite notification is you ✨",
+  ],
   sections: {
     home:    { showTimer: true, showMemoryCards: true, showVoiceNotes: true, showCapsuleTeaser: true, showFinal: true },
     journal: { showStreak: true, showSurpriseMe: true, showMonthlyRecap: true, showAnniversaryBanner: true },
@@ -24,7 +31,7 @@ export interface ThemeDefinition {
   id: string;
   name: string;
   emoji: string;
-  swatch: string; // color shown in picker
+  swatch: string;
 }
 
 export const THEMES: ThemeDefinition[] = [
@@ -35,7 +42,6 @@ export const THEMES: ThemeDefinition[] = [
   { id: "gold",   name: "Golden",   emoji: "✨", swatch: "#d97706" },
 ];
 
-/** Returns true if the section should render (defaults to true when unset). */
 export function sectionVisible(
   settings: CoupleSettings | undefined | null,
   page: keyof CoupleSettings["sections"],
@@ -44,5 +50,11 @@ export function sectionVisible(
   if (!settings) return true;
   const pageSettings = settings.sections[page] as Record<string, boolean>;
   const val = pageSettings?.[key];
-  return val !== false; // undefined → visible
+  return val !== false;
+}
+
+export function getLoveNotes(settings: CoupleSettings | undefined | null): string[] {
+  const notes = settings?.loveNotes;
+  if (!notes || notes.length === 0) return DEFAULT_SETTINGS.loveNotes;
+  return notes;
 }

@@ -62,3 +62,31 @@ self.addEventListener("fetch", e => {
       .catch(() => caches.match(request).then(hit => hit ?? caches.match("/")))
   );
 });
+
+// ── Push notifications ────────────────────────────────────────────────────
+self.addEventListener("push", e => {
+  try {
+    const data = e.data?.json() ?? {};
+    e.waitUntil(
+      self.registration.showNotification(data.title ?? "💗", {
+        body:  data.body  ?? "",
+        icon:  data.icon  ?? "/favicon.svg",
+        badge: "/favicon.svg",
+        vibrate: [100, 50, 100],
+        data: { url: data.url ?? "/" },
+      })
+    );
+  } catch {}
+});
+
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = e.notification.data?.url ?? "/";
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes(self.location.origin));
+      if (existing) { existing.focus(); existing.navigate(url); }
+      else clients.openWindow(url);
+    })
+  );
+});

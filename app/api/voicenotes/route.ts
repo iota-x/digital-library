@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
+import { broadcastToCouple } from "@/lib/sseBroadcast";
+import { sendPushToCouple } from "@/lib/pushNotify";
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,6 +33,12 @@ export async function POST(req: NextRequest) {
       label: label || "",
       coupleId: session.coupleId,
       createdAt: new Date().toISOString(),
+    });
+    const sender = from || session.name;
+    broadcastToCouple(session.coupleId, { type: "voicenote:new", from: sender });
+    sendPushToCouple(session.coupleId, {
+      title: "new voice note 🎙",
+      body: `${sender} left you a voice note`,
     });
     return NextResponse.json({ id: res.insertedId.toString() });
   } catch (e) {

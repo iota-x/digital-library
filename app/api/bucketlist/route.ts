@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
+import { broadcastToCouple } from "@/lib/sseBroadcast";
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,6 +33,7 @@ export async function POST(req: NextRequest) {
       coupleId: session.coupleId,
       addedAt: new Date().toISOString(),
     });
+    broadcastToCouple(session.coupleId, { type: "bucketlist:add" });
     return NextResponse.json({ ok: true, _id: result.insertedId.toString() }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Failed to insert" }, { status: 500 });
@@ -53,6 +55,7 @@ export async function PUT(req: NextRequest) {
 
     const c = await getCol("bucketlist");
     await c.updateOne({ _id: new ObjectId(_id), coupleId: session.coupleId }, { $set: update });
+    broadcastToCouple(session.coupleId, { type: "bucketlist:update" });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Failed to update" }, { status: 500 });
@@ -69,6 +72,7 @@ export async function DELETE(req: NextRequest) {
 
     const c = await getCol("bucketlist");
     await c.deleteOne({ _id: new ObjectId(_id), coupleId: session.coupleId });
+    broadcastToCouple(session.coupleId, { type: "bucketlist:delete" });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
