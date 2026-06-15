@@ -8,6 +8,16 @@ const MONO   = `"Courier New", Courier, monospace`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// Canvas cannot resolve CSS variables — resolve them at draw time
+function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function resolveColor(val: string): string {
+  return val.replace(/var\((--[^)]+)\)/g, (_, v) => cssVar(v));
+}
+
+// Mood → colour. CSS var entries resolved via resolveColor() at draw time.
 const MOOD_COLOR: Record<string,string> = {
   "🥰":"var(--pink)","😊":"#fb923c","🥺":"#a78bfa","😂":"#facc15",
   "🌙":"#818cf8","💗":"var(--pink-deep)","✨":"#e879f9","🎮":"#34d399",
@@ -57,8 +67,12 @@ export default function MoodGraph() {
 
     ctx.clearRect(0,0,W,H);
 
+    /* Resolve theme colours once per draw */
+    const pinkRgb     = cssVar("--pink-rgb");
+    const pinkDeepRgb = cssVar("--pink-deep-rgb");
+
     /* Grid lines */
-    ctx.strokeStyle="rgba(var(--pink-rgb),0.06)";
+    ctx.strokeStyle=`rgba(${pinkRgb},0.06)`;
     ctx.lineWidth=1;
     for(let i=0;i<=4;i++){
       const y=30+i*(H-60)/4;
@@ -83,18 +97,18 @@ export default function MoodGraph() {
       if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
     });
     const grad=ctx.createLinearGradient(40,0,W-20,0);
-    grad.addColorStop(0,"rgba(var(--pink-rgb),0.2)");
-    grad.addColorStop(1,"rgba(var(--pink-deep-rgb),0.5)");
+    grad.addColorStop(0,`rgba(${pinkRgb},0.2)`);
+    grad.addColorStop(1,`rgba(${pinkDeepRgb},0.5)`);
     ctx.strokeStyle=grad; ctx.lineWidth=1.5;
     ctx.setLineDash([3,5]); ctx.stroke(); ctx.setLineDash([]);
 
     /* Nodes */
     filtered.forEach(d=>{
       const x=toX(d.date.getTime()), y=toY(d.mood);
-      const col=MOOD_COLOR[d.mood]||"var(--pink)";
+      const col = resolveColor(MOOD_COLOR[d.mood] || "var(--pink)");
       /* Glow */
       const radGrad=ctx.createRadialGradient(x,y,0,x,y,14);
-      radGrad.addColorStop(0,col.replace(")",",0.25)").replace("rgb","rgba")||"rgba(var(--pink-rgb),0.2)");
+      radGrad.addColorStop(0, col.startsWith("#") ? col + "40" : `rgba(${pinkRgb},0.25)`);
       radGrad.addColorStop(1,"transparent");
       ctx.beginPath(); ctx.arc(x,y,14,0,Math.PI*2);
       ctx.fillStyle=radGrad; ctx.fill();
@@ -113,7 +127,7 @@ export default function MoodGraph() {
     });
 
     /* X-axis date labels */
-    ctx.fillStyle="rgba(var(--pink-rgb),0.4)";
+    ctx.fillStyle=`rgba(${pinkRgb},0.4)`;
     ctx.font=`10px ${MONO}`;
     ctx.textAlign="center";
     const step=Math.max(1,Math.floor(filtered.length/5));

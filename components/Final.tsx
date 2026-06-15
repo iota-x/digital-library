@@ -44,7 +44,11 @@ function Stars() {
     }));
     let raf: number;
     let visible = true;
+    // Resolve CSS vars once (re-read each frame so theme changes propagate)
     const draw = () => {
+      const style  = getComputedStyle(document.documentElement);
+      const pinkRgb = style.getPropertyValue("--pink-rgb").trim();
+      const pink    = style.getPropertyValue("--pink").trim();
       if (visible) {
         ctx.clearRect(0, 0, c.width, c.height);
         pts.forEach(p => {
@@ -52,8 +56,8 @@ function Stars() {
           if (p.a <= 0.1 || p.a >= 1) p.da *= -1;
           ctx.beginPath();
           ctx.arc(p.x * c.width, p.y * c.height, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(var(--pink-rgb),${p.a * 0.6})`;
-          ctx.shadowBlur = 5; ctx.shadowColor = "var(--pink)"; ctx.fill();
+          ctx.fillStyle = `rgba(${pinkRgb},${p.a * 0.6})`;
+          ctx.shadowBlur = 5; ctx.shadowColor = pink; ctx.fill();
         });
       }
       raf = requestAnimationFrame(draw);
