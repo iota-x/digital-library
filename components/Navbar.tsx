@@ -106,11 +106,15 @@ export default function Navbar() {
           justifyContent: "space-between",
           padding: "0.75rem clamp(1rem, 4vw, 2.5rem)",
           background: scrolled
-            ? `rgba(var(--pink-light-rgb,255,245,249),0.88)`
+            ? dark ? "rgba(10,4,20,0.88)" : `rgba(var(--pink-light-rgb,255,245,249),0.88)`
             : "rgba(255,255,255,0.0)",
           backdropFilter: scrolled ? "blur(20px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-          borderBottom: scrolled ? `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)` : "none",
+          borderBottom: scrolled
+            ? dark
+              ? "1px solid rgba(255,255,255,0.1)"
+              : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)`
+            : "none",
           transition: "background 0.4s, border 0.4s, backdrop-filter 0.4s",
         }}
       >
@@ -134,8 +138,8 @@ export default function Navbar() {
         {/* Desktop tabs */}
         <div style={{
           display: "flex", gap: "0.25rem", alignItems: "center",
-          background: "rgba(var(--pink-light-rgb,252,231,243),0.6)",
-          border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
+          background: dark ? "rgba(255,255,255,0.1)" : "rgba(var(--pink-light-rgb,252,231,243),0.6)",
+          border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
           borderRadius: 50,
           padding: "0.3rem",
           backdropFilter: "blur(12px)",
@@ -164,7 +168,7 @@ export default function Navbar() {
                     fontFamily: "var(--font-lato), 'Inter', system-ui, sans-serif",
                     fontSize: "0.82rem",
                     fontWeight: active ? 700 : 500,
-                    color: active ? "#fff" : `rgba(var(--pink-deep-rgb,190,24,93),0.7)`,
+                    color: active ? "#fff" : dark ? "var(--text)" : `rgba(var(--pink-deep-rgb,190,24,93),0.7)`,
                     letterSpacing: "0.04em",
                     transition: "color 0.25s",
                   }}>
@@ -194,8 +198,8 @@ export default function Navbar() {
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               width: 34, height: 34, borderRadius: "50%",
-              background: "rgba(var(--pink-light-rgb,252,231,243),.55)",
-              border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)",
+              background: dark ? "rgba(255,255,255,0.1)" : "rgba(var(--pink-light-rgb,252,231,243),.55)",
+              border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)",
               cursor: "pointer", fontSize: "1rem",
             }}
           >
@@ -210,8 +214,8 @@ export default function Navbar() {
                 whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                 style={{
                   display: "flex", alignItems: "center", gap: "0.4rem",
-                  background: "rgba(var(--pink-light-rgb,252,231,243),.7)",
-                  border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                  background: dark ? "rgba(255,255,255,0.12)" : "rgba(var(--pink-light-rgb,252,231,243),.7)",
+                  border: dark ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
                   borderRadius: 50,
                   padding: "0.32rem 0.8rem",
                   cursor: "pointer",
@@ -281,8 +285,8 @@ export default function Navbar() {
                         style={{
                           width: "100%", padding: "0.6rem 0.8rem",
                           borderRadius: 10,
-                          border: `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`,
-                          background: `rgba(var(--pink-light-rgb,252,231,243),0.4)`,
+                          border: dark ? "1px solid rgba(255,255,255,0.15)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`,
+                          background: dark ? "rgba(255,255,255,0.08)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`,
                           cursor: "pointer",
                           fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
                           fontSize: "0.82rem", color: "var(--pink-deep)",
@@ -320,13 +324,13 @@ export default function Navbar() {
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
             style={{
               display:"flex", alignItems:"center", gap:"0.35rem",
-              background:`rgba(var(--pink-light-rgb,252,231,243),.55)`,
-              border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)`,
+              background: dark ? "rgba(255,255,255,0.1)" : `rgba(var(--pink-light-rgb,252,231,243),.55)`,
+              border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)`,
               borderRadius:8, padding:"0.32rem 0.65rem",
               cursor:"pointer",
               fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif",
               fontSize:"0.62rem", fontWeight:700,
-              color:`rgba(var(--pink-deep-rgb,190,24,93),.5)`,
+              color: dark ? "rgba(255,255,255,0.5)" : `rgba(var(--pink-deep-rgb,190,24,93),.5)`,
               letterSpacing:"0.06em",
             }}>
             <span>⌘K</span>
@@ -338,8 +342,8 @@ export default function Navbar() {
             whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             className="nav-mobile-btn"
             style={{
-              background:`rgba(var(--pink-light-rgb,252,231,243),0.7)`,
-              border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)`,
+              background: dark ? "rgba(255,255,255,0.1)" : `rgba(var(--pink-light-rgb,252,231,243),0.7)`,
+              border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)`,
               borderRadius: 10, width: 40, height: 40,
               cursor: "pointer", display: "none",
               alignItems: "center", justifyContent: "center",
@@ -382,9 +386,9 @@ export default function Navbar() {
               position: "fixed",
               top: 60, left: "1rem", right: "1rem",
               zIndex: 499,
-              background: "var(--cream)",
+              background: dark ? "rgba(18,6,36,0.96)" : "var(--cream)",
               backdropFilter: "blur(24px)",
-              border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)",
+              border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)",
               borderRadius: 20,
               padding: "1rem",
               boxShadow: `0 16px 48px rgba(var(--pink-rgb,244,114,182),0.2)`,
@@ -402,8 +406,12 @@ export default function Navbar() {
                     <div style={{
                       padding: "0.85rem 1.2rem",
                       borderRadius: 14,
-                      background: active ? `linear-gradient(135deg,rgba(var(--pink-rgb,249,168,212),0.3),rgba(var(--pink-deep-rgb,236,72,153),0.15))` : "transparent",
-                      border: active ? `1px solid rgba(var(--pink-deep-rgb,236,72,153),0.25)` : "1px solid transparent",
+                      background: active
+                        ? dark ? "rgba(255,255,255,0.12)" : `linear-gradient(135deg,rgba(var(--pink-rgb,249,168,212),0.3),rgba(var(--pink-deep-rgb,236,72,153),0.15))`
+                        : "transparent",
+                      border: active
+                        ? dark ? "1px solid rgba(255,255,255,0.2)" : `1px solid rgba(var(--pink-deep-rgb,236,72,153),0.25)`
+                        : "1px solid transparent",
                       display: "flex", alignItems: "center", gap: "0.8rem",
                       position: "relative",
                     }}>
@@ -412,7 +420,7 @@ export default function Navbar() {
                         fontFamily: '"Georgia","Times New Roman",serif',
                         fontStyle: "italic",
                         fontSize: "1.05rem",
-                        color: active ? "var(--pink-deep)" : `rgba(var(--pink-deep-rgb,190,24,93),0.6)`,
+                        color: active ? "var(--pink-deep)" : dark ? "var(--text)" : `rgba(var(--pink-deep-rgb,190,24,93),0.6)`,
                         fontWeight: active ? 600 : 400,
                         flex: 1,
                       }}>
@@ -432,19 +440,19 @@ export default function Navbar() {
             })}
 
             {/* Dark mode row in mobile menu */}
-            <div style={{ borderTop:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.3rem", paddingTop:"0.6rem" }}>
+            <div style={{ borderTop: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.3rem", paddingTop:"0.6rem" }}>
               <button
                 onClick={toggleDark}
                 style={{
                   width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                  border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
+                  border: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
                   display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
                 }}
               >
                 <span style={{ fontSize:"1.2rem" }}>{dark ? "☀️" : "🌙"}</span>
                 <span style={{
                   fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
-                  fontSize:"1.05rem", color:"var(--muted)",
+                  fontSize:"1.05rem", color: dark ? "var(--text)" : "var(--muted)",
                 }}>
                   {dark ? "light mode" : "dark mode"}
                 </span>
@@ -453,7 +461,7 @@ export default function Navbar() {
 
             {/* User info + customize + logout in mobile menu */}
             {user && (
-              <div style={{ borderTop:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.1rem", paddingTop:"0.6rem" }}>
+              <div style={{ borderTop: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.1rem", paddingTop:"0.6rem" }}>
                 <div style={{ padding:"0.5rem 1.2rem", marginBottom:"0.4rem" }}>
                   <p style={{ fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic", fontSize:"0.95rem", color:"var(--pink-deep)", margin:0 }}>
                     🌸 {user.name}
@@ -473,8 +481,8 @@ export default function Navbar() {
                   onClick={() => { setMobileOpen(false); window.dispatchEvent(new Event("annapp:settings")); }}
                   style={{
                     width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                    border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`,
-                    background:`rgba(var(--pink-light-rgb,252,231,243),0.4)`,
+                    border: dark ? "1px solid rgba(255,255,255,0.15)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`,
+                    background: dark ? "rgba(255,255,255,0.08)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`,
                     display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
                     marginBottom:"0.3rem",
                   }}
@@ -491,7 +499,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   style={{
                     width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                    border:`1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
+                    border: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
                     display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
                   }}
                 >
