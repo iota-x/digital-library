@@ -43,13 +43,9 @@ export default function Navbar() {
     return () => window.removeEventListener("keydown", fn);
   }, []);
 
-  /* dark mode — restore saved preference */
+  /* sync toggle button state with whatever DarkOverlay restored */
   useEffect(() => {
-    const saved = localStorage.getItem("ann_theme");
-    if (saved === "dark") {
-      document.documentElement.classList.add("dark");
-      setDark(true);
-    }
+    setDark(document.documentElement.classList.contains("dark"));
   }, []);
 
   /* voice-note badge */

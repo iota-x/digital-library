@@ -1,4 +1,4 @@
-const CACHE = "ann-v1";
+const CACHE = "ann-v2";
 const NAV_ROUTES = ["/", "/journal", "/timeline", "/capsule", "/shared"];
 
 self.addEventListener("install", e => {
@@ -15,39 +15,50 @@ self.addEventListener("activate", e => {
   self.clients.claim();
 });
 
+/* Clone the response synchronously before returning it, then cache the clone.
+   Never attempt to clone streaming (SSE) or error responses. */
+function tryCache(cacheName, request, response) {
+  if (!response.ok) return response;
+  const type = response.headers.get("content-type") ?? "";
+  if (type.includes("text/event-stream")) return response;
+  try {
+    const clone = response.clone(); // must happen synchronously
+    caches.open(cacheName).then(c => c.put(request, clone));
+  } catch {
+    // body already used — skip caching silently
+  }
+  return response;
+}
+
+// Allow the page to tell a waiting worker to skip waiting and take over
+self.addEventListener("message", e => {
+  if (e.data?.type === "SKIP_WAITING") self.skipWaiting();
+});
+
 self.addEventListener("fetch", e => {
   const { request } = e;
   const url = new URL(request.url);
 
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // Hashed static assets — cache forever
+  // API calls — always go to network, never cache.
+  // calendarStore handles its own client-side caching; SSE streams can't be cloned.
+  if (url.pathname.startsWith("/api/")) return;
+
+  // Hashed static assets — cache-first forever
   if (url.pathname.startsWith("/_next/static/")) {
     e.respondWith(
       caches.match(request).then(hit =>
-        hit || fetch(request).then(res => {
-          caches.open(CACHE).then(c => c.put(request, res.clone()));
-          return res;
-        })
+        hit ?? fetch(request).then(res => tryCache(CACHE, request, res))
       )
     );
     return;
   }
 
-  // API calls — network first, fall back to cached response
-  if (url.pathname.startsWith("/api/")) {
-    e.respondWith(
-      fetch(request)
-        .then(res => { caches.open(CACHE).then(c => c.put(request, res.clone())); return res; })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // Pages — network first, fall back to cache then root
+  // Pages — network first, fall back to cache, then root shell
   e.respondWith(
     fetch(request)
-      .then(res => { caches.open(CACHE).then(c => c.put(request, res.clone())); return res; })
-      .catch(() => caches.match(request).then(hit => hit || caches.match("/")))
+      .then(res => tryCache(CACHE, request, res))
+      .catch(() => caches.match(request).then(hit => hit ?? caches.match("/")))
   );
 });

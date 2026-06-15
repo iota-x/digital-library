@@ -164,6 +164,7 @@ function MemoryCard({ ev, idx, onOpen }: { ev: typeof EVENTS[0]; idx: number; on
         transition={{ duration: 0.65, ease: "easeOut" }}
         whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 50px rgba(244,114,182,.28)" }}
         whileTap={{ scale: 0.98 }}
+        className="dk-timeline-card"
         style={{
           flex: "0 0 45%",
           background: "#fff",
@@ -359,6 +360,7 @@ export default function Timeline() {
               key="drawer"
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
               transition={{ type:"spring", stiffness:220, damping:28 }}
+              className="dk-timeline-drawer"
               style={{
                 position:"fixed", bottom:0, left:0, right:0, zIndex:9998,
                 maxHeight:"80vh", borderRadius:"28px 28px 0 0",

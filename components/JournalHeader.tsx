@@ -36,7 +36,7 @@ export default function JournalHeader() {
   }, [data]);
 
   return (
-    <div style={{
+    <div className="dk-journal-header" style={{
       padding: "2.5rem clamp(1rem,3vw,2rem) 1.5rem",
       background: "linear-gradient(180deg,#fff5f9 0%,#fde8f2 100%)",
       borderBottom: "1px solid rgba(249,168,212,.18)",

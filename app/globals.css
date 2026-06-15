@@ -2,25 +2,182 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Dark mode ──────────────────────────────────────────────────────
-   DarkOverlay (z-index 3000) provides the visual darkening.
-   These rules handle CSS-variable-driven elements + scrollbar.
-   ─────────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════
+   DARK PLUM + BLACK MODE
+   Class-based selectors are added directly to components so these
+   rules are guaranteed to match — no brittle [style*=""] hacks.
+   ══════════════════════════════════════════════════════════════════ */
+
 html.dark {
   color-scheme: dark;
-  --pink-light: #2d0d1f;
-  --pink-mid:   #3d1228;
-  --rose:       #150409;
-  --cream:      #0e0308;
-  --text:       #f5dce7;
-  --muted:      #c994ad;
+
+  /* CSS-variable overrides — var() references auto-update */
+  --cream:      #09000f;
+  --text:       #eeddf8;
+  --muted:      #c8a0e8;
+  --pink:       #f472b6;
+  --pink-light: #1c0630;
+  --pink-mid:   #26083e;
+  --pink-deep:  #f472b6;
+  --rose:       #0b0014;
 }
+
 html.dark body {
-  background: #0e0308;
-  color: #f5dce7;
+  background: #09000f !important;
+  color: #eeddf8 !important;
 }
-html.dark ::-webkit-scrollbar-track { background: #200818; }
-html.dark ::-webkit-scrollbar-thumb { background: #be185d; }
+
+/* ── All <section> backgrounds → dark plum ── */
+html.dark section {
+  background: linear-gradient(160deg, #0c0018 0%, #170030 45%, #09000f 100%) !important;
+}
+
+/* ── Footer ── */
+html.dark footer {
+  background: linear-gradient(135deg, #100036, #1c0050, #120038) !important;
+  border-color: rgba(180, 70, 255, 0.22) !important;
+}
+
+/* ── Navbar ── */
+html.dark nav {
+  background: rgba(9, 0, 18, 0.88) !important;
+  border-color: rgba(150, 50, 220, 0.18) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   COMPONENT-SPECIFIC DARK RULES
+   classNames added to the elements in each component file.
+   ───────────────────────────────────────────────────────────────── */
+
+/* Journal header banner */
+html.dark .dk-journal-header {
+  background: linear-gradient(180deg, #0c0018 0%, #170030 100%) !important;
+  border-color: rgba(180, 70, 255, 0.15) !important;
+}
+html.dark .dk-journal-header h1,
+html.dark .dk-journal-header p,
+html.dark .dk-journal-header span {
+  color: #eeddf8 !important;
+}
+
+/* Timeline memory cards — lighter plum so content stands out */
+html.dark .dk-timeline-card {
+  background: #2a0848 !important;
+  border-color: rgba(200, 100, 255, 0.35) !important;
+  box-shadow: 0 6px 24px rgba(120, 0, 200, 0.25) !important;
+}
+html.dark .dk-timeline-card p,
+html.dark .dk-timeline-card span {
+  color: #f0e4ff !important;
+}
+
+/* Timeline letter drawer (full-screen bottom sheet) */
+html.dark .dk-timeline-drawer {
+  background: #180030 !important;
+}
+html.dark .dk-timeline-drawer p {
+  color: #eeddf8 !important;
+}
+
+/* Memory cards (home page pastel sticky notes) */
+html.dark .dk-mem-card {
+  background: #2a0848 !important;
+  box-shadow: 4px 4px 18px rgba(100, 0, 160, 0.28) !important;
+}
+html.dark .dk-mem-card h3,
+html.dark .dk-mem-card p,
+html.dark .dk-mem-card span {
+  color: #f0e4ff !important;
+}
+
+/* Memory card modal popup */
+html.dark .dk-mem-modal {
+  background: #1e0038 !important;
+  box-shadow: 0 24px 60px rgba(140, 0, 220, 0.35) !important;
+}
+html.dark .dk-mem-modal h2,
+html.dark .dk-mem-modal p {
+  color: #eeddf8 !important;
+}
+
+/* Final.tsx — love letter book pages */
+html.dark .dk-book-page {
+  background: linear-gradient(160deg, #1e0438 0%, #2a0850 50%, #180330 100%) !important;
+  border-color: rgba(200, 100, 255, 0.25) !important;
+}
+html.dark .dk-book-page p {
+  color: #f0e4ff !important;
+}
+
+/* Final.tsx — "I love you" game section */
+html.dark .dk-ily-game {
+  background: linear-gradient(180deg, #0c0018, #160030, #0c0018) !important;
+  border-color: rgba(180, 70, 255, 0.15) !important;
+}
+html.dark .dk-ily-game p {
+  color: #f0e4ff !important;
+}
+
+/* Footer text */
+html.dark footer p,
+html.dark footer span {
+  color: #e8d0f8 !important;
+}
+
+/* /shared page hero banner */
+html.dark .dk-shared-hero {
+  background: linear-gradient(180deg, #0c0018 0%, #160030 60%, rgba(8,0,14,0) 100%) !important;
+}
+html.dark .dk-shared-hero h1,
+html.dark .dk-shared-hero p,
+html.dark .dk-shared-hero span {
+  color: #e8d8f8 !important;
+}
+
+/* BucketList diary paper */
+html.dark .dk-bucket-paper {
+  background: #0e0020 !important;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent,
+    transparent 31px,
+    rgba(180,80,255,.07) 31px,
+    rgba(180,80,255,.07) 32px
+  ) !important;
+}
+
+/* BucketList tabs pill bar */
+html.dark .dk-bucket-tabs {
+  background: rgba(30, 5, 55, 0.88) !important;
+  border-color: rgba(180, 80, 255, 0.22) !important;
+}
+
+/* BucketList add-dream form card */
+html.dark .dk-bucket-form {
+  background: rgba(22, 4, 44, 0.95) !important;
+  border-color: rgba(180, 80, 255, 0.22) !important;
+}
+html.dark .dk-bucket-form p,
+html.dark .dk-bucket-form input {
+  color: #e8d8f8 !important;
+}
+html.dark .dk-bucket-form input::placeholder {
+  color: rgba(200, 160, 232, 0.5) !important;
+}
+
+/* BucketList items container */
+html.dark .dk-bucket-list {
+  background: rgba(20, 4, 38, 0.9) !important;
+  border-color: rgba(180, 80, 255, 0.1) !important;
+}
+html.dark .dk-bucket-list p {
+  color: #e8d8f8 !important;
+}
+
+/* ── Scrollbar ── */
+html.dark ::-webkit-scrollbar-track { background: #0c0018; }
+html.dark ::-webkit-scrollbar-thumb { background: #7c3aed; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #9d5ef5; }
 
 :root {
   --font-playfair: "Playfair Display", serif;

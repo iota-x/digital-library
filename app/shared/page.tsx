@@ -18,7 +18,7 @@ function SharedHero() {
   ];
 
   return (
-    <div style={{
+    <div className="dk-shared-hero" style={{
       position:"relative", textAlign:"center", overflow:"hidden",
       padding:"clamp(3.5rem,8vh,6rem) clamp(1rem,4vw,2rem) clamp(2rem,5vh,3.5rem)",
       background:"linear-gradient(180deg,#fff0f7 0%,#fce7f3 60%,rgba(252,231,243,0) 100%)",

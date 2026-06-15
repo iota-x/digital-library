@@ -158,6 +158,7 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
   return (
     <div
       ref={ref}
+      className="dk-ily-game"
       style={{
         width:"100%",
         minHeight:"100vh",
@@ -392,7 +393,7 @@ function Book({ active, prev, dir }: { active: number; prev: number; dir: "next"
           }}
         >
           {/* Page face */}
-          <div style={{
+          <div className="dk-book-page" style={{
             position: "absolute", inset: 0,
             background: p.bg,
             borderRadius: 24,

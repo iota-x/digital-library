@@ -115,7 +115,7 @@ export default function BucketList() {
       `}</style>
 
       {/* Diary paper background */}
-      <div style={{
+      <div className="dk-bucket-paper" style={{
         position: "absolute", inset: 0,
         background: "#fffdf8",
         backgroundImage: `
@@ -192,7 +192,7 @@ export default function BucketList() {
         {/* ── Tabs + Add ── */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           flexWrap:"wrap", gap:"0.75rem", marginBottom:"1.6rem" }}>
-          <div style={{ display:"flex", gap:"0.25rem",
+          <div className="dk-bucket-tabs" style={{ display:"flex", gap:"0.25rem",
             background:"rgba(255,255,255,.7)", border:"1px solid rgba(236,72,153,.18)",
             borderRadius:50, padding:"0.28rem" }}>
             {TABS.map(t => {
@@ -228,7 +228,7 @@ export default function BucketList() {
           {showInput && (
             <motion.div initial={{opacity:0,y:-12,height:0}} animate={{opacity:1,y:0,height:"auto"}} exit={{opacity:0,y:-12,height:0}}
               style={{ marginBottom:"1.5rem", overflow:"hidden" }}>
-              <div style={{
+              <div className="dk-bucket-form" style={{
                 background:"rgba(255,255,255,.88)",
                 border:"1.5px solid rgba(236,72,153,.2)",
                 borderRadius:20, padding:"1.3rem 1.5rem",
@@ -306,7 +306,7 @@ export default function BucketList() {
             </p>
           </motion.div>
         ) : (
-          <div style={{
+          <div className="dk-bucket-list" style={{
             background:"rgba(255,255,255,.6)",
             border:"1px solid rgba(236,72,153,.14)",
             borderRadius:20, overflow:"hidden",
