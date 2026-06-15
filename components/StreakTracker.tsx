@@ -7,11 +7,13 @@ import SectionSkeleton from "@/components/SectionSkeleton";
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
-/* ── Palette slot 2: #c9447a → var(--pink-deep) — warm deep rose ── */
-const BG   = "linear-gradient(180deg,#c9447a 0%,#a01e5a 40%,#7e0b48 80%,#61063b 100%)";
-const ACC  = "var(--pink-light)";
-const DIM  = "rgba(var(--pink-light-rgb),.55)";
-const GLOW = "rgba(var(--pink-light-rgb),.15)";
+/* Always-dark gradient BG — accent must always be a LIGHT colour.
+   var(--pink) resolves to a light/medium tone in both light and dark mode
+   (dark mode overrides --pink to a bright readable value per theme). */
+const BG   = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.9) 0%,rgba(var(--pink-rgb),0.5) 60%,rgba(var(--pink-deep-rgb),0.7) 100%)";
+const ACC  = "var(--pink)";
+const DIM  = "rgba(var(--pink-rgb),.75)";
+const GLOW = "rgba(var(--pink-rgb),.2)";
 
 export default function StreakTracker() {
   const { data, loading } = useCalendarData();
@@ -37,7 +39,7 @@ export default function StreakTracker() {
     return { streak: cur, longest: max, todayDone: dates.has(todayKey), celebrate: cur >= 7 };
   }, [data]);
 
-  if (loading) return <SectionSkeleton bg={BG} accent="rgba(var(--pink-light-rgb),.2)" lines={5}/>;
+  if (loading) return <SectionSkeleton bg={BG} accent="rgba(var(--pink-rgb),.25)" lines={5}/>;
 
   const milestones    = [3,7,14,30,60,100];
   const nextMilestone = milestones.find(m=>m>streak) ?? streak+10;

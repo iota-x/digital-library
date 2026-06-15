@@ -688,22 +688,22 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
         <motion.div animate={{ rotateY: flipDir === "right" ? -12 : flipDir === "left" ? 12 : 0, scale: flipDir ? 0.97 : 1, opacity: flipDir ? 0.6 : 1 }} transition={{ duration: 0.24, ease: "easeInOut" }}
           className="dk-cal-card"
           style={{ background: "var(--cal-card-bg)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "var(--cal-card-shadow)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.2rem 1.6rem", background: "linear-gradient(135deg,#2d0f1e,#4a1628)", position: "relative", overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.2rem 1.6rem", background: "linear-gradient(135deg,rgba(var(--pink-deep-rgb),0.9),rgba(var(--pink-rgb),0.55))", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, pointerEvents: "none", opacity: 0.5 }} />
-            <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(var(--pink-rgb),.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "var(--pink)", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
+            <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.22)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#fff", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
             <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
               <AnimatePresence mode="wait">
-                <motion.p key={`${year}-${month}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }} style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.2rem,3vw,1.6rem)", color: "var(--pink-light)", margin: 0, fontWeight: 400 }}>{MONTHS[month]}</motion.p>
+                <motion.p key={`${year}-${month}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }} style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.2rem,3vw,1.6rem)", color: "#fff", margin: 0, fontWeight: 400 }}>{MONTHS[month]}</motion.p>
               </AnimatePresence>
-              <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(var(--pink-light-rgb),.4)", margin: 0 }}>{year}</p>
+              <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(255,255,255,.6)", margin: 0 }}>{year}</p>
               {!isOnToday && (
                 <motion.button onClick={goToToday} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}
-                  style={{ marginTop: "0.3rem", padding: "0.18rem 0.7rem", borderRadius: 20, border: "1px solid rgba(var(--pink-rgb),.3)", background: "rgba(var(--pink-rgb),.12)", color: "rgba(var(--pink-light-rgb),.7)", fontFamily: SANS, fontSize: "0.62rem", cursor: "pointer", letterSpacing: "0.06em" }}>
+                  style={{ marginTop: "0.3rem", padding: "0.18rem 0.7rem", borderRadius: 20, border: "1px solid rgba(255,255,255,.3)", background: "rgba(255,255,255,.15)", color: "rgba(255,255,255,.85)", fontFamily: SANS, fontSize: "0.62rem", cursor: "pointer", letterSpacing: "0.06em" }}>
                   today
                 </motion.button>
               )}
             </div>
-            <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(var(--pink-rgb),.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "var(--pink)", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
+            <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.22)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#fff", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "1rem 1.4rem 0.4rem", background: "var(--cal-dayhdr-bg)" }}>
