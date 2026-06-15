@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useMemo, useCallback, useEffect, Fragment } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
@@ -12,12 +13,12 @@ const MONTHS = ["January","February","March","April","May","June","July","August
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 const START  = new Date("2026-03-11");
 const PINK   = "#be185d";
-const CARD_W = 264; // px — fixed width so trail maths is stable
+const CARD_W = 264;
 
-/* ─── scatter positions as % of available horizontal space ─── */
+/* scatter positions as % of available horizontal space */
 const SCATTER = [3, 54, 27, 62, 10, 44, 68, 6, 38, 18, 58, 1, 46, 31, 64, 13, 50, 72, 22, 56, 8, 42];
 
-/* ─── falling petals — pre-computed ─── */
+/* falling petals — pre-computed */
 const PETALS = Array.from({length:30},(_,i)=>({
   left:`${(i*6.7+4)%100}%`,
   emoji:["🌸","💗","🌷","✨","🌺","💕"][i%6],
@@ -70,7 +71,7 @@ function Lightbox({ srcs,start,onClose }:{ srcs:string[]; start:number; onClose:
   );
 }
 
-/* ─── airplane trail between two scatter positions ─── */
+/* ─── airplane trail — desktop only ─── */
 function Trail({ prevX, currX, trailIdx }:{ prevX:number; currX:number; trailIdx:number }) {
   const H = 88;
   const x1 = prevX + CARD_W/2;
@@ -78,12 +79,10 @@ function Trail({ prevX, currX, trailIdx }:{ prevX:number; currX:number; trailIdx
   const cy1 = H * 0.55, cy2 = H * 0.45;
   const pathStr = `M ${x1} 0 C ${x1} ${cy1}, ${x2} ${cy2}, ${x2} ${H}`;
 
-  /* 7 keyframes along the bezier for the airplane */
   const kfs = [0,.15,.3,.5,.65,.8,1].map(t=>bez(x1,0,x1,cy1,x2,cy2,x2,H,t));
   const kx = kfs.map(p=>p.x-10);
   const ky = kfs.map(p=>p.y-10);
 
-  /* rotation: angle of tangent at t=0.5 */
   const mid0=bez(x1,0,x1,cy1,x2,cy2,x2,H,.48);
   const mid1=bez(x1,0,x1,cy1,x2,cy2,x2,H,.52);
   const angle=Math.atan2(mid1.y-mid0.y,mid1.x-mid0.x)*180/Math.PI+45;
@@ -93,16 +92,13 @@ function Trail({ prevX, currX, trailIdx }:{ prevX:number; currX:number; trailIdx
   return (
     <div style={{position:"relative",height:H,width:"100%",pointerEvents:"none",flexShrink:0}}>
       <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",overflow:"visible"}}>
-        {/* glow trail */}
         <motion.path d={pathStr} stroke="rgba(249,168,212,.25)" strokeWidth={6} fill="none" strokeLinecap="round"
           initial={{pathLength:0}} whileInView={{pathLength:1}} viewport={{once:true,margin:"-10px"}}
           transition={{duration:1.4,ease:"easeOut"}}/>
-        {/* main dashed trail */}
         <motion.path d={pathStr} stroke="rgba(190,24,93,.45)" strokeWidth={2} strokeDasharray="8 5" fill="none" strokeLinecap="round"
           initial={{pathLength:0}} whileInView={{pathLength:1}} viewport={{once:true,margin:"-10px"}}
           transition={{duration:1.4,ease:"easeOut",delay:.1}}/>
       </svg>
-      {/* airplane moving along path */}
       <motion.div
         style={{position:"absolute",top:0,left:0,fontSize:"1.1rem",lineHeight:1,rotate:`${angle}deg`,filter:"drop-shadow(0 2px 6px rgba(190,24,93,.5))",zIndex:2}}
         animate={{x:kx,y:ky}}
@@ -112,6 +108,14 @@ function Trail({ prevX, currX, trailIdx }:{ prevX:number; currX:number; trailIdx
   );
 }
 
+/* ─── simple divider — mobile trail replacement ─── */
+function TrailMobile() {
+  return (
+    <div style={{width:"100%",height:18,display:"flex",alignItems:"center",padding:"0 16px"}}>
+      <div style={{flex:1,height:1,borderTop:"1px dashed rgba(190,24,93,.18)"}}/>
+    </div>
+  );
+}
 
 /* ─── bottom-sheet detail view ─── */
 function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void }) {
@@ -195,9 +199,13 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
               <motion.div key={photoIdx}
                 initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}}
                 transition={{duration:0.2,ease:'easeOut'}}
-                style={{cursor:'pointer'}} onClick={()=>setLb(photoIdx)}>
-                <img src={cldHero(photos[photoIdx],700)} alt='' loading='eager' decoding='async'
-                  style={{width:'100%',height:'auto',display:'block',maxHeight:400,objectFit:'cover',objectPosition:'center top'}}/>
+                style={{cursor:'pointer',position:'relative',height:300,overflow:'hidden'}} onClick={()=>setLb(photoIdx)}>
+                <Image
+                  src={cldHero(photos[photoIdx],700)} alt=""
+                  fill sizes="660px" unoptimized
+                  style={{objectFit:'cover',objectPosition:'center top'}}
+                  priority={photoIdx===0}
+                />
                 {isVid(photos[photoIdx])&&(
                   <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,.18)'}}>
                     <div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,255,255,.18)',backdropFilter:'blur(4px)',border:'1.5px solid rgba(255,255,255,.38)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem'}}>▶</div>
@@ -227,7 +235,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
                 {photos.map((p,i)=>(
                   <div key={i} onClick={()=>setPhotoIdx(i)}
                     style={{flex:1,aspectRatio:'1',overflow:'hidden',cursor:'pointer',maxHeight:48,position:'relative',background:'#0d0005',outline:i===photoIdx?'2px solid rgba(244,114,182,.75)':'2px solid transparent',outlineOffset:-2,transition:'outline .18s'}}>
-                    <img src={cldSq(p,96)} alt='' loading='lazy' style={{width:'100%',height:'100%',objectFit:'cover',display:'block',opacity:i===photoIdx?1:.55,transition:'opacity .18s'}}/>
+                    <Image src={cldSq(p,96)} alt="" fill sizes="48px" unoptimized style={{objectFit:'cover',opacity:i===photoIdx?1:.55,transition:'opacity .18s'}}/>
                     {isVid(p)&&<div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,.25)',fontSize:'0.65rem'}}>▶</div>}
                   </div>
                 ))}
@@ -271,7 +279,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
 }
 
 /* ─── polaroid-style photo card ─── */
-function MemCard({ entry,cardIdx,glow,onOpen,setRef }:{ entry:Entry; cardIdx:number; glow:boolean; onOpen:()=>void; setRef:(el:HTMLDivElement|null)=>void }) {
+function MemCard({ entry,cardIdx,glow,onOpen,setRef,isMobile }:{ entry:Entry; cardIdx:number; glow:boolean; onOpen:()=>void; setRef:(el:HTMLDivElement|null)=>void; isMobile:boolean }) {
   const wrapRef  = useRef<HTMLDivElement>(null);
   const inView   = useInView(wrapRef,{once:true,margin:"-30px"});
   const [hovered,setHovered] = useState(false);
@@ -293,9 +301,9 @@ function MemCard({ entry,cardIdx,glow,onOpen,setRef }:{ entry:Entry; cardIdx:num
       <motion.div
         initial={{opacity:0,y:40,rotate:tilt,scale:0.88}}
         animate={inView?{opacity:1,y:0,rotate:tilt,scale:1}:{opacity:0,y:40,rotate:tilt,scale:0.88}}
-        whileHover={{scale:1.035,rotate:0,y:-10}}
-        onHoverStart={()=>setHovered(true)}
-        onHoverEnd={()=>setHovered(false)}
+        whileHover={isMobile?{}:{scale:1.035,rotate:0,y:-10}}
+        onHoverStart={()=>!isMobile&&setHovered(true)}
+        onHoverEnd={()=>!isMobile&&setHovered(false)}
         onClick={onOpen}
         transition={{type:"spring",stiffness:200,damping:22,boxShadow:{duration:0.28,ease:"easeOut"}}}
         style={{
@@ -312,12 +320,14 @@ function MemCard({ entry,cardIdx,glow,onOpen,setRef }:{ entry:Entry; cardIdx:num
           transition:"box-shadow .28s ease,border .28s ease",
         }}
       >
-        {/* shimmer sweep on hover */}
-        <motion.div
-          animate={hovered?{x:"220%"}:{x:"-120%"}}
-          transition={{duration:0.55,ease:"easeInOut"}}
-          style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,.42) 50%,transparent 65%)",zIndex:6,pointerEvents:"none",borderRadius:"inherit"}}
-        />
+        {/* shimmer sweep — desktop hover only */}
+        {!isMobile && (
+          <motion.div
+            animate={hovered?{x:"220%"}:{x:"-120%"}}
+            transition={{duration:0.55,ease:"easeInOut"}}
+            style={{position:"absolute",inset:0,background:"linear-gradient(105deg,transparent 35%,rgba(255,255,255,.42) 50%,transparent 65%)",zIndex:6,pointerEvents:"none",borderRadius:"inherit"}}
+          />
+        )}
 
         {/* remember this badge */}
         {glow&&(
@@ -330,12 +340,12 @@ function MemCard({ entry,cardIdx,glow,onOpen,setRef }:{ entry:Entry; cardIdx:num
         {/* ── photo card ── */}
         {hasPhoto && (
           <>
-            <div style={{position:"relative",overflow:"hidden",borderRadius:1,background:"#0d0005"}}>
-              <motion.img
-                src={cldHero(photos[0])} alt="" loading={cardIdx<6?"eager":"lazy"} decoding="async"
-                animate={hovered?{scale:1.05}:{scale:1}}
-                transition={{duration:0.45}}
-                style={{width:"100%",height:"auto",display:"block",maxHeight:400,objectFit:"cover",objectPosition:"center top"}}
+            <div style={{position:"relative",overflow:"hidden",borderRadius:1,background:"#0d0005",height:220}}>
+              <Image
+                src={cldHero(photos[0])} alt=""
+                fill sizes="264px" unoptimized
+                priority={cardIdx<6}
+                style={{objectFit:"cover",objectPosition:"center top",transform:hovered?"scale(1.05)":"scale(1)",transition:"transform 0.45s ease"}}
               />
               {isVid(photos[0])&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.18)"}}>
                 <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(255,255,255,.2)",backdropFilter:"blur(4px)",border:"1.5px solid rgba(255,255,255,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>▶</div>
@@ -350,7 +360,7 @@ function MemCard({ entry,cardIdx,glow,onOpen,setRef }:{ entry:Entry; cardIdx:num
                   const isLast=ti===Math.min(photos.length-2,3)&&photos.length>5;
                   return (
                     <div key={ti} style={{flex:1,aspectRatio:"1",overflow:"hidden",position:"relative",maxHeight:52,background:"#0d0005"}}>
-                      <img src={cldSq(p,110)} alt="" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
+                      <Image src={cldSq(p,110)} alt="" fill sizes="52px" unoptimized style={{objectFit:"cover"}}/>
                       {isVid(p)&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.28)",fontSize:"0.65rem"}}>▶</div>}
                       {isLast&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.58)",display:"flex",alignItems:"center",justifyContent:"center"}}>
                         <span style={{color:"#fff",fontFamily:SANS,fontSize:"0.68rem",fontWeight:700}}>+{photos.length-4}</span>
@@ -424,8 +434,7 @@ function Pill({ label,active,onClick }:{ label:string; active:boolean; onClick:(
         color:active?"#fff":"rgba(190,24,93,.65)",
         fontFamily:SANS,fontSize:"0.75rem",fontWeight:active?700:400,
         border:active?"1.5px solid transparent":"1px solid rgba(190,24,93,.2)",
-        boxShadow:active?"0 3px 16px rgba(190,24,93,.32)":"0 1px 6px rgba(190,24,93,.07)",
-        backdropFilter:"blur(10px)"}}>
+        boxShadow:active?"0 3px 16px rgba(190,24,93,.32)":"0 1px 6px rgba(190,24,93,.07)"}}>
       {label}
     </motion.button>
   );
@@ -457,6 +466,14 @@ export default function MemoryLane() {
   const [group,      setGroup]      = useState<Group>("month");
   const [filter,     setFilter]     = useState<Filter>("all");
   const [activeEntry,setActiveEntry]= useState<Entry|null>(null);
+  const [isMobile,   setIsMobile]   = useState(false);
+
+  useEffect(()=>{
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  },[]);
 
   useEffect(()=>{
     const update=()=>{ if(containerRef.current) setContainerW(containerRef.current.offsetWidth); };
@@ -511,8 +528,8 @@ export default function MemoryLane() {
   return (
     <section style={{width:"100%",minHeight:"100vh",background:"linear-gradient(155deg,#fff0f7 0%,#fce7f3 35%,#fdf4f9 65%,#fff5fb 100%)",padding:"clamp(3rem,7vh,5rem) clamp(1rem,4vw,2.5rem) 7rem",position:"relative",overflow:"hidden"}}>
 
-      {/* ── Falling petals background ── */}
-      {PETALS.map((p,i)=>(
+      {/* ── Falling petals — desktop only ── */}
+      {!isMobile && PETALS.map((p,i)=>(
         <motion.div key={i}
           initial={{y:"-10vh", x:0, rotate:p.initRot, opacity:0}}
           animate={{y:"110vh", x:[0,18,-14,22,-8,0], rotate:p.initRot+360, opacity:[0,.9,.9,.9,.9,0]}}
@@ -522,16 +539,18 @@ export default function MemoryLane() {
         </motion.div>
       ))}
 
-      {/* ── Soft gradient orbs (visible this time — more saturated) ── */}
-      <motion.div animate={{scale:[1,1.12,1],opacity:[.55,.75,.55]}} transition={{duration:8,repeat:Infinity,ease:"easeInOut"}}
-        style={{position:"fixed",top:"-15%",left:"-10%",width:520,height:520,borderRadius:"50%",background:"radial-gradient(circle,rgba(249,168,212,.55) 0%,transparent 68%)",filter:"blur(50px)",pointerEvents:"none",zIndex:0}}/>
-      <motion.div animate={{scale:[1,1.08,1],opacity:[.45,.65,.45]}} transition={{duration:11,repeat:Infinity,ease:"easeInOut",delay:3}}
-        style={{position:"fixed",bottom:"-10%",right:"-8%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(244,114,182,.4) 0%,transparent 65%)",filter:"blur(60px)",pointerEvents:"none",zIndex:0}}/>
-      <motion.div animate={{scale:[1,1.15,1],opacity:[.35,.5,.35]}} transition={{duration:14,repeat:Infinity,ease:"easeInOut",delay:6}}
-        style={{position:"fixed",top:"40%",left:"30%",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(253,186,213,.35) 0%,transparent 60%)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
+      {/* ── Gradient orbs — desktop only ── */}
+      {!isMobile && <>
+        <motion.div animate={{scale:[1,1.12,1],opacity:[.55,.75,.55]}} transition={{duration:8,repeat:Infinity,ease:"easeInOut"}}
+          style={{position:"fixed",top:"-15%",left:"-10%",width:520,height:520,borderRadius:"50%",background:"radial-gradient(circle,rgba(249,168,212,.55) 0%,transparent 68%)",filter:"blur(50px)",pointerEvents:"none",zIndex:0}}/>
+        <motion.div animate={{scale:[1,1.08,1],opacity:[.45,.65,.45]}} transition={{duration:11,repeat:Infinity,ease:"easeInOut",delay:3}}
+          style={{position:"fixed",bottom:"-10%",right:"-8%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(244,114,182,.4) 0%,transparent 65%)",filter:"blur(60px)",pointerEvents:"none",zIndex:0}}/>
+        <motion.div animate={{scale:[1,1.15,1],opacity:[.35,.5,.35]}} transition={{duration:14,repeat:Infinity,ease:"easeInOut",delay:6}}
+          style={{position:"fixed",top:"40%",left:"30%",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(253,186,213,.35) 0%,transparent 60%)",filter:"blur(80px)",pointerEvents:"none",zIndex:0}}/>
+      </>}
 
-      {/* ── Twinkling sparkles ── */}
-      {[{t:"12%",l:"22%",d:"3.2s"},{t:"68%",l:"78%",d:"4.1s"},{t:"38%",l:"88%",d:"2.8s"},{t:"82%",l:"15%",d:"3.7s"},{t:"25%",l:"65%",d:"5.0s"},{t:"55%",l:"42%",d:"3.4s"}].map((s,i)=>(
+      {/* ── Sparkles — desktop only ── */}
+      {!isMobile && [{t:"12%",l:"22%",d:"3.2s"},{t:"68%",l:"78%",d:"4.1s"},{t:"38%",l:"88%",d:"2.8s"},{t:"82%",l:"15%",d:"3.7s"},{t:"25%",l:"65%",d:"5.0s"},{t:"55%",l:"42%",d:"3.4s"}].map((s,i)=>(
         <motion.div key={i} animate={{opacity:[0,1,0],scale:[.4,1.3,.4]}} transition={{duration:parseFloat(s.d),repeat:Infinity,delay:i*0.7}}
           style={{position:"fixed",top:s.t,left:s.l,fontSize:"0.9rem",pointerEvents:"none",zIndex:0}}>✨</motion.div>
       ))}
@@ -564,7 +583,7 @@ export default function MemoryLane() {
         {/* Filter bar */}
         {data.length>0&&(
           <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:.12}}
-            style={{marginBottom:"2.2rem",background:"rgba(255,255,255,.6)",borderRadius:18,padding:"0.85rem 1.1rem",backdropFilter:"blur(18px)",border:"1px solid rgba(190,24,93,.1)",boxShadow:"0 2px 18px rgba(190,24,93,.07)"}}>
+            style={{marginBottom:"2.2rem",background:"rgba(255,255,255,.6)",borderRadius:18,padding:"0.85rem 1.1rem",backdropFilter:isMobile?"none":"blur(18px)",border:"1px solid rgba(190,24,93,.1)",boxShadow:"0 2px 18px rgba(190,24,93,.07)"}}>
             <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap",alignItems:"center",marginBottom:"0.5rem"}}>
               <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(190,24,93,.38)",letterSpacing:"0.12em",textTransform:"uppercase"}}>sort</span>
               <Pill label="↑ oldest" active={sort==="asc"} onClick={()=>setSort("asc")}/>
@@ -589,7 +608,7 @@ export default function MemoryLane() {
         {entries.length===0&&data.length>0&&<div style={{textAlign:"center",padding:"5rem 0"}}><motion.div animate={{y:[-4,4,-4],rotate:[-8,8,-8]}} transition={{repeat:Infinity,duration:3}} style={{fontSize:"2.5rem",marginBottom:"0.8rem",opacity:.3}}>✈️</motion.div><p style={{fontFamily:SCRIPT,fontSize:"1.2rem",color:"rgba(190,24,93,.38)"}}>nothing matches that filter 🌸</p></div>}
         {data.length===0&&<div style={{textAlign:"center",padding:"5rem 0"}}><motion.div animate={{x:[0,12,0],y:[0,-8,0],rotate:[0,18,0]}} transition={{repeat:Infinity,duration:4}} style={{fontSize:"3rem",marginBottom:"1rem",opacity:.25}}>✈️</motion.div><p style={{fontFamily:SCRIPT,fontSize:"1.2rem",color:"rgba(190,24,93,.36)",lineHeight:1.8}}>no memories yet —<br/>start adding in the journal 🌸</p></div>}
 
-        {/* ── Scattered cards with airplane trails ── */}
+        {/* ── Scattered cards ── */}
         <div ref={containerRef} style={{position:"relative"}}>
           {sections.map((sec,si)=>(
             <div key={si}>
@@ -600,13 +619,14 @@ export default function MemoryLane() {
                 const prevCardX=globalIdx>0?getX(globalIdx-1,containerW):cardX;
                 return (
                   <Fragment key={entry.date}>
-                    {/* airplane trail from previous card */}
                     {(ei>0||(si>0&&ei===0))&&(
                       <div style={{width:"100%"}}>
-                        <Trail prevX={prevCardX} currX={cardX} trailIdx={globalIdx}/>
+                        {isMobile
+                          ? <TrailMobile/>
+                          : <Trail prevX={prevCardX} currX={cardX} trailIdx={globalIdx}/>
+                        }
                       </div>
                     )}
-                    {/* card at scattered x position */}
                     <div style={{paddingLeft:cardX,width:CARD_W+cardX,boxSizing:"border-box"}}>
                       <MemCard
                         entry={entry}
@@ -614,6 +634,7 @@ export default function MemoryLane() {
                         glow={glowIdx===globalIdx}
                         onOpen={()=>setActiveEntry(entry)}
                         setRef={el=>{cardRefs.current[globalIdx]=el;}}
+                        isMobile={isMobile}
                       />
                     </div>
                   </Fragment>
@@ -632,7 +653,7 @@ export default function MemoryLane() {
               <motion.span animate={{x:[0,9,0],y:[0,-6,0],rotate:[0,16,0]}} transition={{repeat:Infinity,duration:4}} style={{fontSize:"1.4rem"}}>✈️</motion.span>
               <div style={{width:70,height:2,backgroundImage:"repeating-linear-gradient(90deg,rgba(190,24,93,.2) 0,rgba(190,24,93,.2) 7px,transparent 7px,transparent 15px)",borderRadius:2}}/>
             </div>
-            <p style={{fontFamily:SCRIPT,fontSize:"1.15rem",color:"rgba(190,24,93,.4)",margin:0,lineHeight:1.8}}>and we're still writing it 🩷</p>
+            <p style={{fontFamily:SCRIPT,fontSize:"1.15rem",color:"rgba(190,24,93,.4)",margin:0,lineHeight:1.8}}>and we&apos;re still writing it 🩷</p>
           </motion.div>
         )}
       </div>

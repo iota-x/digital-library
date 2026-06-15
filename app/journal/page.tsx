@@ -12,8 +12,6 @@ import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
 import Final             from "@/components/Final";
 
-if (typeof window !== "undefined") fetchCalendarData();
-
 function JournalContent() {
   const params = useSearchParams();
   const initialDate = params.get("date") ?? undefined;

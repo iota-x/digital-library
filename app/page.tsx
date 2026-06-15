@@ -8,24 +8,25 @@ import OnThisDay     from "@/components/OnThisDay";
 import MemoryCards   from "@/components/MemoryCards";
 import ButtonSection from "@/components/ButtonSection";
 import VoiceNote     from "@/components/VoiceNote";
+import CapsuleTeaser from "@/components/CapsuleTeaser";
 import Final         from "@/components/Final";
-
-if (typeof window !== "undefined") fetchCalendarData();
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function Home() {
   useEffect(() => { fetchCalendarData(); }, []);
   return (
     <PasswordGate>
       <main>
-        <Polaroids />
-        <LiveTimer />
+        <ErrorBoundary><Polaroids /></ErrorBoundary>
+        <ErrorBoundary><LiveTimer /></ErrorBoundary>
         <div style={{ padding: "0 clamp(1rem,3vw,2rem)" }}>
-          <OnThisDay />
+          <ErrorBoundary><OnThisDay /></ErrorBoundary>
         </div>
-        <MemoryCards />
+        <ErrorBoundary><MemoryCards /></ErrorBoundary>
         <ButtonSection />
-        <VoiceNote />
-        <Final />
+        <ErrorBoundary><VoiceNote /></ErrorBoundary>
+        <ErrorBoundary><CapsuleTeaser /></ErrorBoundary>
+        <ErrorBoundary><Final /></ErrorBoundary>
       </main>
     </PasswordGate>
   );

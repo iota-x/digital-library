@@ -2,35 +2,54 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const CORRECT_PASSWORD = "meandjuhiyay"; // change this to whatever you want
-
 const FLOATERS = ["🌸","💗","🩷","✨","🌷","💕","💫","🌙","⭐","🌸","💗","🩷"];
 
 export default function PasswordGate({ children }: { children: React.ReactNode }) {
   const [unlocked, setUnlocked] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const [value, setValue] = useState("");
-  const [shake, setShake] = useState(false);
-  const [wrong, setWrong] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [checked,  setChecked]  = useState(false);
+  const [value,    setValue]    = useState("");
+  const [shake,    setShake]    = useState(false);
+  const [wrong,    setWrong]    = useState(false);
+  const [success,  setSuccess]  = useState(false);
+  const [loading,  setLoading]  = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Check server-side cookie on mount
   useEffect(() => {
-    const stored = sessionStorage.getItem("unlocked");
-    if (stored === "yes") { setUnlocked(true); }
-    setChecked(true);
+    fetch("/api/auth")
+      .then(r => r.json())
+      .then(({ ok }) => {
+        if (ok) setUnlocked(true);
+        setChecked(true);
+      })
+      .catch(() => setChecked(true));
   }, []);
 
-  const attempt = () => {
-    if (value.trim().toLowerCase() === CORRECT_PASSWORD) {
-      setSuccess(true);
-      sessionStorage.setItem("unlocked", "yes");
-      setTimeout(() => setUnlocked(true), 1200);
-    } else {
+  const attempt = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res  = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: value.trim().toLowerCase() }),
+      });
+      const { ok } = await res.json();
+      if (ok) {
+        setSuccess(true);
+        setTimeout(() => setUnlocked(true), 1200);
+      } else {
+        setShake(true);
+        setWrong(true);
+        setValue("");
+        setTimeout(() => { setShake(false); setWrong(false); inputRef.current?.focus(); }, 700);
+      }
+    } catch {
       setShake(true);
-      setWrong(true);
       setValue("");
-      setTimeout(() => { setShake(false); setWrong(false); inputRef.current?.focus(); }, 700);
+      setTimeout(() => { setShake(false); inputRef.current?.focus(); }, 700);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,7 +121,6 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
             textAlign: "center",
           }}
         >
-          {/* Heart */}
           <motion.div
             style={{ fontSize: "3.5rem", marginBottom: "1rem", display:"block",
               filter:"drop-shadow(0 0 16px rgba(244,114,182,0.7))" }}
@@ -129,7 +147,6 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
             enter our little secret to get in 🩷
           </p>
 
-          {/* Input */}
           <motion.div
             animate={shake ? { x:[-10,10,-8,8,-4,4,0] } : {}}
             transition={{ duration:0.5 }}
@@ -165,14 +182,14 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
                 style={{ fontFamily:"var(--font-caveat)", color:"#f43f5e",
                   fontSize:"0.95rem", margin:"0.5rem 0 0" }}
               >
-                hmm that's not right 🥺 try again?
+                hmm that&apos;s not right 🥺 try again?
               </motion.p>
             )}
           </motion.div>
 
-          {/* Button */}
           <motion.button
             onClick={attempt}
+            disabled={loading}
             whileHover={{ scale:1.05 }}
             whileTap={{ scale:0.97 }}
             style={{
@@ -186,13 +203,14 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
               color: "#fff",
               fontFamily: "var(--font-caveat)",
               fontSize: "1.2rem",
-              cursor: "pointer",
+              cursor: loading ? "wait" : "pointer",
               boxShadow: "0 4px 20px rgba(236,72,153,0.35)",
               transition: "background 0.4s",
               letterSpacing:"0.05em",
+              opacity: loading ? 0.75 : 1,
             }}
           >
-            {success ? "opening… 💗" : "enter 🌸"}
+            {success ? "opening… 💗" : loading ? "checking…" : "enter 🌸"}
           </motion.button>
 
           <p style={{

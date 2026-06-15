@@ -5,6 +5,8 @@ import ScrollToTop     from "@/components/ScrollToTop";
 import CommandPalette  from "@/components/CommandPalette";
 import SwipeNav        from "@/components/SwipeNav";
 import PwaRegister     from "@/components/PwaRegister";
+import DarkOverlay     from "@/components/DarkOverlay";
+import ErrorBoundary   from "@/components/ErrorBoundary";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -39,12 +41,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
+        <DarkOverlay />
         <ScrollToTop />
         <Navbar />
         <CommandPalette />
         <SwipeNav />
         <PwaRegister />
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -214,6 +214,24 @@ function ScrollIndicator({ entered }: { entered: boolean }) {
   );
 }
 
+function computeHeroText() {
+  const start = new Date("2026-03-11");
+  const now   = new Date();
+  const ms    = now.getTime() - start.getTime();
+  if (ms < 0) return "day 1 🌸";
+  const totalDays = Math.floor(ms / 86400000);
+  if (totalDays < 30) return `${totalDays} day${totalDays !== 1 ? "s" : ""} of us 🌸`;
+  let y = now.getFullYear() - start.getFullYear();
+  let m = now.getMonth()    - start.getMonth();
+  if (m < 0) { m += 12; y--; }
+  const totalMonths = y * 12 + m;
+  if (totalMonths < 12) return `${totalMonths} month${totalMonths !== 1 ? "s" : ""} of us 🌸`;
+  const rem = totalMonths % 12;
+  return rem > 0
+    ? `${y} year${y !== 1 ? "s" : ""} & ${rem} month${rem !== 1 ? "s" : ""} of us 🌸`
+    : `${y} year${y !== 1 ? "s" : ""} of us 🌸`;
+}
+
 export default function Polaroids() {
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target:ref, offset:["start start","end start"] });
@@ -222,6 +240,7 @@ export default function Polaroids() {
   const [showCurtain, setShowCurtain] = useState(true);
   const [entered, setEntered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const heroText = computeHeroText();
 
   useEffect(() => {
     setPetals(Array.from({ length:28 },(_,i) => ({
@@ -326,7 +345,7 @@ export default function Polaroids() {
             fontFamily:"var(--font-playfair)", fontSize:"clamp(2.1rem,5.5vw,3.6rem)",
             color:"var(--pink-deep)", margin:0, textShadow:"0 2px 28px rgba(244,114,182,0.2)",
           }}>
-            3 months of <em>us</em> 🌸
+            {heroText}
           </h1>
           <motion.p
             style={{ fontFamily:"var(--font-caveat)", fontSize:"clamp(1.15rem,3vw,1.65rem)", color:"var(--muted)", marginTop:"0.6rem" }}

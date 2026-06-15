@@ -144,18 +144,20 @@ export default function VoiceNote() {
     fetch("/api/voicenotes").then(r => r.json()).then((data: VNote[]) => {
       setNotes(data);
       if (data.length > 0) {
+        const newest   = data[0]?.createdAt || "0";
         const lastSeen = localStorage.getItem("vn_last_seen") || "0";
-        const newest = data[0]?.createdAt || "0";
+        localStorage.setItem("vn_latest", newest);
+        window.dispatchEvent(new Event("annapp:vn-update"));
         setHasNew(newest > lastSeen);
       }
     }).catch(() => {});
   }, []);
 
-  // Mark as seen when this section comes into view
   useEffect(() => {
     if (!inView || notes.length === 0) return;
     localStorage.setItem("vn_last_seen", new Date().toISOString());
     setHasNew(false);
+    window.dispatchEvent(new Event("annapp:vn-seen"));
   }, [inView, notes.length]);
 
   const startRecording = useCallback(async () => {

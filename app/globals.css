@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Dark mode ──────────────────────────────────────────────────────
+   DarkOverlay (z-index 3000) provides the visual darkening.
+   These rules handle CSS-variable-driven elements + scrollbar.
+   ─────────────────────────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+  --pink-light: #2d0d1f;
+  --pink-mid:   #3d1228;
+  --rose:       #150409;
+  --cream:      #0e0308;
+  --text:       #f5dce7;
+  --muted:      #c994ad;
+}
+html.dark body {
+  background: #0e0308;
+  color: #f5dce7;
+}
+html.dark ::-webkit-scrollbar-track { background: #200818; }
+html.dark ::-webkit-scrollbar-thumb { background: #be185d; }
+
 :root {
   --font-playfair: "Playfair Display", serif;
   --font-caveat: "Caveat", cursive;
