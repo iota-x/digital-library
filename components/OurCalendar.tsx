@@ -675,6 +675,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "center", flexWrap: "wrap" }}>
           {[{ label: `${totalMem} memories`, e: "📖" }, { label: `${specialCnt} special days`, e: "⭐" }, { label: `Day ${Math.floor((today.getTime() - START.getTime()) / 86400000) + 1} of us`, e: "🌸" }].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+              className="dk-cal-chip"
               style={{ background: "rgba(255,255,255,.6)", border: "1px solid rgba(190,24,93,.2)", borderRadius: 30, padding: "0.35rem 1rem", fontFamily: SANS, fontSize: "0.82rem", color: "#9d174d", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px rgba(190,24,93,.08)" }}>
               {s.e} {s.label}
             </motion.div>
@@ -684,7 +685,8 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
 
       <div style={{ position: "relative", zIndex: 2, maxWidth: 780, margin: "0 auto" }}>
         <motion.div animate={{ rotateY: flipDir === "right" ? -12 : flipDir === "left" ? 12 : 0, scale: flipDir ? 0.97 : 1, opacity: flipDir ? 0.6 : 1 }} transition={{ duration: 0.24, ease: "easeInOut" }}
-          style={{ background: "rgba(255,255,255,.96)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "0 16px 70px rgba(190,24,93,.18),0 4px 16px rgba(0,0,0,.06),inset 0 0 0 1.5px rgba(249,168,212,.4)" }}>
+          className="dk-cal-card"
+          style={{ background: "var(--cal-card-bg)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "var(--cal-card-shadow)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.2rem 1.6rem", background: "linear-gradient(135deg,#2d0f1e,#4a1628)", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, pointerEvents: "none", opacity: 0.5 }} />
             <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
@@ -703,7 +705,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
             <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.08)", border: "1px solid rgba(244,114,182,.18)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#f9a8d4", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "1rem 1.4rem 0.4rem", background: "rgba(252,231,243,.08)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "1rem 1.4rem 0.4rem", background: "var(--cal-dayhdr-bg)" }}>
             {DAYS_SHORT.map((d, i) => (<div key={i} style={{ textAlign: "center", fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: i === 0 || i === 6 ? "rgba(236,72,153,.5)" : "rgba(157,23,77,.4)", padding: "0.3rem 0" }}>{d}</div>))}
           </div>
 
@@ -724,7 +726,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
                 return (
                   <button key={key} onClick={e => openDay(key, e)} className="occ-day"
                     style={{ background: isBirthday ? "linear-gradient(135deg,#fde68a,#f59e0b)" : isSpecial ? "linear-gradient(135deg,#fda4af,#ec4899)" : isToday ? "linear-gradient(135deg,#fce7f3,#f9a8d4)" : hasMedia || hasNote ? "rgba(249,168,212,.28)" : inOurTime ? "rgba(249,168,212,.1)" : "transparent", boxShadow: isBirthday ? "0 4px 18px rgba(245,158,11,.45)" : isSpecial ? "0 4px 18px rgba(236,72,153,.5)" : isToday ? "0 2px 14px rgba(244,114,182,.35)" : hasMedia || hasNote ? "0 1px 8px rgba(244,114,182,.18)" : "none", outline: isToday ? "2.5px solid #ec4899" : "none", outlineOffset: 1 }}>
-                    <span style={{ fontFamily: SANS, fontSize: "clamp(0.82rem,2.2vw,1rem)", color: isBirthday ? "#78350f" : isSpecial ? "#fff" : isToday ? "#9d174d" : inOurTime ? "#9d3f68" : "#c4a0b0", fontWeight: isToday || isSpecial || isBirthday ? 700 : inOurTime ? 500 : 400, lineHeight: 1 }}>{day}</span>
+                    <span style={{ fontFamily: SANS, fontSize: "clamp(0.82rem,2.2vw,1rem)", color: isBirthday ? "#78350f" : isSpecial ? "#fff" : isToday ? "#9d174d" : "var(--cal-day-text)", fontWeight: isToday || isSpecial || isBirthday ? 700 : inOurTime ? 500 : 400, lineHeight: 1 }}>{day}</span>
                     {entry?.mood && <span style={{ fontSize: "clamp(0.45rem,1.2vw,0.58rem)", lineHeight: 1 }}>{entry.mood}</span>}
                     {isBirthday && !entry?.mood && <span style={{ fontSize: "0.5rem", lineHeight: 1 }}>🎂</span>}
                     {isSpecial && !isBirthday && !entry?.mood && <span style={{ fontSize: "0.48rem", lineHeight: 1 }}>⭐</span>}
@@ -737,7 +739,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
             </motion.div>
           </AnimatePresence>
 
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", padding: "1rem 1.5rem 1.5rem", borderTop: "1px solid rgba(249,168,212,.18)", fontFamily: SANS, fontSize: "0.82rem", color: "rgba(157,23,77,.5)" }}>
+          <div className="dk-cal-legend" style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center", padding: "1rem 1.5rem 1.5rem", borderTop: "1px solid rgba(249,168,212,.18)", fontFamily: SANS, fontSize: "0.82rem", color: "var(--cal-legend-col)" }}>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 12, height: 12, borderRadius: 3, background: "linear-gradient(135deg,#fde68a,#f59e0b)" }} /> birthday</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 12, height: 12, borderRadius: 3, background: "linear-gradient(135deg,#fda4af,#ec4899)" }} /> special</span>
             <span style={{ display: "flex", alignItems: "center", gap: 4 }}>📸 photo</span>

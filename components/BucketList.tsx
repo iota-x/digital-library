@@ -117,16 +117,8 @@ export default function BucketList() {
       {/* Diary paper background */}
       <div className="dk-bucket-paper" style={{
         position: "absolute", inset: 0,
-        background: "#fffdf8",
-        backgroundImage: `
-          repeating-linear-gradient(
-            180deg,
-            transparent,
-            transparent 31px,
-            rgba(190,24,93,.07) 31px,
-            rgba(190,24,93,.07) 32px
-          )
-        `,
+        background: "var(--bucket-paper-bg)",
+        backgroundImage: `repeating-linear-gradient(180deg,transparent,transparent 31px,var(--bucket-paper-line) 31px,var(--bucket-paper-line) 32px)`,
         backgroundSize: "100% 32px",
         backgroundPositionY: "72px",
       }} />
@@ -193,7 +185,7 @@ export default function BucketList() {
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           flexWrap:"wrap", gap:"0.75rem", marginBottom:"1.6rem" }}>
           <div className="dk-bucket-tabs" style={{ display:"flex", gap:"0.25rem",
-            background:"rgba(255,255,255,.7)", border:"1px solid rgba(236,72,153,.18)",
+            background:"var(--bucket-tabs-bg)", border:"1px solid rgba(236,72,153,.18)",
             borderRadius:50, padding:"0.28rem" }}>
             {TABS.map(t => {
               const active = tab === t.key;
@@ -229,7 +221,7 @@ export default function BucketList() {
             <motion.div initial={{opacity:0,y:-12,height:0}} animate={{opacity:1,y:0,height:"auto"}} exit={{opacity:0,y:-12,height:0}}
               style={{ marginBottom:"1.5rem", overflow:"hidden" }}>
               <div className="dk-bucket-form" style={{
-                background:"rgba(255,255,255,.88)",
+                background:"var(--bucket-form-bg)",
                 border:"1.5px solid rgba(236,72,153,.2)",
                 borderRadius:20, padding:"1.3rem 1.5rem",
                 boxShadow:"0 8px 32px rgba(190,24,93,.08)",
@@ -307,7 +299,7 @@ export default function BucketList() {
           </motion.div>
         ) : (
           <div className="dk-bucket-list" style={{
-            background:"rgba(255,255,255,.6)",
+            background:"var(--bucket-list-bg)",
             border:"1px solid rgba(236,72,153,.14)",
             borderRadius:20, overflow:"hidden",
           }}>
@@ -343,7 +335,7 @@ export default function BucketList() {
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{
                         fontFamily:SANS, fontSize:"0.95rem", fontWeight:500,
-                        color: item.completed ? "rgba(157,23,77,.38)" : "#7c3f58",
+                        color: item.completed ? "rgba(157,23,77,.38)" : "var(--text)",
                         margin:0, lineHeight:1.45, position:"relative",
                         textDecoration: item.completed ? "line-through" : "none",
                         textDecorationColor: "rgba(190,24,93,.4)",

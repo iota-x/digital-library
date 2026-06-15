@@ -47,7 +47,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
     const a = audioRef.current;
     if (!a) return;
     if (playing) { a.pause(); setPlaying(false); }
-    else { a.play(); setPlaying(true); }
+    else { a.play().then(() => setPlaying(true)).catch(() => {}); }
   }
 
   function seek(e: React.MouseEvent<HTMLDivElement>) {
