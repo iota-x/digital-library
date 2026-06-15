@@ -239,8 +239,7 @@ export default function Polaroids() {
   const { scrollYProgress } = useScroll({ target:ref, offset:["start start","end start"] });
   const titleY = useTransform(scrollYProgress,[0,1],[0,60]);
   const [petals, setPetals] = useState<PetalData[]>([]);
-  const [showCurtain, setShowCurtain] = useState(true);
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const heroText = computeHeroText(startDate);
 
@@ -261,10 +260,6 @@ export default function Polaroids() {
 
   return (
     <>
-      <AnimatePresence>
-        {showCurtain && <CurtainReveal onDone={()=>{ setShowCurtain(false); setEntered(true); }} />}
-      </AnimatePresence>
-
       <section ref={ref} id="hero" style={{
         position:"relative", width:"100%", minHeight:"100vh",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",

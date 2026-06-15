@@ -96,6 +96,12 @@ const FLOATERS = [
   { emoji:"🌸", x:"93%", delay:2.5, dur:10, size:22 },
 ];
 
+const SIDE_NOTES = [
+  { text:"my kuchupuchuuuuu 💗", pos:{ left:"3%", top:"22%" }, rot:-8 },
+  { text:"you are my everything 🎀", pos:{ right:"3%", top:"18%" }, rot:6 },
+  { text:"you make the boring stuff beautiful 💗", pos:{ left:"2%", bottom:"28%" }, rot:5 },
+  { text:"my favourite notification is you 🩷", pos:{ right:"2%", bottom:"32%" }, rot:-7 },
+];
 
 export default function LiveTimer() {
   const userData = useUserData();
@@ -131,6 +137,33 @@ export default function LiveTimer() {
       {/* giant faint tulip watermark — static */}
       <div style={{ position:"absolute", fontSize:"55vw", opacity:0.03, pointerEvents:"none", userSelect:"none", top:"50%", left:"50%", transform:"translate(-50%,-50%)", zIndex:0 }}>🌷</div>
 
+      {/* floating sticky side notes — visible on large screens only */}
+      {SIDE_NOTES.map((n,i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity:0, scale:0.8 }}
+          animate={inView ? { opacity:1, scale:1 } : {}}
+          transition={{ delay:0.8+i*0.2, duration:0.6, type:"spring" }}
+          className="side-note"
+          style={{
+            position:"absolute", ...n.pos,
+            background:"rgba(255,255,255,0.75)",
+            border:"1.5px solid var(--pink)",
+            borderRadius:14,
+            padding:"0.6rem 1rem",
+            maxWidth:160,
+            boxShadow:"0 4px 18px rgba(var(--pink-rgb),.14)",
+            fontFamily:"var(--font-caveat)",
+            fontSize:"0.95rem",
+            color:"var(--pink-deep)",
+            transform:`rotate(${n.rot}deg)`,
+            zIndex:2,
+            display:"none",
+          }}
+        >
+          {n.text}
+        </motion.div>
+      ))}
 
       {/* centre content */}
       <div style={{ position:"relative", zIndex:3 }}>
