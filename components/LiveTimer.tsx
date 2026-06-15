@@ -244,7 +244,21 @@ export default function LiveTimer() {
           style={{ display:"flex", flexWrap:"wrap", gap:"0.7rem", justifyContent:"center", marginTop:"2rem" }}
         >
           {[
-            "🎀 2 months of us",
+            `🎀 ${(() => {
+              const now = new Date();
+              const ms  = Math.max(0, now.getTime() - START.getTime());
+              const totalDays = Math.floor(ms / 86400000);
+              if (totalDays < 30) return `${totalDays} day${totalDays !== 1 ? "s" : ""} of us`;
+              let y = now.getFullYear() - START.getFullYear();
+              let m = now.getMonth() - START.getMonth();
+              if (m < 0) { m += 12; y--; }
+              const months = y * 12 + m;
+              if (months < 12) return `${months} month${months !== 1 ? "s" : ""} of us`;
+              const rem = months % 12;
+              return rem > 0
+                ? `${y} year${y !== 1 ? "s" : ""} & ${rem} month${rem !== 1 ? "s" : ""} of us`
+                : `${y} year${y !== 1 ? "s" : ""} of us`;
+            })()}`,
             "🌙 countless sleep calls",
             "💬 endless good nights",
             "🎮 many gaming nights",
