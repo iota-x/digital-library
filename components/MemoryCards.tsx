@@ -2,40 +2,26 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
+import { useUserData } from "@/lib/userStore";
+import { getMemoryCards } from "@/lib/themes";
 
-// Generic, heartfelt messages any couple can relate to
-const MEMORIES = [
-  {
-    title: "how it started 🌸",
-    body: "Every love story has a moment — a first conversation, a laugh that felt too easy, a silence that wasn't awkward at all. Yours had that too. Something in that early spark told you this was different. Not louder, just… realer. And it was. It really was.",
-    rotation: -2,
-  },
-  {
-    title: "their presence 💗",
-    body: "There's something about the way they make a room feel different. You don't always notice it until they're gone and the room feels a little emptier. Their laugh, their voice, the way they say your name — it all lands a little differently than anyone else's ever has.",
-    rotation: 1.5,
-  },
-  {
-    title: "late nights 🌙",
-    body: "The best conversations happen when you're both supposed to be asleep. The world gets quieter and somehow you get more honest. You say things at 2am you'd never say at 2pm. That version of them — sleepy, unguarded, soft — might be your favourite one.",
-    rotation: -1,
-  },
-  {
-    title: "the comfort 🤍",
-    body: "It's rare, actually — finding someone you don't have to perform for. Someone you can be quiet around without it being weird, or have a bad day around without explaining it. They just get it. They just get you. That kind of ease doesn't happen twice.",
-    rotation: 2,
-  },
-  {
-    title: "home 💕",
-    body: "Home isn't always a place. Sometimes it's a person. The one you want to tell things to first. The one whose opinion matters most. The one you think about when something good happens. They became that for you without even trying. You just looked up one day and they were home.",
-    rotation: -2.5,
-  },
-  {
-    title: "still you 🌷",
-    body: "If you had to do it all again — every hard conversation, every nervous first, every moment you didn't know how it would turn out — you'd do it. Because it all led here. To this. To them. To a love that feels less like luck and more like the right answer to every question you didn't know you were asking.",
-    rotation: 1,
-  },
+// Stable card rotations — applied to whichever cards we render
+const ROTATIONS = [-2, 1.5, -1, 2, -2.5, 1, -1.8, 2.2, -1.4, 1.6];
+
+// Personal memories that only render for Ankit & Juhi's account
+const ANKIT_JUHI_MEMORIES = [
+  { title: "The Beginning 🌸", body: "So it all started when we met on that one valorant swift LMAO, but it was so much more than that for me personally. You've literally become the person I care the most about in this world. I think of you even more than I think of myself at times. You have that effect on me, you're just magical I genuinely want to immerse myself in this beautiful journey of ours ♡ " },
+  { title: "Your voice 💗",     body: "Aapki voice toh is something I can most definitely say is my weakness, it is literally so cute and hot at the same time. I just can't explain how much I get turned on just listening to you on a daily basis <3 There are times when so sound soooooo cutee and ofc there are times when you sound so fuckin hot omg. But anyways, I feel blessed listening to you daily its like im so lucky that I get to listen to you daily? and like always? im literally so lucky and blessed to have you MWAHHHH" },
+  { title: "us at 2 am 🌷",    body: "Our late night calls are something which kinda grew on me so much that at this point its a non-negotiable in our books! I can safely say its the best part of my day or one of the best parts truly, listening to you while you're almost asleep or very eepy is so fuckin cute omg and we do talk some crazy stuff out there. It all feels like a dream to me sometimes and is a very good dream which genuinely came true and im legit so grateful and proud of myself that I made it true? Our late night talks are very comfy and something I look forward to the whole day cuz I can't wait to talk to you while we're both so comfy on our beds and sharing our deep thoughts or resolving stuff or doing stuff or sending reels or laughing ahahah we're so cute together like frfr. " },
+  { title: "comfort core 🤍",  body: "It is hard for me to become comfortable around someone but it was so easy with you? like it literally just took me 2 weeks to get so much comfy around you and it just keeps getting better each day, I think at this point even you are very comfortable around me. Cuz once I do remember u saying that maybe when im more comfortable for turning on ur camera while you were making something in the kitchen which was truly understandable but yeah I think ab toh aap very comfy and maybe can do that too but regardless you're my comfort zone <33 I look forward to being very very very comfortable around you and want nothing less from you. I will do my best for you to be the most comfortable around me like you wouldn't even have to think before doing something which im sure will happen or already happens ehehehe. I love youuuuuu <33" },
+  { title: "home 💕",          body: "You have become my home the place where I go with all my problems, no matter how I feel or how I am, I will always come to you <33 You're literally very caring and the comfort I have found around you or just the way you have loved me feels nothing less than home its the best feeling I have ever experienced and im very grateful to you for showing me what it feels like to be loved this way. I'm very unware of stuff which happens around this time and im very thankful to you being so patient with me like truly im very dumb in these matters and situations but you have always welcomed me to have questions I could always come up to you regarding anything and never felt like oh maybe I shouldn't ask her? Because yeah you were always so kind and patient with me and im again very grateful to you for this <333 and can't thank you enough Juhiiii <333" },
+  { title: "still you 🌸",     body: "In the end it all comes down to YOU. You my love, are so magnificent and I adore you so so so much, I want us to experience everything together and have a very very beautiful journey together and forever, lets promise to always stay together okay? I love youu ain't enough but yeah I LOVE YOUUU SOOOOO FRICKIN MUCHHHH you have to stay w me cuz u got no other choice remember? MWAHHHH <333" },
 ];
+
+function isAnkitJuhi(name?: string|null, partner?: string|null): boolean {
+  const names = [name?.trim().toLowerCase(), partner?.trim().toLowerCase()];
+  return names.includes("ankit") && names.includes("juhi");
+}
 
 // 6 distinct themed shades — auto-adapt to active colour theme + dark mode
 const CARD_SHADES = [
@@ -52,8 +38,14 @@ export default function MemoryCards() {
   const ref = useRef(null);
   const inView = useInView(ref, { once:true, margin:"-80px" });
   useEscKey(() => setActive(null), active !== null);
+  const userData = useUserData();
 
-  const activeShade = active !== null ? CARD_SHADES[active] : null;
+  // Memory source: personal for Ankit & Juhi, otherwise couple's saved cards or generic defaults
+  const MEMORIES = isAnkitJuhi(userData?.name, userData?.partnerName)
+    ? ANKIT_JUHI_MEMORIES
+    : getMemoryCards(userData?.settings);
+
+  const activeShade = active !== null ? CARD_SHADES[active % CARD_SHADES.length] : null;
 
   return (
     <section
@@ -99,13 +91,14 @@ export default function MemoryCards() {
         width:"100%",
       }}>
         {MEMORIES.map((m, i) => {
-          const shade = CARD_SHADES[i];
+          const shade = CARD_SHADES[i % CARD_SHADES.length];
+          const rotation = ROTATIONS[i % ROTATIONS.length];
           return (
             <motion.div
               key={i}
               onClick={() => setActive(i)}
-              initial={{ opacity:0, y:50, rotate:m.rotation }}
-              animate={inView ? { opacity:1, y:0, rotate:m.rotation } : {}}
+              initial={{ opacity:0, y:50, rotate:rotation }}
+              animate={inView ? { opacity:1, y:0, rotate:rotation } : {}}
               transition={{ duration:0.5, delay:i * 0.08 }}
               whileHover={{ scale:1.04, rotate:0, zIndex:10, boxShadow:`8px 8px 32px rgba(var(--pink-deep-rgb),.18)` }}
               className="dk-mem-card"

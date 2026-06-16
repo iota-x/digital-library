@@ -104,6 +104,19 @@ const NOTE_POSITIONS = [
   { pos:{ right:"2%", bottom:"32%" }, rot:-7 },
 ];
 
+// Personal notes that only render for Ankit & Juhi's account
+const ANKIT_JUHI_NOTES = [
+  "my kuchupuchuuuuu 💗",
+  "you are my everything 🎀",
+  "you make the boring stuff beautiful 💗",
+  "my favourite notification is you 🩷",
+];
+
+function isAnkitJuhi(name?: string|null, partner?: string|null): boolean {
+  const names = [name?.trim().toLowerCase(), partner?.trim().toLowerCase()];
+  return names.includes("ankit") && names.includes("juhi");
+}
+
 function getDurationPill(start: Date): string {
   const now = new Date();
   const ms  = Math.max(0, now.getTime() - start.getTime());
@@ -122,7 +135,9 @@ function getDurationPill(start: Date): string {
 
 export default function LiveTimer() {
   const userData  = useUserData();
-  const loveNotes = getLoveNotes(userData?.settings);
+  const loveNotes = isAnkitJuhi(userData?.name, userData?.partnerName)
+    ? ANKIT_JUHI_NOTES
+    : getLoveNotes(userData?.settings);
   const START = userData?.startDate ? new Date(userData.startDate + "T00:00:00") : new Date("2026-03-11T00:00:00");
   const [time, setTime] = useState<ReturnType<typeof getElapsed>|null>(null);
   const [durationPill, setDurationPill] = useState("🎀 our journey");
