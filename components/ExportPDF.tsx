@@ -10,8 +10,8 @@ const MONTHS= ["January","February","March","April","May","June","July","August"
 const DAYS  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 // START is loaded from userStore at runtime (see below)
 
-/* Themed dark section — ACC must stay bright on the gradient. */
-const BG  = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.9) 0%,rgba(var(--pink-deep-rgb),0.65) 40%,rgba(var(--pink-deep-rgb),0.85) 75%,rgba(0,0,0,0.6) 100%)";
+/* Intentionally DEEP themed section — solid dark themed via color-mix. */
+const BG  = "linear-gradient(180deg, color-mix(in srgb, var(--pink-deep), #000 30%) 0%, color-mix(in srgb, var(--pink-deep), #000 55%) 40%, color-mix(in srgb, var(--pink-deep), #000 40%) 75%, color-mix(in srgb, var(--pink-deep), #000 70%) 100%)";
 const ACC = "var(--pink)";
 const MID = "var(--pink)";
 const DARK= "#3b032f";

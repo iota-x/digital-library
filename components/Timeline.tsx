@@ -9,7 +9,7 @@ const EVENTS = [
     q: "remember when we had our genshin night for 2days straight?",
     tag: "where it all started 🎮",
     icon: "🎮",
-    color: "#ffd6e0",
+    color: "var(--pink-light)",
     letter: `We had few genshin nights together in my server and we used to sit thru entire night me grinding on your account and u grinding on mine. During that time you shared a lot too and I remember most of it cuz I have a specific kinda memory as u have known by now for you especially lol. So I got to know so much about you in those calls about ur past and family some personal details too, thats when I thought maybe u're getting comfortable around me sharing these stuff and it made me super happy like damn shes sharing stuff so maybe she thinks atleast im decent cuz tbh I always thought u hated most of us in my server lol but anyways yeah this was something which made me think about us more posetively <33`,
   },
 
@@ -17,7 +17,7 @@ const EVENTS = [
     q: "remember when we had our 8 am valorant session?",
     tag: "where i started to feel that way🎀",
     icon: "🫠",
-    color: "#ffc8dd",
+    color: "var(--pink-mid)",
     letter: `I'm ngl i remember it like yesterday, I remember every bit of it, about all the exes you yapped about and all the chaos you had in your life at that time and phase ♡ But NOW that i'm here with you istg I will make things better and show you what a person truly in love can do for you and take care of you <333, even tho it ended that way I'd still always remember the time I had spent with you, cuz it was purely so good, I love listening to you and will genuinely never get tired of it 🎀`,
   },
 
@@ -25,7 +25,7 @@ const EVENTS = [
     q: "remember when you cried for the first time on call w me?",
     tag: "the moment i wanted to hug you 🫂",
     icon: "🫂",
-    color: "#ffb3c6",
+    color: "var(--pink)",
     letter: `It was that time and u know it, I was genuinely very stunned and shocked and didn't know how to react and stuff but at the same time I wanted to give you a hug so much (at that time I couldn't even say it i was that shy 😭) so yeah this is something I would never forget and I'm glad it was me who was there for you at that moment cuz all i wanted for you at that time was to comfort you or give u comfort but was clearly very unable to do so, so I just listened all of it as I always did. After that day I felt more attached to you in a way that made me feel more inclined to show you that I actually care about you a lot and want to give you so much comfort and love 😭❤️`,
   },
 
@@ -51,7 +51,7 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
     q: "remember when we got matching pfps?",
     tag: "we're so fuckin cute together 💖",
     icon: "🩷",
-    color: "#ffc8dd",
+    color: "var(--pink-mid)",
     letter: `WAS ONE OF MY BUCKET LIST THING TO DO and when u said it khudse I was SO FRICKIN HAPPY, I wanted to say YES YES YES but had to say suree but yeah im very chalant ig I show a lot and as I get more comfortable around someone I get even more chalant ehehehe but yeah this is something i will not forget I have always wanted to do this w you idc if ppl find it cringe or nah but I wanna do every cutesy stuff with you thats why im insisted we have it everywhere ehehe because Yeah I LOVE ITTTTT <3333`,
   },
 
@@ -59,7 +59,7 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
     q: "remember when we first said I LOVE YOUU?",
     tag: "making us official 🩷",
     icon: "💗",
-    color: "#ffd6e0",
+    color: "var(--pink-light)",
     letter: `It took us a bit but we made it and in the end I did have the courage to say it first 😭 and you were like ILY kya hota hai and just then I knew YOU are the one and only I need in my life and ever since that day I said it so many times almost daily but NEVER enough btw it clearly isnt enough to show how much I truly love you but its a moment I will never forget and it was exactly 2 months ago that we said it for the first time ❤️`,
   },
   {
@@ -83,7 +83,7 @@ Then it became our daily thing and now its non-negotiable btw sleep calls are ma
     q: "remember when we had our first video call?",
     tag: "experiencing you 😍",
     icon: "😳",
-    color: "#ffb3c6",
+    color: "var(--pink)",
     letter: `No matter how many troubles we went thru we never gave up and giving up isnt an option either like no matter how many hardships we face we will always be there for each other and I mean it when I say im always there for you no matter what, My love for you is unconditional frfr.
 
 It took a lot but we had our first video call together and it was the cutest thing ever I was blushing so hard and even YOU ahahaaha and we smiled and giggled so so so much I can't think of anything more cute than that we were literally stuffing our faces in the pillows asjdfbefj. I ADORE U SM <333`,
@@ -196,7 +196,7 @@ function MemoryCard({ ev, idx, onOpen }: { ev: typeof EVENTS[0]; idx: number; on
           display: "inline-block",
           fontFamily: "var(--font-caveat)", fontSize: "0.85rem",
           color: "var(--pink-deep)",
-          background: ev.color + "99",
+          background: `color-mix(in srgb, ${ev.color} 60%, transparent)`,
           borderRadius: 50, padding: "0.18rem 0.75rem",
           marginBottom: "0.7rem",
         }}>

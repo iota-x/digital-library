@@ -19,9 +19,8 @@ const STARS = Array.from({length:35},(_,i)=>({
   dur:`${2+(i*0.14)%4}s`, del:`${(i*0.14)%5}s`,
 }));
 
-/* Themed dark section — accent/foreground must stay bright in dark mode.
-   var(--pink) is overridden to a readable bright accent in every dark theme. */
-const BG   = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.85) 0%,rgba(var(--pink-deep-rgb),0.6) 60%,rgba(0,0,0,0.55) 100%)";
+/* Intentionally DEEP themed section — solid dark themed via color-mix. */
+const BG   = "linear-gradient(180deg, color-mix(in srgb, var(--pink-deep), #000 35%) 0%, color-mix(in srgb, var(--pink-deep), #000 65%) 60%, color-mix(in srgb, var(--pink-deep), #000 80%) 100%)";
 const ACC  = "var(--pink)";
 const SOFT = "var(--pink)";
 const DIM  = "rgba(var(--pink-rgb),.7)";

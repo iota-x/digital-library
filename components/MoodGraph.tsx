@@ -168,7 +168,7 @@ export default function MoodGraph() {
       position:"relative", width:"100%", minHeight:"100vh",
       display:"flex", alignItems:"center", justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,3vw,2rem)",
-      background:"linear-gradient(160deg,#0e0408 0%,#1a0812 50%,#0e0408 100%)",
+      background:"linear-gradient(160deg, color-mix(in srgb, var(--pink-deep), #000 75%) 0%, color-mix(in srgb, var(--pink-deep), #000 85%) 50%, color-mix(in srgb, var(--pink-deep), #000 75%) 100%)",
       overflow:"hidden",
     }}>
       {/* Star field bg */}

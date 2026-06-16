@@ -7,10 +7,10 @@ import SectionSkeleton from "@/components/SectionSkeleton";
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
-/* Always-dark gradient BG — accent must always be a LIGHT colour.
-   var(--pink) resolves to a light/medium tone in both light and dark mode
-   (dark mode overrides --pink to a bright readable value per theme). */
-const BG   = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.9) 0%,rgba(var(--pink-rgb),0.5) 60%,rgba(var(--pink-deep-rgb),0.7) 100%)";
+/* Intentionally DEEP themed section — solid opaque colors via color-mix so it
+   stays genuinely dark themed in BOTH light and dark page modes.
+   ACC stays bright; inner cards use rgba(0,0,0,X) for depth. */
+const BG   = "linear-gradient(180deg, color-mix(in srgb, var(--pink-deep), #000 25%) 0%, color-mix(in srgb, var(--pink-deep), #000 55%) 60%, color-mix(in srgb, var(--pink-deep), #000 40%) 100%)";
 const ACC  = "var(--pink)";
 const DIM  = "rgba(var(--pink-rgb),.75)";
 const GLOW = "rgba(var(--pink-rgb),.2)";
