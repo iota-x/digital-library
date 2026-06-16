@@ -18,11 +18,12 @@ const STARS = Array.from({length:22},(_,i)=>({
   dur:`${2+(i*0.31)%3}s`, del:`${(i*0.23)%5}s`,
 }));
 
-/* ── Palette slot 3: #61063B → #4E0535 — deep plum ── */
-const BG   = "linear-gradient(180deg,#61063b 0%,#4e0535 55%,#3b032f 100%)";
+/* Themed dark section — ACC/SOFT must stay bright in dark mode.
+   var(--pink) is overridden to a bright accent in every dark theme. */
+const BG   = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.85) 0%,rgba(var(--pink-deep-rgb),0.55) 55%,rgba(var(--pink-deep-rgb),0.95) 100%)";
 const ACC  = "var(--pink)";
-const SOFT = "var(--pink-light)";
-const DIM  = "rgba(var(--pink-rgb),.6)";
+const SOFT = "var(--pink)";
+const DIM  = "rgba(var(--pink-rgb),.7)";
 
 export default function SurpriseMe() {
   const { data, loading } = useCalendarData();
@@ -114,7 +115,7 @@ export default function SurpriseMe() {
                       initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.25}}
                       style={{width:"100%",height:"100%",objectFit:"cover",display:"block",filter:"saturate(0.88)"}}/>
                   </AnimatePresence>
-                  <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 30%,rgba(59,3,47,.9))"}}/>
+                  <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.7))"}}/>
                   {shown.photos.length>1&&(
                     <>
                       <button onClick={()=>setImgIdx(i=>(i-1+shown.photos.length)%shown.photos.length)}

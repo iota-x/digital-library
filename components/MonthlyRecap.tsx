@@ -19,11 +19,12 @@ const STARS = Array.from({length:35},(_,i)=>({
   dur:`${2+(i*0.14)%4}s`, del:`${(i*0.14)%5}s`,
 }));
 
-/* ── Palette slot 4: #4E0535 → #3B032F — darkest, end of scroll ── */
-const BG   = "linear-gradient(180deg,#4e0535 0%,#3b032f 60%,#1a0812 100%)";
-const ACC  = "#e879f9";
-const SOFT = "var(--pink-light)";
-const DIM  = "rgba(232,121,249,.55)";
+/* Themed dark section — accent/foreground must stay bright in dark mode.
+   var(--pink) is overridden to a readable bright accent in every dark theme. */
+const BG   = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.85) 0%,rgba(var(--pink-deep-rgb),0.6) 60%,rgba(0,0,0,0.55) 100%)";
+const ACC  = "var(--pink)";
+const SOFT = "var(--pink)";
+const DIM  = "rgba(var(--pink-rgb),.7)";
 
 export default function MonthlyRecap() {
   const today = new Date();
@@ -48,7 +49,7 @@ export default function MonthlyRecap() {
   const prev=()=>{ if(viewMonth===0){setViewMonth(11);setViewYear(y=>y-1);}else setViewMonth(m=>m-1); };
   const next=()=>{ if(viewMonth===11){setViewMonth(0);setViewYear(y=>y+1);}else setViewMonth(m=>m+1); };
 
-  if (loading) return <SectionSkeleton bg={BG} accent="rgba(232,121,249,.18)" lines={5}/>;
+  if (loading) return <SectionSkeleton bg={BG} accent="rgba(var(--pink-rgb),.22)" lines={5}/>;
 
   const isEmpty = monthEntries.length===0;
 
@@ -141,7 +142,7 @@ export default function MonthlyRecap() {
                       <div style={{flex:1,height:9,borderRadius:5,background:`${ACC}12`,overflow:"hidden"}}>
                         <motion.div initial={{width:0}} whileInView={{width:`${(count/maxMoodCount)*100}%`}}
                           viewport={{once:true}} transition={{duration:1.1,ease:"easeOut",delay:0.1}}
-                          style={{height:"100%",borderRadius:5,background:`linear-gradient(90deg,${ACC}88,#c026d3)`,boxShadow:`0 0 10px ${ACC}77`}}/>
+                          style={{height:"100%",borderRadius:5,background:`linear-gradient(90deg,var(--pink),var(--pink-deep))`,boxShadow:`0 0 10px ${ACC}77`}}/>
                       </div>
                       <span style={{fontFamily:SANS,fontSize:"0.75rem",color:`${ACC}88`,minWidth:18,textAlign:"right"}}>{count}</span>
                       <span style={{fontFamily:SANS,fontSize:"0.7rem",color:`${ACC}55`,minWidth:60}}>{MOOD_LABELS[mood]||""}</span>

@@ -10,9 +10,9 @@ const MONTHS= ["January","February","March","April","May","June","July","August"
 const DAYS  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 // START is loaded from userStore at runtime (see below)
 
-/* ── Capsule palette 2: deep rose → dark plum ── */
-const BG  = "linear-gradient(180deg,#db2777 0%,var(--pink-deep) 40%,#6b0f3a 75%,#3b032f 100%)";
-const ACC = "var(--pink-light)";
+/* Themed dark section — ACC must stay bright on the gradient. */
+const BG  = "linear-gradient(180deg,rgba(var(--pink-deep-rgb),0.9) 0%,rgba(var(--pink-deep-rgb),0.65) 40%,rgba(var(--pink-deep-rgb),0.85) 75%,rgba(0,0,0,0.6) 100%)";
+const ACC = "var(--pink)";
 const MID = "var(--pink)";
 const DARK= "#3b032f";
 
@@ -157,11 +157,11 @@ export default function ExportPDF() {
         style={{maxWidth:680,width:"100%",position:"relative",zIndex:2}}>
 
         {/* Masthead */}
-        <div style={{textAlign:"center",marginBottom:"2.5rem",paddingBottom:"1.8rem",borderBottom:"1px solid rgba(var(--pink-light-rgb),.25)"}}>
-          <p style={{fontFamily:MONO,fontSize:"0.6rem",color:"rgba(var(--pink-light-rgb),.4)",letterSpacing:"0.35em",textTransform:"uppercase",margin:"0 0 0.6rem"}}>
+        <div style={{textAlign:"center",marginBottom:"2.5rem",paddingBottom:"1.8rem",borderBottom:"1px solid rgba(var(--pink-rgb),.25)"}}>
+          <p style={{fontFamily:MONO,fontSize:"0.6rem",color:"rgba(var(--pink-rgb),.4)",letterSpacing:"0.35em",textTransform:"uppercase",margin:"0 0 0.6rem"}}>
             the memory gazette
           </p>
-          <h2 style={{fontFamily:SERIF,fontSize:"clamp(1.8rem,5vw,2.8rem)",color:ACC,margin:"0 0 0.4rem",fontWeight:700,letterSpacing:"-0.02em",textShadow:"0 2px 20px rgba(var(--pink-light-rgb),.15)"}}>
+          <h2 style={{fontFamily:SERIF,fontSize:"clamp(1.8rem,5vw,2.8rem)",color:ACC,margin:"0 0 0.4rem",fontWeight:700,letterSpacing:"-0.02em",textShadow:"0 2px 20px rgba(var(--pink-rgb),.15)"}}>
             Export Memory Book
           </h2>
           <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.95rem",color:`${MID}cc`,margin:0}}>
@@ -170,28 +170,28 @@ export default function ExportPDF() {
         </div>
 
         {/* Customise */}
-        <div style={{background:"rgba(0,0,0,.25)",border:"1px solid rgba(var(--pink-light-rgb),.15)",borderRadius:20,padding:"1.6rem",marginBottom:"1.5rem",backdropFilter:"blur(8px)"}}>
-          <p style={{fontFamily:MONO,fontSize:"0.62rem",color:"rgba(var(--pink-light-rgb),.4)",letterSpacing:"0.2em",textTransform:"uppercase",margin:"0 0 1.1rem"}}>
+        <div style={{background:"rgba(0,0,0,.25)",border:"1px solid rgba(var(--pink-rgb),.15)",borderRadius:20,padding:"1.6rem",marginBottom:"1.5rem",backdropFilter:"blur(8px)"}}>
+          <p style={{fontFamily:MONO,fontSize:"0.62rem",color:"rgba(var(--pink-rgb),.4)",letterSpacing:"0.2em",textTransform:"uppercase",margin:"0 0 1.1rem"}}>
             customise
           </p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.8rem",marginBottom:"1.1rem"}}>
             {[["Book title",title,(v:string)=>setTitle(v)],["Subtitle",subtitle,(v:string)=>setSubtitle(v)]].map(([l,v,fn],i)=>(
               <div key={i}>
-                <label style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-light-rgb),.45)",display:"block",marginBottom:"0.3rem"}}>{l as string}</label>
+                <label style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-rgb),.45)",display:"block",marginBottom:"0.3rem"}}>{l as string}</label>
                 <input value={v as string} onChange={e=>(fn as (v:string)=>void)(e.target.value)}
-                  style={{width:"100%",padding:"0.65rem 0.9rem",border:"1px solid rgba(var(--pink-light-rgb),.18)",borderRadius:9,fontFamily:SERIF,fontStyle:"italic",fontSize:"0.92rem",color:ACC,outline:"none",background:"rgba(255,255,255,.06)",boxSizing:"border-box",caretColor:MID}}/>
+                  style={{width:"100%",padding:"0.65rem 0.9rem",border:"1px solid rgba(var(--pink-rgb),.18)",borderRadius:9,fontFamily:SERIF,fontStyle:"italic",fontSize:"0.92rem",color:ACC,outline:"none",background:"rgba(255,255,255,.06)",boxSizing:"border-box",caretColor:MID}}/>
               </div>
             ))}
           </div>
-          <p style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-light-rgb),.45)",margin:"0 0 0.5rem"}}>Include</p>
+          <p style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-rgb),.45)",margin:"0 0 0.5rem"}}>Include</p>
           <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap"}}>
             {([["all","All memories"],["special","Special only"],["photos","With photos"],["notes","With notes"]] as ["all"|"special"|"photos"|"notes",string][]).map(([v,l])=>(
               <button key={v} onClick={()=>setFilter(v)}
                 style={{
                   padding:"0.3rem 0.9rem",borderRadius:16,cursor:"pointer",fontFamily:SANS,fontSize:"0.78rem",
-                  border:`1px solid ${filter===v?"rgba(var(--pink-light-rgb),.5)":"rgba(var(--pink-light-rgb),.15)"}`,
-                  background:filter===v?"rgba(var(--pink-light-rgb),.15)":"transparent",
-                  color:filter===v?ACC:"rgba(var(--pink-light-rgb),.4)",transition:"all 0.18s",
+                  border:`1px solid ${filter===v?"rgba(var(--pink-rgb),.5)":"rgba(var(--pink-rgb),.15)"}`,
+                  background:filter===v?"rgba(var(--pink-rgb),.15)":"transparent",
+                  color:filter===v?ACC:"rgba(var(--pink-rgb),.4)",transition:"all 0.18s",
                 }}>{l}</button>
             ))}
           </div>
@@ -212,7 +212,7 @@ export default function ExportPDF() {
           {preview&&(
             <motion.button onClick={handlePrint}
               whileHover={{scale:1.03,y:-2}} whileTap={{scale:0.97}}
-              style={{padding:"1rem 1.4rem",borderRadius:12,cursor:"pointer",border:"1.5px solid rgba(var(--pink-light-rgb),.4)",background:"rgba(255,255,255,.06)",color:ACC,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",backdropFilter:"blur(8px)"}}>
+              style={{padding:"1rem 1.4rem",borderRadius:12,cursor:"pointer",border:"1.5px solid rgba(var(--pink-rgb),.4)",background:"rgba(255,255,255,.06)",color:ACC,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",backdropFilter:"blur(8px)"}}>
               print / PDF 🖨️
             </motion.button>
           )}
@@ -223,30 +223,30 @@ export default function ExportPDF() {
           {preview&&(
             <motion.div initial={{opacity:0,height:0}} animate={{opacity:1,height:"auto"}} exit={{opacity:0,height:0}}
               style={{overflow:"hidden"}}>
-              <p style={{fontFamily:MONO,fontSize:"0.66rem",color:"rgba(var(--pink-light-rgb),.4)",letterSpacing:"0.14em",textTransform:"uppercase",margin:"0 0 1rem",textAlign:"center"}}>
+              <p style={{fontFamily:MONO,fontSize:"0.66rem",color:"rgba(var(--pink-rgb),.4)",letterSpacing:"0.14em",textTransform:"uppercase",margin:"0 0 1rem",textAlign:"center"}}>
                 {filtered.length} entr{filtered.length!==1?"ies":"y"} · click print to open formatted book
               </p>
               <div style={{display:"flex",flexDirection:"column",gap:"0.5rem",maxHeight:360,overflowY:"auto"}}>
                 {filtered.slice(0,12).map(e=>(
-                  <div key={e.date} style={{display:"flex",gap:"0.8rem",alignItems:"flex-start",padding:"0.8rem 1rem",background:"rgba(0,0,0,.2)",border:"1px solid rgba(var(--pink-light-rgb),.1)",borderRadius:12,backdropFilter:"blur(4px)"}}>
+                  <div key={e.date} style={{display:"flex",gap:"0.8rem",alignItems:"flex-start",padding:"0.8rem 1rem",background:"rgba(0,0,0,.2)",border:"1px solid rgba(var(--pink-rgb),.1)",borderRadius:12,backdropFilter:"blur(4px)"}}>
                     <span style={{fontSize:"0.95rem",flexShrink:0,marginTop:2}}>{e.special?"⭐":e.mood||"📅"}</span>
                     <div style={{flex:1,minWidth:0}}>
                       <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.85rem",color:MID,margin:"0 0 0.15rem"}}>
                         {dayOfWeek(e.date)}, {fmtDate(e.date)}
-                        <span style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(var(--pink-light-rgb),.35)",marginLeft:"0.5rem"}}>· day {dayNum(e.date)}</span>
+                        <span style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(var(--pink-rgb),.35)",marginLeft:"0.5rem"}}>· day {dayNum(e.date)}</span>
                       </p>
-                      {e.specialLabel&&<p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-light-rgb),.45)",margin:"0 0 0.15rem"}}>{e.specialLabel}</p>}
-                      {e.note&&<p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.8rem",color:"rgba(var(--pink-light-rgb),.6)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.note}</p>}
+                      {e.specialLabel&&<p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-rgb),.45)",margin:"0 0 0.15rem"}}>{e.specialLabel}</p>}
+                      {e.note&&<p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.8rem",color:"rgba(var(--pink-rgb),.6)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.note}</p>}
                     </div>
                     {(e.photos?.length??0)>0&&(
-                      <span style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(var(--pink-light-rgb),.35)",flexShrink:0,marginTop:2}}>
+                      <span style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(var(--pink-rgb),.35)",flexShrink:0,marginTop:2}}>
                         📸×{e.photos.length}
                       </span>
                     )}
                   </div>
                 ))}
                 {filtered.length>12&&(
-                  <p style={{fontFamily:MONO,fontSize:"0.66rem",color:"rgba(var(--pink-light-rgb),.3)",textAlign:"center",margin:"0.4rem 0 0"}}>
+                  <p style={{fontFamily:MONO,fontSize:"0.66rem",color:"rgba(var(--pink-rgb),.3)",textAlign:"center",margin:"0.4rem 0 0"}}>
                     +{filtered.length-12} more in the full book
                   </p>
                 )}
