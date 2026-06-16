@@ -12,7 +12,7 @@ export const GET = withAuth(async (_req, session) => {
 
 export const POST = withAuth(async (req, session) => {
   const body = await req.json();
-  const { date, note, photos, special, specialLabel, mood, pinnedNote } = body;
+  const { date, note, photos, photoStickers, special, specialLabel, mood, pinnedNote } = body;
   if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
 
   const col = await getCol("calendar");
@@ -21,6 +21,7 @@ export const POST = withAuth(async (req, session) => {
     coupleId: session.coupleId,
     note: note || "",
     photos: photos || [],
+    photoStickers: photoStickers || {},
     special: !!special,
     specialLabel: specialLabel || "",
     mood: mood || "",

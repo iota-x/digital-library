@@ -1,11 +1,13 @@
 "use client";
 import React, { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry } from "@/lib/calendarStore";
+import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry, type Sticker } from "@/lib/calendarStore";
 import { useEscKey } from "@/lib/useEscKey";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { defaultStartDate } from "@/lib/relationship";
 import { queuedFetch } from "@/lib/offlineQueue";
+import { STICKER_PALETTE, makeSticker } from "@/lib/stickers";
+import StickerOverlay from "@/components/StickerOverlay";
 
 /* ─── types ─── */
 interface DraftEntry extends Omit<CalEntry, "date"> {}
@@ -65,22 +67,53 @@ function MediaThumb({ src, onClick }: { src: string; onClick: () => void }) {
 }
 
 /* ─── lightbox (images + videos) — full quality, only one rendered at a time ─── */
-function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: number; onClose: () => void }) {
+function Lightbox({
+  media, startIdx, onClose,
+  stickersByPhoto, onStickersChange,
+}: {
+  media: string[]; startIdx: number; onClose: () => void;
+  stickersByPhoto?: Record<string, Sticker[]>;
+  onStickersChange?: (url: string, next: Sticker[]) => void;
+}) {
   const [idx, setIdx] = useState(startIdx);
+  const [editing, setEditing] = useState(false);
+  const [picked, setPicked] = useState<string>(STICKER_PALETTE[0]);
+  const photoWrapRef = useRef<HTMLDivElement>(null);
   const prev = useCallback((e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => (i - 1 + media.length) % media.length); }, [media.length]);
   const next = useCallback((e: React.MouseEvent) => { e.stopPropagation(); setIdx(i => (i + 1) % media.length); }, [media.length]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      // While editing, let the arrow keys move between photos but block Esc
+      // from closing the whole lightbox — Esc should exit edit mode first.
       if (e.key === "ArrowLeft") setIdx(i => (i - 1 + media.length) % media.length);
       if (e.key === "ArrowRight") setIdx(i => (i + 1) % media.length);
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") { if (editing) setEditing(false); else onClose(); }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [media.length, onClose]);
+  }, [media.length, onClose, editing]);
 
-  const isVid = isVideoSrc(media[idx]);
+  const url    = media[idx];
+  const isVid  = isVideoSrc(url);
+  const list   = stickersByPhoto?.[url] ?? [];
+  const canEdit = !!onStickersChange && !isVid;
+
+  // Tap on the photo while editing → drop selected sticker at that fraction
+  const onPhotoTap = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!editing || !canEdit) return;
+    const rect = photoWrapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top)  / rect.height;
+    onStickersChange!(url, [...list, makeSticker(picked, x, y)]);
+  };
+
+  const removeSticker = (id: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onStickersChange!(url, list.filter(s => s.id !== id));
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
@@ -95,24 +128,140 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
           onClick={e => e.stopPropagation()}
           style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", maxWidth: "min(85vw,900px)" }}>
           {isVid ? (
-            <video src={media[idx]} controls autoPlay playsInline preload="metadata" style={{ maxWidth: "100%", maxHeight: "75vh", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block", background: "#000" }} />
+            <video src={url} controls autoPlay playsInline preload="metadata" style={{ maxWidth: "100%", maxHeight: "75vh", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block", background: "#000" }} />
           ) : (
-            <img src={media[idx]} alt="" loading="eager" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", borderRadius: 6, boxShadow: "0 20px 60px rgba(0,0,0,.9)", display: "block" }} />
+            // Wrap the image in a relative box so the sticker overlay can
+            // position itself in fractional coordinates of the photo's actual
+            // rendered size (which varies with viewport + object-fit).
+            <div
+              ref={photoWrapRef}
+              onClick={onPhotoTap}
+              style={{
+                position: "relative",
+                display: "inline-block",
+                lineHeight: 0,
+                cursor: editing ? "crosshair" : "default",
+                borderRadius: 6,
+                overflow: "hidden",
+                boxShadow: "0 20px 60px rgba(0,0,0,.9)",
+                outline: editing ? "2px dashed rgba(var(--pink-rgb), .9)" : "none",
+                outlineOffset: editing ? 4 : 0,
+              }}
+            >
+              <img src={url} alt="" loading="eager" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", display: "block" }} />
+              {/* read-only renderer for non-edit mode */}
+              {!editing && <StickerOverlay stickers={list} />}
+              {/* In edit mode: render each sticker as a tappable button so the
+                  user can remove it without swallowing the photo-tap event. */}
+              {editing && list.length > 0 && (
+                <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                  {list.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={removeSticker(s.id)}
+                      aria-label={`remove ${s.emoji}`}
+                      style={{
+                        position: "absolute",
+                        left: `${s.x * 100}%`,
+                        top: `${s.y * 100}%`,
+                        transform: "translate(-50%, -50%)",
+                        background: "transparent",
+                        border: "none",
+                        padding: 0,
+                        fontSize: `${s.size}rem`,
+                        lineHeight: 1,
+                        cursor: "pointer",
+                        pointerEvents: "auto",
+                        filter: "drop-shadow(0 2px 6px rgba(0,0,0,.55))",
+                      }}
+                    >{s.emoji}</button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
             {media.map((_, i) => (
               <div key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{ width: i === idx ? 10 : 6, height: i === idx ? 10 : 6, borderRadius: "50%", cursor: "pointer", background: i === idx ? "var(--pink-deep)" : "rgba(var(--pink-rgb),.35)", transition: "all 0.2s" }} />
             ))}
           </div>
-          <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-rgb),.4)", letterSpacing: "0.12em", margin: 0 }}>
-            {idx + 1} / {media.length} &nbsp;·&nbsp; ← → to navigate &nbsp;·&nbsp; ESC to close
+          <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-rgb),.5)", letterSpacing: "0.12em", margin: 0, textAlign: "center" }}>
+            {editing
+              ? "tap photo to drop · tap a sticker to remove · esc to finish"
+              : <>{idx + 1} / {media.length} &nbsp;·&nbsp; ← → to navigate &nbsp;·&nbsp; ESC to close</>}
           </p>
         </motion.div>
       </AnimatePresence>
+
+      {/* Sticker palette — appears only in edit mode */}
+      {canEdit && editing && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
+          onClick={e => e.stopPropagation()}
+          style={{
+            position: "absolute",
+            bottom: "max(1rem, env(safe-area-inset-bottom))",
+            left: "50%", transform: "translateX(-50%)",
+            zIndex: 4,
+            background: "rgba(20, 4, 14, .92)",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(var(--pink-rgb), .25)",
+            borderRadius: 18,
+            padding: "0.55rem 0.75rem",
+            display: "flex", gap: "0.35rem", flexWrap: "wrap", justifyContent: "center",
+            maxWidth: "min(92vw, 540px)",
+            boxShadow: "0 14px 40px rgba(0,0,0,.55)",
+          }}>
+          {STICKER_PALETTE.map(emoji => {
+            const active = emoji === picked;
+            return (
+              <button
+                key={emoji}
+                onClick={() => setPicked(emoji)}
+                aria-label={`pick ${emoji}`}
+                aria-pressed={active}
+                style={{
+                  fontSize: "1.4rem",
+                  width: 40, height: 40, borderRadius: 12,
+                  background: active ? "rgba(var(--pink-deep-rgb), .35)" : "transparent",
+                  border: active ? "1.5px solid rgba(var(--pink-rgb), .8)" : "1px solid transparent",
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  lineHeight: 1,
+                }}
+              >{emoji}</button>
+            );
+          })}
+        </motion.div>
+      )}
+
       {media.length > 1 && (
         <motion.button onClick={next} aria-label="next photo" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           style={{ position: "absolute", right: "clamp(0.6rem,2.5vw,2rem)", background: "rgba(var(--pink-deep-rgb),.15)", border: "1px solid rgba(var(--pink-deep-rgb),.3)", borderRadius: "50%", width: 48, height: 48, cursor: "pointer", color: "var(--pink)", fontSize: "1.4rem", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>›</motion.button>
       )}
+
+      {/* Toggle edit mode — only shown when there's an onStickersChange prop
+          (i.e. the lightbox is opened from the day editor, not a read-only
+          surface). Hidden on videos. */}
+      {canEdit && (
+        <motion.button
+          onClick={(e) => { e.stopPropagation(); setEditing(v => !v); }}
+          aria-label={editing ? "exit sticker edit mode" : "add stickers"}
+          aria-pressed={editing}
+          whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.95 }}
+          style={{
+            position: "absolute", top: "1rem", left: "1rem",
+            background: editing ? "rgba(var(--pink-deep-rgb),.85)" : "rgba(255,255,255,.07)",
+            border: `1px solid ${editing ? "rgba(var(--pink-rgb), .9)" : "rgba(255,255,255,.18)"}`,
+            borderRadius: 50, padding: "0.45rem 1rem",
+            cursor: "pointer", color: "#fff",
+            fontFamily: SANS, fontSize: "0.78rem", fontWeight: 700,
+            zIndex: 3, display: "flex", alignItems: "center", gap: "0.4rem",
+          }}>
+          🌸 {editing ? "done" : "stickers"}
+        </motion.button>
+      )}
+
       <motion.button onClick={onClose} aria-label="close photo viewer" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
         style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", color: "rgba(255,255,255,.7)", fontSize: "1rem", zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
     </motion.div>
@@ -336,6 +485,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
 }) {
   const [draft, setDraft] = useState<DraftEntry>({
     note: entry.note || "", photos: entry.photos || [],
+    photoStickers: entry.photoStickers || {},
     special: entry.special || false, specialLabel: entry.specialLabel || "",
     mood: entry.mood || "", pinnedNote: entry.pinnedNote || "",
   });
@@ -368,7 +518,18 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
     }
   }, []);
 
-  const removeMedia = (i: number) => setDraft(d => ({ ...d, photos: (d.photos || []).filter((_, idx) => idx !== i) }));
+  const removeMedia = (i: number) => setDraft(d => {
+    const droppedUrl = (d.photos || [])[i];
+    const photos = (d.photos || []).filter((_, idx) => idx !== i);
+    // Drop the dropped photo's stickers — they refer to a URL nobody renders
+    const photoStickers = { ...(d.photoStickers || {}) };
+    if (droppedUrl) delete photoStickers[droppedUrl];
+    return { ...d, photos, photoStickers };
+  });
+
+  const setStickersFor = useCallback((url: string, next: Sticker[]) => {
+    setDraft(d => ({ ...d, photoStickers: { ...(d.photoStickers || {}), [url]: next } }));
+  }, []);
 
   // Track autosave state for an inline indicator
   const [autoState, setAutoState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
@@ -660,7 +821,13 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
       </motion.div>
 
       <AnimatePresence>
-        {lbIdx !== null && <Lightbox media={draft.photos!} startIdx={lbIdx} onClose={() => setLbIdx(null)} />}
+        {lbIdx !== null && <Lightbox
+          media={draft.photos!}
+          startIdx={lbIdx}
+          onClose={() => setLbIdx(null)}
+          stickersByPhoto={draft.photoStickers}
+          onStickersChange={setStickersFor}
+        />}
       </AnimatePresence>
     </>
   );
@@ -742,7 +909,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
 
   const handleSave = useCallback(async (draft: DraftEntry) => {
     if (!selected) return;
-    const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
+    const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], photoStickers: draft.photoStickers || {}, special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
     // queuedFetch persists offline — local cache updates either way so the
     // entry shows immediately; replay happens when the browser comes back
     await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });

@@ -1,10 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 
+export interface Sticker {
+  id: string;
+  emoji: string;
+  /** 0–1 fraction of the photo's width (origin top-left). */
+  x: number;
+  /** 0–1 fraction of the photo's height. */
+  y: number;
+  /** Font size in rem. */
+  size: number;
+}
+
 export interface CalEntry {
   date: string;
   note: string;
   photos: string[];
+  /** Stickers laid onto a specific photo, keyed by photo URL. */
+  photoStickers?: Record<string, Sticker[]>;
   special: boolean;
   specialLabel: string;
   mood: string;
