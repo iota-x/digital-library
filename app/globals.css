@@ -136,6 +136,26 @@ html.dark nav {
    classNames added to the elements in each component file.
    ───────────────────────────────────────────────────────────────── */
 
+/* MemoryCards editor — inputs ship with a white-ish background for the
+   light theme; in dark mode that goes near-opaque against the dark modal,
+   making the themed text nearly unreadable. Swap to a tinted dark surface
+   so the text stays visible across every theme. */
+html.dark .memory-modal input,
+html.dark .memory-modal textarea {
+  background: rgba(var(--pink-deep-rgb), 0.10) !important;
+  border-color: rgba(var(--pink-rgb), 0.35) !important;
+  color: var(--text) !important;
+}
+html.dark .memory-modal input::placeholder,
+html.dark .memory-modal textarea::placeholder {
+  color: rgba(var(--pink-rgb), 0.55) !important;
+}
+html.dark .memory-modal input:focus,
+html.dark .memory-modal textarea:focus {
+  border-color: rgba(var(--pink-rgb), 0.7) !important;
+  box-shadow: 0 0 0 2px rgba(var(--pink-rgb), 0.18);
+}
+
 /* LiveTimer love-note chips — three styles (floating .side-note, the
    "still counting" centered pill, and the 5 stat pills) all use a
    white-ish background + accent text. In dark mode that's near-invisible,
