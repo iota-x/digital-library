@@ -148,12 +148,8 @@ export default function ExportPDF() {
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
       overflow:"hidden",
     }}>
-      {/* Soft glow orbs */}
-      <div style={{position:"absolute",top:"15%",left:"5%",width:300,height:300,borderRadius:"50%",background:"rgba(var(--pink-rgb),.08)",filter:"blur(70px)",pointerEvents:"none"}}/>
-      <div style={{position:"absolute",bottom:"20%",right:"5%",width:250,height:250,borderRadius:"50%",background:"rgba(var(--pink-deep-rgb),.06)",filter:"blur(60px)",pointerEvents:"none"}}/>
-
-      {/* Themed drifting paper pages */}
-      <BgAccents variant="papers" desktopCount={7} mobileCount={3} />
+      {/* Themed glowing gradient — breathes softly */}
+      <BgAccents variant="glow" />
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
         style={{maxWidth:680,width:"100%",position:"relative",zIndex:2}}>

@@ -2,7 +2,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-type Variant = "embers" | "stardust" | "papers";
+type Variant = "embers" | "stardust" | "papers" | "spotlights" | "glow";
 
 interface Props {
   variant: Variant;
@@ -36,11 +36,13 @@ export default function BgAccents({
   const [count, setCount] = useState(0);
 
   useEffect(() => {
+    // spotlights/glow don't use particle count — fixed elements
+    if (variant === "spotlights" || variant === "glow") { setCount(1); return; }
     const apply = () => setCount(window.innerWidth < 640 ? mobileCount : desktopCount);
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
-  }, [mobileCount, desktopCount]);
+  }, [mobileCount, desktopCount, variant]);
 
   const particles = useMemo(() =>
     Array.from({ length: count }, (_, i) => ({
@@ -54,6 +56,94 @@ export default function BgAccents({
   [count]);
 
   if (reduced || count === 0) return null;
+
+  if (variant === "spotlights") {
+    return (
+      <>
+        <motion.div
+          animate={{ opacity: [0.42, 0.7, 0.42] }}
+          transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            top: "-25%", left: "-12%",
+            width:  "70%", height: "130%",
+            background:
+              "radial-gradient(ellipse 55% 50% at 32% 22%, rgba(var(--pink-deep-rgb), .42), transparent 70%)",
+            filter: "blur(40px)",
+            transform: "rotate(-18deg)",
+            transformOrigin: "top left",
+            willChange: "opacity",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+        <motion.div
+          animate={{ opacity: [0.45, 0.72, 0.45] }}
+          transition={{ duration: 10.5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          style={{
+            position: "absolute",
+            top: "-25%", right: "-12%",
+            width:  "70%", height: "130%",
+            background:
+              "radial-gradient(ellipse 55% 50% at 68% 22%, rgba(var(--pink-rgb), .35), transparent 70%)",
+            filter: "blur(40px)",
+            transform: "rotate(18deg)",
+            transformOrigin: "top right",
+            willChange: "opacity",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+      </>
+    );
+  }
+
+  if (variant === "glow") {
+    return (
+      <>
+        <motion.div
+          animate={{
+            opacity: [0.5, 0.85, 0.5],
+            scale:   [0.95, 1.08, 0.95],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            top:  "50%", left: "50%",
+            width: "min(120vw, 1200px)",
+            height: "min(120vh, 900px)",
+            transform: "translate(-50%, -50%)",
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(var(--pink-rgb), .45) 0%, rgba(var(--pink-deep-rgb), .28) 28%, rgba(var(--pink-deep-rgb), .12) 50%, transparent 75%)",
+            filter: "blur(60px)",
+            willChange: "transform, opacity",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+        <motion.div
+          animate={{
+            opacity: [0.3, 0.55, 0.3],
+            scale:   [1.1, 0.92, 1.1],
+          }}
+          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+          style={{
+            position: "absolute",
+            top:  "50%", left: "50%",
+            width: "min(90vw, 900px)",
+            height: "min(80vh, 600px)",
+            transform: "translate(-50%, -50%)",
+            background:
+              "radial-gradient(ellipse 50% 50% at 50% 50%, rgba(var(--pink-rgb), .35), transparent 70%)",
+            filter: "blur(80px)",
+            willChange: "transform, opacity",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
+      </>
+    );
+  }
 
   if (variant === "embers") {
     return (

@@ -65,7 +65,8 @@ export default function MonthlyRecap() {
       {/* Radial glow */}
       <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:"70%",height:"50%",borderRadius:"50%",background:"rgba(var(--pink-rgb),.08)",filter:"blur(80px)",pointerEvents:"none"}}/>
 
-      {/* Themed drifting sparkles */}
+      {/* Themed corner spotlights + drifting sparkles */}
+      <BgAccents variant="spotlights" />
       <BgAccents variant="stardust" desktopCount={10} mobileCount={5} />
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}

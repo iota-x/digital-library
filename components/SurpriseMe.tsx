@@ -59,7 +59,8 @@ export default function SurpriseMe() {
             "--occ-dur":s.dur, "--occ-del":s.del } as React.CSSProperties}/>
       ))}
 
-      {/* Themed drifting sparkles */}
+      {/* Themed corner spotlights + drifting sparkles */}
+      <BgAccents variant="spotlights" />
       <BgAccents variant="stardust" desktopCount={8} mobileCount={4} />
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}

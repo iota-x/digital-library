@@ -68,8 +68,9 @@ export default function StreakTracker() {
       {/* Soft glow */}
       <div style={{position:"absolute",top:"30%",left:"50%",transform:"translateX(-50%)",width:"60%",height:"40%",borderRadius:"50%",background:"rgba(var(--pink-rgb),.08)",filter:"blur(80px)",pointerEvents:"none"}}/>
 
-      {/* Themed rising embers */}
-      <BgAccents variant="embers" desktopCount={12} mobileCount={6} />
+      {/* Themed corner spotlights + rising embers */}
+      <BgAccents variant="spotlights" />
+      <BgAccents variant="embers" desktopCount={10} mobileCount={5} />
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
         style={{maxWidth:520,width:"100%",textAlign:"center",position:"relative",zIndex:2}}>
