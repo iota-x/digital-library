@@ -90,6 +90,28 @@ html.theme-gold:not(.dark) body { background: #fffef5; }
 /* Pink is the default — no class needed, :root vars handle it */
 
 /* ══════════════════════════════════════════════════════════════════
+   DEEP-THEMED SECTIONS
+   Sections marked deep-themed are intentionally always-dark themed
+   (StreakTracker / SurpriseMe / MonthlyRecap / ExportPDF / MoodGraph).
+   They must override the per-theme section gradient set above.
+   ══════════════════════════════════════════════════════════════════ */
+html section.deep-themed,
+html.theme-purple section.deep-themed,
+html.theme-blue   section.deep-themed,
+html.theme-green  section.deep-themed,
+html.theme-gold   section.deep-themed,
+html.dark section.deep-themed,
+html.dark.theme-purple section.deep-themed,
+html.dark.theme-blue   section.deep-themed,
+html.dark.theme-green  section.deep-themed,
+html.dark.theme-gold   section.deep-themed {
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--pink-deep), #000 30%) 0%,
+    color-mix(in srgb, var(--pink-deep), #000 55%) 60%,
+    color-mix(in srgb, var(--pink-deep), #000 45%) 100%) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
    DARK PLUM + BLACK MODE
    Class-based selectors are added directly to components so these
    rules are guaranteed to match — no brittle [style*=""] hacks.

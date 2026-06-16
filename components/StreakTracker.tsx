@@ -46,7 +46,7 @@ export default function StreakTracker() {
   const progress      = Math.min((streak/nextMilestone)*100,100);
 
   return (
-    <section id="streak" style={{
+    <section id="streak" className="deep-themed" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",

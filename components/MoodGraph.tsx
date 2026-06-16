@@ -164,7 +164,7 @@ export default function MoodGraph() {
   const topMoods=Object.entries(freqMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
   return (
-    <section style={{
+    <section className="deep-themed" style={{
       position:"relative", width:"100%", minHeight:"100vh",
       display:"flex", alignItems:"center", justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,3vw,2rem)",

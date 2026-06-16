@@ -53,7 +53,7 @@ export default function MonthlyRecap() {
   const isEmpty = monthEntries.length===0;
 
   return (
-    <section id="recap" style={{
+    <section id="recap" className="deep-themed" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",

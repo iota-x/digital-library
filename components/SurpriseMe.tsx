@@ -52,7 +52,7 @@ export default function SurpriseMe() {
   const dn = shown?dayNum(shown.date):null;
 
   return (
-    <section id="surprise" style={{
+    <section id="surprise" className="deep-themed" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
