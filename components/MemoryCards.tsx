@@ -161,7 +161,6 @@ export default function MemoryCards() {
               animate={inView ? { opacity:1, y:0, rotate:rotation } : {}}
               transition={{ duration:0.5, delay:i * 0.08 }}
               whileHover={{ scale:1.04, rotate:0, zIndex:10, boxShadow:`8px 8px 32px rgba(var(--pink-deep-rgb),.22)` }}
-              className="dk-mem-card"
               style={{
                 background: variant.bg,
                 border: variant.border,
@@ -224,7 +223,7 @@ export default function MemoryCards() {
             onClick={() => setActive(null)}
           >
             <motion.div
-              className="dk-mem-modal memory-modal"
+              className="memory-modal"
               style={{
                 background: activeVariant?.bg ?? "var(--cream)",
                 border: activeVariant?.border ?? "1px solid var(--pink-mid)",
