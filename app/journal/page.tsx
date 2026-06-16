@@ -1,5 +1,6 @@
 "use client";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { fetchCalendarData } from "@/lib/calendarStore";
 import { usePullToRefresh } from "@/lib/usePullToRefresh";
 import PasswordGate      from "@/components/PasswordGate";
@@ -14,8 +15,24 @@ import MonthlyRecap      from "@/components/MonthlyRecap";
 
 if (typeof window !== "undefined") fetchCalendarData();
 
-export default function JournalPage() {
+function JournalPageInner() {
+  const params = useSearchParams();
+  // ?date=YYYY-MM-DD opens that day's modal on mount (the palette navigates
+  // here with this param when a journal-entry result is picked).
+  const dateParam = params.get("date") || undefined;
+
   useEffect(() => { fetchCalendarData(); }, []);
+
+  // Scroll to the calendar when a date is requested so the modal animation
+  // anchors to a visible spot. Run after layout settles.
+  useEffect(() => {
+    if (!dateParam) return;
+    const id = setTimeout(() => {
+      document.getElementById("calendar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+    return () => clearTimeout(id);
+  }, [dateParam]);
+
   const { trackRef, refreshing } = usePullToRefresh(() => fetchCalendarData());
   return (
     <PasswordGate>
@@ -28,12 +45,21 @@ export default function JournalPage() {
             <AnniversaryBanner />
             <OnThisDay />
           </div>
-          <OurCalendar />
+          <OurCalendar initialDate={dateParam} />
           <StreakTracker />
           <SurpriseMe />
           <MonthlyRecap />
         </main>
       </div>
     </PasswordGate>
+  );
+}
+
+export default function JournalPage() {
+  // useSearchParams must live under a Suspense boundary in Next 15 app router
+  return (
+    <Suspense fallback={null}>
+      <JournalPageInner />
+    </Suspense>
   );
 }

@@ -923,6 +923,18 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const [flipDir,    setFlipDir]    = useState<"left" | "right" | null>(null);
 
+  // React to in-app navigations that change ?date= without unmounting the
+  // calendar (e.g. Cmd+K picking a different entry while already on /journal).
+  useEffect(() => {
+    if (!initialDate) return;
+    const d = new Date(initialDate + "T12:00:00");
+    if (isNaN(d.getTime())) return;
+    setYear(d.getFullYear());
+    setMonth(d.getMonth());
+    setSelected(initialDate);
+    setOriginRect(null);
+  }, [initialDate]);
+
   const isOnToday = year === today.getFullYear() && month === today.getMonth();
   const goToToday = () => { setYear(today.getFullYear()); setMonth(today.getMonth()); };
 
