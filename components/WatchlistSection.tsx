@@ -200,7 +200,7 @@ export default function WatchlistSection() {
           {showForm && (
             <motion.div initial={{opacity:0,y:-14}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-14}}
               style={{
-                background:"rgba(255,255,255,.94)",border:"1.5px solid rgba(var(--pink-deep-rgb),.2)",
+                background:"var(--cream)",border:"1.5px solid rgba(var(--pink-rgb),.3)",
                 borderRadius:24,padding:"clamp(1.2rem,4vw,1.8rem)",marginBottom:"1.5rem",
                 boxShadow:"0 12px 48px rgba(var(--pink-deep-rgb),.1)",
               }}>
@@ -344,9 +344,9 @@ export default function WatchlistSection() {
                     className="wl-card"
                     style={{
                       borderRadius:18,overflow:"hidden",
-                      background:"rgba(255,255,255,.9)",
-                      border:"1.5px solid rgba(var(--pink-deep-rgb),.16)",
-                      boxShadow:"0 4px 22px rgba(var(--pink-deep-rgb),.08)",
+                      background:"var(--cream)",
+                      border:"1.5px solid rgba(var(--pink-rgb),.3)",
+                      boxShadow:"0 4px 22px rgba(var(--pink-deep-rgb),.15)",
                       display:"flex",flexDirection:"column",
                     }}>
                     {/* Poster */}
@@ -390,21 +390,21 @@ export default function WatchlistSection() {
                     {/* Info */}
                     <div style={{padding:"0.65rem 0.75rem 0.8rem",flex:1,display:"flex",
                       flexDirection:"column",gap:"0.3rem"}}>
-                      <p style={{fontFamily:SANS,fontSize:"0.82rem",fontWeight:700,color:"#7c3f58",
+                      <p style={{fontFamily:SANS,fontSize:"0.82rem",fontWeight:700,color:"var(--text)",
                         margin:0,lineHeight:1.3,overflow:"hidden",display:"-webkit-box",
                         WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
                         {item.title}
                       </p>
-                      <span style={{fontFamily:SANS,fontSize:"0.62rem",color:"rgba(var(--pink-deep-rgb),.4)"}}>
+                      <span style={{fontFamily:SANS,fontSize:"0.66rem",color:"var(--muted)",fontWeight:600,letterSpacing:"0.04em"}}>
                         {TYPE_EMOJI[item.type]} {item.type}
                       </span>
                       {stars!=null&&(
-                        <p style={{fontFamily:SANS,fontSize:"0.68rem",color:"rgba(var(--pink-deep-rgb),.55)",margin:0}}>
-                          {"★".repeat(stars)}{"☆".repeat(5-stars)} {item.rating}/10
+                        <p style={{fontFamily:SANS,fontSize:"0.72rem",color:"var(--pink-deep)",margin:0,fontWeight:600}}>
+                          {"★".repeat(stars)}{"☆".repeat(5-stars)} <span style={{color:"var(--muted)",fontWeight:500}}>{item.rating}/10</span>
                         </p>
                       )}
                       {item.notes&&(
-                        <p style={{fontFamily:SCRIPT,fontSize:"0.76rem",color:"rgba(var(--pink-deep-rgb),.42)",
+                        <p style={{fontFamily:SCRIPT,fontSize:"0.8rem",color:"var(--text)",opacity:0.7,
                           margin:0,overflow:"hidden",display:"-webkit-box",
                           WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
                           {item.notes}
@@ -427,8 +427,8 @@ function PILL_STYLE(bg:string,border:string,color:string):React.CSSProperties {
     background:bg,border:`1px solid ${border}`,borderRadius:50,padding:"0.3rem 0.85rem"};
 }
 const INP:React.CSSProperties = {
-  fontFamily:SANS,fontSize:"0.85rem",color:"#7c3f58",
-  background:"rgba(var(--pink-light-rgb),.4)",border:"1px solid rgba(var(--pink-deep-rgb),.2)",
+  fontFamily:SANS,fontSize:"0.85rem",color:"var(--text)",
+  background:"rgba(var(--pink-rgb),.1)",border:"1px solid rgba(var(--pink-rgb),.3)",
   borderRadius:10,padding:"0.6rem 0.9rem",
   width:"100%",boxSizing:"border-box",transition:"border-color .2s,box-shadow .2s",
 };
@@ -437,7 +437,8 @@ const BTN:React.CSSProperties = {
   border:"none",borderRadius:50,padding:"0.55rem 1.2rem",cursor:"pointer",
 };
 const ICON_BTN:React.CSSProperties = {
-  width:28,height:28,border:"none",borderRadius:8,background:"rgba(255,255,255,.88)",
+  width:28,height:28,border:"none",borderRadius:8,background:"rgba(0,0,0,.55)",
   cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
-  fontSize:"0.78rem",boxShadow:"0 2px 8px rgba(0,0,0,.14)",
+  fontSize:"0.78rem",boxShadow:"0 2px 8px rgba(0,0,0,.3)",
+  backdropFilter:"blur(6px)",
 };
