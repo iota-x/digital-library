@@ -69,16 +69,17 @@ export default function JournalHeader() {
           { e: "🔥", v: stats.streak,  l: "day streak" },
         ].map((s, i) => (
           <div key={i} style={{
-            background: "rgba(255,255,255,.8)",
-            border: "1px solid rgba(var(--pink-deep-rgb),.18)",
+            background: "rgba(var(--pink-rgb),.16)",
+            border: "1px solid rgba(var(--pink-rgb),.32)",
             borderRadius: 24, padding: "0.45rem 1.1rem",
             display: "flex", alignItems: "center", gap: "0.45rem",
-            fontFamily: SANS, fontSize: "0.84rem", color: "var(--pink-deep)",
+            fontFamily: SANS, fontSize: "0.84rem", color: "var(--text)",
             boxShadow: "0 2px 10px rgba(var(--pink-deep-rgb),.07)",
+            backdropFilter: "blur(6px)",
           }}>
             <span>{s.e}</span>
-            <span style={{ fontWeight: 700 }}>{s.v}</span>
-            <span style={{ opacity: 0.58 }}>{s.l}</span>
+            <span style={{ fontWeight: 700, color: "var(--pink-deep)" }}>{s.v}</span>
+            <span style={{ opacity: 0.85 }}>{s.l}</span>
           </div>
         ))}
       </div>
@@ -90,10 +91,11 @@ export default function JournalHeader() {
             <div style={{
               display: "flex", alignItems: "center", gap: "0.38rem",
               padding: "0.32rem 0.85rem", borderRadius: 20,
-              background: "rgba(255,255,255,.65)",
-              border: "1px solid rgba(var(--pink-deep-rgb),.14)",
-              fontFamily: SANS, fontSize: "0.78rem", color: "rgba(var(--pink-deep-rgb),.65)",
+              background: "rgba(var(--pink-rgb),.12)",
+              border: "1px solid rgba(var(--pink-rgb),.28)",
+              fontFamily: SANS, fontSize: "0.78rem", color: "var(--text)",
               cursor: "pointer",
+              backdropFilter: "blur(6px)",
             }}>
               <span style={{ fontSize: "0.85rem" }}>{s.emoji}</span>
               <span>{s.label}</span>

@@ -197,10 +197,10 @@ export default function MoodGraph() {
               animate={{rotate:[0,360]}} transition={{repeat:Infinity,duration:20,ease:"linear"}}>✦</motion.span>
             <div style={{width:50,height:1,background:"linear-gradient(90deg,rgba(var(--pink-rgb),0.5),transparent)"}}/>
           </div>
-          <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.5rem,4vw,2.2rem)",color:"var(--pink-light)",margin:"0 0 0.4rem",fontWeight:400}}>
+          <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.5rem,4vw,2.2rem)",color:"var(--pink)",margin:"0 0 0.4rem",fontWeight:400}}>
             mood constellation
           </h2>
-          <p style={{fontFamily:MONO,fontSize:"0.75rem",color:"rgba(var(--pink-rgb),0.4)",margin:0,letterSpacing:"0.18em",textTransform:"uppercase"}}>
+          <p style={{fontFamily:MONO,fontSize:"0.75rem",color:"rgba(var(--pink-rgb),0.75)",margin:0,letterSpacing:"0.18em",textTransform:"uppercase"}}>
             charting how we've felt
           </p>
         </div>
@@ -213,9 +213,9 @@ export default function MoodGraph() {
               style={{
                 padding:"0.35rem 1rem",borderRadius:20,cursor:"pointer",fontFamily:MONO,fontSize:"0.75rem",
                 letterSpacing:"0.1em",
-                border:`1px solid ${viewRange===v?"rgba(var(--pink-deep-rgb),0.6)":"rgba(var(--pink-rgb),0.2)"}`,
-                background:viewRange===v?"rgba(var(--pink-deep-rgb),0.15)":"transparent",
-                color:viewRange===v?"var(--pink)":"rgba(var(--pink-rgb),0.4)",
+                border:`1px solid ${viewRange===v?"var(--pink)":"rgba(var(--pink-rgb),0.4)"}`,
+                background:viewRange===v?"rgba(var(--pink-rgb),0.22)":"transparent",
+                color:viewRange===v?"var(--pink)":"rgba(var(--pink-rgb),0.85)",
                 transition:"all 0.2s",
               }}>{l}</motion.button>
           ))}
@@ -249,13 +249,13 @@ export default function MoodGraph() {
                       boxShadow:`0 8px 24px rgba(0,0,0,0.6)`,
                     }}>
                     <div style={{fontSize:"1.4rem",marginBottom:"0.2rem"}}>{hovered.mood}</div>
-                    <div style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.85rem",color:"var(--pink-light)"}}>
+                    <div style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.85rem",color:"var(--pink)"}}>
                       {MOOD_LABEL[hovered.mood]||""}
                     </div>
-                    <div style={{fontFamily:MONO,fontSize:"0.68rem",color:"rgba(var(--pink-rgb),0.5)",marginTop:"0.2rem",letterSpacing:"0.1em"}}>
+                    <div style={{fontFamily:MONO,fontSize:"0.68rem",color:"rgba(var(--pink-rgb),0.8)",marginTop:"0.2rem",letterSpacing:"0.1em"}}>
                       {hovered.date.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
                     </div>
-                    <div style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(var(--pink-rgb),0.35)",marginTop:"0.1rem"}}>
+                    <div style={{fontFamily:MONO,fontSize:"0.65rem",color:"rgba(var(--pink-rgb),0.7)",marginTop:"0.1rem"}}>
                       day {hovered.dayNum}
                     </div>
                   </motion.div>
@@ -272,7 +272,7 @@ export default function MoodGraph() {
         {/* Mood legend */}
         {topMoods.length>0&&(
           <div style={{marginTop:"1.8rem"}}>
-            <p style={{fontFamily:MONO,fontSize:"0.7rem",color:"rgba(var(--pink-rgb),0.4)",letterSpacing:"0.16em",textTransform:"uppercase",margin:"0 0 1rem",textAlign:"center"}}>
+            <p style={{fontFamily:MONO,fontSize:"0.7rem",color:"rgba(var(--pink-rgb),0.85)",letterSpacing:"0.16em",textTransform:"uppercase",margin:"0 0 1rem",textAlign:"center"}}>
               most felt
             </p>
             <div style={{display:"flex",flexWrap:"wrap",gap:"0.6rem",justifyContent:"center"}}>
@@ -287,7 +287,7 @@ export default function MoodGraph() {
                   }}>
                   <span style={{fontSize:"1.1rem"}}>{mood}</span>
                   <span style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.82rem",color:MOOD_COLOR[mood]||"var(--pink)"}}>{MOOD_LABEL[mood]}</span>
-                  <span style={{fontFamily:MONO,fontSize:"0.7rem",color:"rgba(var(--pink-rgb),0.45)"}}>×{count}</span>
+                  <span style={{fontFamily:MONO,fontSize:"0.7rem",color:"rgba(var(--pink-rgb),0.85)"}}>×{count}</span>
                 </motion.div>
               ))}
             </div>
