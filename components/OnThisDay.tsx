@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import { cldThumb } from "@/lib/cldImg";
 import { SERIF, SANS } from "@/lib/typography";
+import BlurImage from "@/components/BlurImage";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -107,8 +108,9 @@ export default function OnThisDay() {
                   boxShadow:"0 4px 16px rgba(var(--pink-deep-rgb),.15)",
                 }}
               >
-                <img src={cldThumb(m.entry.photos[0], 128)} loading="lazy" decoding="async" alt=""
-                  style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+                <BlurImage src={cldThumb(m.entry.photos[0], 128)} alt=""
+                  wrapperStyle={{ width:"100%", height:"100%" }}
+                  style={{ objectFit:"cover" }}/>
               </motion.div>
             )}
 

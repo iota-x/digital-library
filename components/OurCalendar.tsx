@@ -2,12 +2,15 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry, type Sticker } from "@/lib/calendarStore";
+import { useUserData } from "@/lib/userStore";
 import { useEscKey } from "@/lib/useEscKey";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { defaultStartDate } from "@/lib/relationship";
 import { queuedFetch } from "@/lib/offlineQueue";
 import { STICKER_PALETTE, makeSticker } from "@/lib/stickers";
 import StickerOverlay from "@/components/StickerOverlay";
+import ReactionPills from "@/components/ReactionPills";
+import { buzz } from "@/lib/haptics";
 
 /* ─── types ─── */
 interface DraftEntry extends Omit<CalEntry, "date"> {}
@@ -107,6 +110,7 @@ function Lightbox({
     if (!rect) return;
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top)  / rect.height;
+    buzz("tap");
     onStickersChange!(url, [...list, makeSticker(picked, x, y)]);
   };
 
@@ -483,9 +487,11 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   onClose: () => void; onSave: (d: DraftEntry) => Promise<void>; onDelete: () => Promise<void>;
   birthdayLabel?: string | null;
 }) {
+  const userData = useUserData();
   const [draft, setDraft] = useState<DraftEntry>({
     note: entry.note || "", photos: entry.photos || [],
     photoStickers: entry.photoStickers || {},
+    reactions: entry.reactions || {},
     special: entry.special || false, specialLabel: entry.specialLabel || "",
     mood: entry.mood || "", pinnedNote: entry.pinnedNote || "",
   });
@@ -708,6 +714,39 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                     <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(255,255,255,.6)", margin: 0 }}>nothing here yet — tap edit to add a memory</p>
                   </div>
                 )}
+
+                {/* Reactions — let the partner mark a memory without having
+                    to write back. Toggle hits the dedicated endpoint which
+                    also fires a push, then SSE updates everyone's cache. */}
+                {hasContent && (
+                  <div style={{ marginTop: "1.4rem", display: "flex", justifyContent: "center" }}>
+                    <ReactionPills
+                      reactions={draft.reactions}
+                      onToggle={async (emoji) => {
+                        const myId = userData?.userId || "";
+                        // Optimistic local toggle so the pill responds instantly
+                        setDraft(d => {
+                          const next: Record<string, string[]> = { ...(d.reactions || {}) };
+                          const list = next[emoji] ?? [];
+                          if (myId && list.includes(myId)) {
+                            const filtered = list.filter(id => id !== myId);
+                            if (filtered.length === 0) delete next[emoji];
+                            else next[emoji] = filtered;
+                          } else if (myId) {
+                            next[emoji] = [...list, myId];
+                          }
+                          return { ...d, reactions: next };
+                        });
+                        await fetch("/api/calendar/reaction", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ date: dateKey, emoji }),
+                        });
+                      }}
+                      align="center"
+                    />
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -909,7 +948,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
 
   const handleSave = useCallback(async (draft: DraftEntry) => {
     if (!selected) return;
-    const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], photoStickers: draft.photoStickers || {}, special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
+    const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], photoStickers: draft.photoStickers || {}, reactions: draft.reactions || {}, special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
     // queuedFetch persists offline — local cache updates either way so the
     // entry shows immediately; replay happens when the browser comes back
     await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });

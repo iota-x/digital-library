@@ -6,6 +6,8 @@ import MilestoneCelebration  from "@/components/MilestoneCelebration";
 import ShortcutSheet         from "@/components/ShortcutSheet";
 import Onboarding            from "@/components/Onboarding";
 import PushPrompt            from "@/components/PushPrompt";
+import BirthdayTakeover      from "@/components/BirthdayTakeover";
+import PresenceLayer         from "@/components/PresenceLayer";
 
 export default function AppShell() {
   const [open, setOpen] = useState(false);
@@ -25,6 +27,8 @@ export default function AppShell() {
       <Onboarding />
       <PushPrompt />
       <ShortcutSheet />
+      <BirthdayTakeover />
+      <PresenceLayer />
       <SettingsPanel open={open} onClose={handleClose} />
     </>
   );

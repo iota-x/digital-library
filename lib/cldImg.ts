@@ -78,3 +78,24 @@ export function cldThumb(src: string | undefined | null, size = 280): string {
 export function cldHero(src: string | undefined | null, w = 1200): string {
   return cldImg(src, { w });
 }
+
+/**
+ * Tiny blurred placeholder — a 32-px image, eco quality, with a server-side
+ * blur applied. The browser scales it up; CSS finishes the smoothing. Used
+ * as the `<img>`'s background until the full-size copy loads, so photos
+ * fade in instead of flash from grey.
+ *
+ * For non-Cloudinary URLs returns `""` (fallback caller can just skip the
+ * blur backdrop).
+ */
+export function cldBlur(src: string | undefined | null): string {
+  if (!src || !isCld(src)) return "";
+  // /upload/e_blur:1500,f_auto,q_auto:eco,w_32/...
+  const seg = "e_blur:1500,f_auto,q_auto:eco,w_32";
+  if (isVid(src)) {
+    return src
+      .replace("/video/upload/", `/video/upload/${seg},so_0/`)
+      .replace(/\.(mp4|mov|webm|m4v|avi)(\?|$)/i, ".jpg$2");
+  }
+  return src.replace("/upload/", `/upload/${seg}/`);
+}

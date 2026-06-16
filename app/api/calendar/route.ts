@@ -12,16 +12,21 @@ export const GET = withAuth(async (_req, session) => {
 
 export const POST = withAuth(async (req, session) => {
   const body = await req.json();
-  const { date, note, photos, photoStickers, special, specialLabel, mood, pinnedNote } = body;
+  const { date, note, photos, photoStickers, reactions, special, specialLabel, mood, pinnedNote } = body;
   if (!date) return NextResponse.json({ error: "date required" }, { status: 400 });
 
   const col = await getCol("calendar");
+  // Read the existing entry to preserve any reactions we don't get a fresh
+  // copy of — the dedicated /api/calendar/reaction endpoint may have updated
+  // them since the client last loaded.
+  const existing = await col.findOne({ date, coupleId: session.coupleId });
   const doc = {
     date,
     coupleId: session.coupleId,
     note: note || "",
     photos: photos || [],
     photoStickers: photoStickers || {},
+    reactions: reactions ?? existing?.reactions ?? {},
     special: !!special,
     specialLabel: specialLabel || "",
     mood: mood || "",

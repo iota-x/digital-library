@@ -18,6 +18,8 @@ export interface CalEntry {
   photos: string[];
   /** Stickers laid onto a specific photo, keyed by photo URL. */
   photoStickers?: Record<string, Sticker[]>;
+  /** Emoji → list of userIds who left that reaction on this entry. */
+  reactions?: Record<string, string[]>;
   special: boolean;
   specialLabel: string;
   mood: string;

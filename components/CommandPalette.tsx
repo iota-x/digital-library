@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
+import { useUserData } from "@/lib/userStore";
 import { SERIF, SANS } from "@/lib/typography";
 
 
@@ -21,16 +22,76 @@ function fmtEntry(date: string) {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
+interface Hit {
+  href: string;
+  emoji: string;
+  label: string;
+  desc: string;
+  isEntry?: boolean;
+}
+
+// Cache the heavier "search everything" lookups across renders so typing
+// doesn't refetch on every keystroke. Refresh ~30s.
+let _hitsCache: { at: number; bucket?: Hit[]; watch?: Hit[]; capsules?: Hit[]; voice?: Hit[] } = { at: 0 };
+const CACHE_TTL = 30_000;
+
+async function loadAuxData(): Promise<NonNullable<typeof _hitsCache>> {
+  if (Date.now() - _hitsCache.at < CACHE_TTL && _hitsCache.bucket) return _hitsCache;
+  try {
+    const [b, w, c, v] = await Promise.all([
+      fetch("/api/bucketlist").then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch("/api/watchlist").then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch("/api/timecapsule").then(r => r.ok ? r.json() : []).catch(() => []),
+      fetch("/api/voicenotes").then(r => r.ok ? r.json() : []).catch(() => []),
+    ]);
+    const bucket: Hit[] = (Array.isArray(b) ? b : []).map((x: { text?: string; category?: string; completed?: boolean }) => ({
+      href: "/shared#bucket",
+      emoji: x.completed ? "✅" : "📋",
+      label: x.text || "(untitled)",
+      desc: `bucket list · ${x.category || "other"}`,
+    }));
+    const watch: Hit[] = (Array.isArray(w) ? w : []).map((x: { title?: string; type?: string; status?: string }) => ({
+      href: "/shared#watchlist",
+      emoji: x.type === "anime" ? "🌸" : x.type === "series" ? "📺" : "🎬",
+      label: x.title || "(untitled)",
+      desc: `watchlist · ${x.status?.replace("-", " ") || ""}`,
+    }));
+    const capsules: Hit[] = (Array.isArray(c) ? c : []).map((x: { letter?: string; from?: string; unlockDate?: string }) => ({
+      href: "/capsule",
+      emoji: "💌",
+      label: x.from ? `letter from ${x.from}` : "a letter",
+      desc: (x.letter || "").slice(0, 72) + (x.letter && x.letter.length > 72 ? "…" : ""),
+    }));
+    const voice: Hit[] = (Array.isArray(v) ? v : []).map((x: { label?: string; from?: string; createdAt?: string }) => ({
+      href: "/#voicenotes",
+      emoji: "🎙",
+      label: x.label || (x.from ? `voice note from ${x.from}` : "voice note"),
+      desc: x.createdAt ? `voice · ${new Date(x.createdAt).toLocaleDateString()}` : "voice note",
+    }));
+    _hitsCache = { at: Date.now(), bucket, watch, capsules, voice };
+  } catch { /* leave cache as-is */ }
+  return _hitsCache;
+}
+
 export default function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [sel, setSel] = useState(0);
+  const [aux, setAux] = useState<typeof _hitsCache>({ at: 0 });
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const { data: calData } = useCalendarData();
+  const userData = useUserData();
+
+  // Prime auxiliary data lazily so opening the palette feels instant
+  useEffect(() => {
+    if (open && Date.now() - aux.at > CACHE_TTL) {
+      loadAuxData().then(setAux);
+    }
+  }, [open, aux.at]);
 
   // Journal entries matching the query (text, date, mood, special label)
-  const matchingEntries = useMemo(() => {
+  const matchingEntries = useMemo<Hit[]>(() => {
     const q = query.trim().toLowerCase();
     if (q.length < 2) return [];
     return calData
@@ -49,6 +110,28 @@ export default function CommandPalette() {
       }));
   }, [query, calData]);
 
+  // Filter the cached aux hits by query
+  function filterHits(hits: Hit[] | undefined, q: string, cap = 4): Hit[] {
+    if (!hits || q.length < 2) return [];
+    return hits.filter(h => (h.label + " " + h.desc).toLowerCase().includes(q)).slice(0, cap);
+  }
+
+  const q = query.trim().toLowerCase();
+  const matchingBucket   = useMemo(() => filterHits(aux.bucket,   q), [aux.bucket,   q]);
+  const matchingWatch    = useMemo(() => filterHits(aux.watch,    q), [aux.watch,    q]);
+  const matchingCapsules = useMemo(() => filterHits(aux.capsules, q), [aux.capsules, q]);
+  const matchingVoice    = useMemo(() => filterHits(aux.voice,    q), [aux.voice,    q]);
+
+  // Timeline events live in settings — search them inline (no fetch needed)
+  const matchingTimeline = useMemo<Hit[]>(() => {
+    if (q.length < 2) return [];
+    const evs = userData?.settings?.timelineEvents ?? [];
+    return evs
+      .filter(e => (e.q + " " + e.tag + " " + e.letter).toLowerCase().includes(q))
+      .slice(0, 4)
+      .map(e => ({ href: "/timeline", emoji: "🕰", label: e.q, desc: e.tag }));
+  }, [q, userData?.settings?.timelineEvents]);
+
   const filteredRoutes = query.trim()
     ? ROUTES.filter(r =>
         r.label.includes(query.toLowerCase()) ||
@@ -56,7 +139,15 @@ export default function CommandPalette() {
       )
     : ROUTES;
 
-  const allResults = [...filteredRoutes, ...matchingEntries];
+  const allResults: Hit[] = [
+    ...filteredRoutes,
+    ...matchingEntries,
+    ...matchingTimeline,
+    ...matchingCapsules,
+    ...matchingBucket,
+    ...matchingWatch,
+    ...matchingVoice,
+  ];
   const totalItems = allResults.length;
 
   // Ctrl+K / Cmd+K
@@ -136,29 +227,60 @@ export default function CommandPalette() {
 
             {/* Results */}
             <div style={{maxHeight:380, overflowY:"auto", scrollbarWidth:"none" as const}}>
-              {/* Entries section header */}
-              {filteredRoutes.length > 0 && matchingEntries.length > 0 && (
-                <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(var(--pink-deep-rgb),.35)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.7rem 1.25rem 0.2rem",margin:0}}>
-                  pages
-                </p>
+              {/* Group: pages */}
+              {filteredRoutes.length > 0 && (filteredRoutes.length !== ROUTES.length || query.trim()) && (
+                <GroupLabel>pages</GroupLabel>
               )}
-
-              {/* Routes */}
               {filteredRoutes.map((r, i) => (
-                <ResultRow key={r.href} r={r} idx={i} sel={sel} onSelect={setSel}
+                <ResultRow key={`r-${r.href}`} r={r} idx={i} sel={sel} onSelect={setSel}
                   onClick={() => { router.push(r.href); setOpen(false); }}/>
               ))}
 
-              {/* Journal entries section header */}
-              {matchingEntries.length > 0 && (
-                <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(var(--pink-deep-rgb),.35)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.7rem 1.25rem 0.2rem",margin:0}}>
-                  journal entries
-                </p>
-              )}
-
-              {/* Matching journal entries */}
+              {/* Group: journal entries */}
+              {matchingEntries.length > 0 && <GroupLabel>journal entries</GroupLabel>}
               {matchingEntries.map((r, i) => (
-                <ResultRow key={r.href} r={r} idx={filteredRoutes.length + i} sel={sel} onSelect={setSel}
+                <ResultRow key={`e-${r.href}-${i}`} r={r}
+                  idx={filteredRoutes.length + i} sel={sel} onSelect={setSel}
+                  onClick={() => { router.push(r.href); setOpen(false); }}/>
+              ))}
+
+              {/* Group: timeline */}
+              {matchingTimeline.length > 0 && <GroupLabel>timeline</GroupLabel>}
+              {matchingTimeline.map((r, i) => (
+                <ResultRow key={`t-${i}`} r={r}
+                  idx={filteredRoutes.length + matchingEntries.length + i} sel={sel} onSelect={setSel}
+                  onClick={() => { router.push(r.href); setOpen(false); }}/>
+              ))}
+
+              {/* Group: time capsules */}
+              {matchingCapsules.length > 0 && <GroupLabel>capsules</GroupLabel>}
+              {matchingCapsules.map((r, i) => (
+                <ResultRow key={`c-${i}`} r={r}
+                  idx={filteredRoutes.length + matchingEntries.length + matchingTimeline.length + i} sel={sel} onSelect={setSel}
+                  onClick={() => { router.push(r.href); setOpen(false); }}/>
+              ))}
+
+              {/* Group: bucket list */}
+              {matchingBucket.length > 0 && <GroupLabel>bucket list</GroupLabel>}
+              {matchingBucket.map((r, i) => (
+                <ResultRow key={`b-${i}`} r={r}
+                  idx={filteredRoutes.length + matchingEntries.length + matchingTimeline.length + matchingCapsules.length + i} sel={sel} onSelect={setSel}
+                  onClick={() => { router.push(r.href); setOpen(false); }}/>
+              ))}
+
+              {/* Group: watchlist */}
+              {matchingWatch.length > 0 && <GroupLabel>watchlist</GroupLabel>}
+              {matchingWatch.map((r, i) => (
+                <ResultRow key={`w-${i}`} r={r}
+                  idx={filteredRoutes.length + matchingEntries.length + matchingTimeline.length + matchingCapsules.length + matchingBucket.length + i} sel={sel} onSelect={setSel}
+                  onClick={() => { router.push(r.href); setOpen(false); }}/>
+              ))}
+
+              {/* Group: voice notes */}
+              {matchingVoice.length > 0 && <GroupLabel>voice notes</GroupLabel>}
+              {matchingVoice.map((r, i) => (
+                <ResultRow key={`v-${i}`} r={r}
+                  idx={filteredRoutes.length + matchingEntries.length + matchingTimeline.length + matchingCapsules.length + matchingBucket.length + matchingWatch.length + i} sel={sel} onSelect={setSel}
                   onClick={() => { router.push(r.href); setOpen(false); }}/>
               ))}
 
@@ -184,6 +306,14 @@ export default function CommandPalette() {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function GroupLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{fontFamily:SANS,fontSize:"0.58rem",color:"rgba(var(--pink-deep-rgb),.4)",letterSpacing:"0.14em",textTransform:"uppercase",padding:"0.75rem 1.25rem 0.25rem",margin:0,fontWeight:700}}>
+      {children}
+    </p>
   );
 }
 

@@ -1,10 +1,11 @@
 "use client";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
 import { SERIF, SANS } from "@/lib/typography";
+import { chime, buzz } from "@/lib/haptics";
 
 
 /* Theme-adaptive: dark accent text on light section in light mode,
@@ -33,6 +34,18 @@ export default function StreakTracker() {
     const todayKey=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
     return { streak: cur, longest: max, todayDone: dates.has(todayKey), celebrate: cur >= 7 };
   }, [data]);
+
+  // Buzz + soft chime exactly once when a milestone is crossed mid-session
+  const milestoneRef = useRef<number>(-1);
+  useEffect(() => {
+    const tiers = [3, 7, 14, 30, 60, 100];
+    const hit = tiers.find(t => streak === t);
+    if (hit !== undefined && milestoneRef.current !== hit) {
+      milestoneRef.current = hit;
+      buzz("double");
+      chime(0.22);
+    }
+  }, [streak]);
 
   if (loading) return <SectionSkeleton accent="rgba(var(--pink-rgb),.25)" lines={5}/>;
 
