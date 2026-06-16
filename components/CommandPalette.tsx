@@ -199,6 +199,7 @@ export default function CommandPalette() {
           }}>
           <motion.div
             key="cp-box"
+            className="cmd-palette"
             initial={{opacity:0,y:-18,scale:.96}} animate={{opacity:1,y:0,scale:1}}
             exit={{opacity:0,y:-18,scale:.96}}
             transition={{duration:.2,ease:[.16,1,.3,1]}}
@@ -323,26 +324,31 @@ function ResultRow({ r, idx, sel, onSelect, onClick }: {
   onSelect: (i: number) => void;
   onClick: () => void;
 }) {
+  const active = sel === idx;
   return (
-    <div onClick={onClick} onMouseEnter={() => onSelect(idx)}
+    <div
+      className="cp-row"
+      data-selected={active}
+      onClick={onClick}
+      onMouseEnter={() => onSelect(idx)}
       style={{
         display:"flex", alignItems:"center", gap:"1rem",
         padding:"0.88rem 1.25rem",
         cursor:"pointer",
-        background: sel === idx ? "rgba(var(--pink-deep-rgb),.07)" : "transparent",
-        borderLeft:`3px solid ${sel === idx ? "var(--pink-deep)" : "transparent"}`,
+        background: active ? "rgba(var(--pink-deep-rgb),.07)" : "transparent",
+        borderLeft:`3px solid ${active ? "var(--pink-deep)" : "transparent"}`,
         transition:"background .1s",
       }}>
       <span style={{fontSize:r.isEntry?"1rem":"1.25rem",lineHeight:1,flexShrink:0}}>{r.emoji}</span>
       <div style={{flex:1,minWidth:0}}>
-        <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:sel===idx?"var(--pink-deep)":"#7c3f58",margin:"0 0 0.06rem",fontWeight:400}}>
+        <p className="cp-label" style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:active?"var(--pink-deep)":"#7c3f58",margin:"0 0 0.06rem",fontWeight:400}}>
           {r.label}
         </p>
-        <p style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-deep-rgb),.42)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+        <p className="cp-desc" style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-deep-rgb),.42)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
           {r.desc}
         </p>
       </div>
-      {sel === idx && <kbd style={KBD}>↵</kbd>}
+      {active && <kbd style={KBD}>↵</kbd>}
     </div>
   );
 }

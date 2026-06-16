@@ -136,6 +136,48 @@ html.dark nav {
    classNames added to the elements in each component file.
    ───────────────────────────────────────────────────────────────── */
 
+/* CommandPalette (Cmd+K) — the panel + every text color inside is
+   hardcoded for light mode in JS. Override them all here in dark so the
+   palette tints with the active theme instead of staying cream-with-plum. */
+html.dark .cmd-palette {
+  background: rgba(14, 6, 22, 0.96) !important;
+  border-color: rgba(var(--pink-rgb), 0.35) !important;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(var(--pink-rgb), 0.18) !important;
+}
+html.dark .cmd-palette input {
+  color: var(--text) !important;
+  caret-color: var(--pink-deep);
+}
+html.dark .cmd-palette input::placeholder {
+  color: rgba(var(--pink-rgb), 0.5) !important;
+}
+/* Result rows — unselected label was hardcoded plum, override with text;
+   selected label gets the theme accent. Description is dimmer. */
+html.dark .cmd-palette .cp-row[data-selected="false"] .cp-label {
+  color: var(--text) !important;
+}
+html.dark .cmd-palette .cp-row[data-selected="true"] .cp-label {
+  color: var(--pink-deep) !important;
+}
+html.dark .cmd-palette .cp-desc {
+  color: rgba(var(--pink-rgb), 0.55) !important;
+}
+/* Strongerselection tint on dark — .07 is invisible against the dark panel */
+html.dark .cmd-palette .cp-row[data-selected="true"] {
+  background: rgba(var(--pink-deep-rgb), 0.18) !important;
+}
+/* Empty-state message */
+html.dark .cmd-palette > div > p {
+  color: rgba(var(--pink-rgb), 0.55) !important;
+}
+html.dark .cmd-palette kbd {
+  color: rgba(var(--pink-rgb), 0.7) !important;
+  background: rgba(var(--pink-rgb), 0.10) !important;
+  border-color: rgba(var(--pink-rgb), 0.22) !important;
+}
+
 /* Watchlist status pills — light-mode colors are baked into JS; in dark
    mode they collapse (e.g. gold-on-gold). Override per status here so
    each pill stays high-contrast against the dark card. */
