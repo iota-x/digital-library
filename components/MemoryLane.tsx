@@ -431,11 +431,11 @@ function Pill({ label,active,onClick }:{ label:string; active:boolean; onClick:(
   return (
     <motion.button onClick={onClick} whileHover={{scale:1.06}} whileTap={{scale:0.93}}
       style={{flexShrink:0,padding:"0.34rem 0.88rem",borderRadius:50,cursor:"pointer",
-        background:active?"linear-gradient(135deg,var(--pink),var(--pink-deep))":"rgba(255,255,255,.75)",
-        color:active?"#fff":"rgba(var(--pink-deep-rgb),.65)",
-        fontFamily:SANS,fontSize:"0.75rem",fontWeight:active?700:400,
-        border:active?"1.5px solid transparent":"1px solid rgba(var(--pink-deep-rgb),.2)",
-        boxShadow:active?"0 3px 16px rgba(var(--pink-deep-rgb),.32)":"0 1px 6px rgba(var(--pink-deep-rgb),.07)"}}>
+        background:active?"linear-gradient(135deg,var(--pink),var(--pink-deep))":"rgba(var(--pink-rgb),.14)",
+        color:active?"#fff":"var(--text)",
+        fontFamily:SANS,fontSize:"0.75rem",fontWeight:active?700:500,
+        border:active?"1.5px solid transparent":"1px solid rgba(var(--pink-rgb),.3)",
+        boxShadow:active?"0 3px 16px rgba(var(--pink-deep-rgb),.32)":"0 1px 6px rgba(var(--pink-deep-rgb),.05)"}}>
       {label}
     </motion.button>
   );
@@ -575,7 +575,7 @@ export default function MemoryLane() {
           {entries.length>0&&(
             <motion.button onClick={surprise} disabled={spinning}
               whileHover={{scale:1.06,y:-3,boxShadow:"0 16px 44px rgba(var(--pink-deep-rgb),.32)"}} whileTap={{scale:0.95}}
-              style={{padding:"0.82rem 2.2rem",borderRadius:50,border:"1.5px solid rgba(var(--pink-deep-rgb),.3)",background:"rgba(255,255,255,.82)",color:PINK,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",cursor:"pointer",backdropFilter:"blur(14px)",boxShadow:"0 4px 22px rgba(var(--pink-deep-rgb),.12)",display:"inline-flex",alignItems:"center",gap:"0.5rem"}}>
+              style={{padding:"0.82rem 2.2rem",borderRadius:50,border:"1.5px solid rgba(var(--pink-deep-rgb),.35)",background:"var(--cream)",color:PINK,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",cursor:"pointer",boxShadow:"0 4px 22px rgba(var(--pink-deep-rgb),.18)",display:"inline-flex",alignItems:"center",gap:"0.5rem"}}>
               {spinning?"finding one…":"✨ remember this?"}
             </motion.button>
           )}
@@ -584,13 +584,13 @@ export default function MemoryLane() {
         {/* Filter bar */}
         {data.length>0&&(
           <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:.12}}
-            style={{marginBottom:"2.2rem",background:"rgba(255,255,255,.6)",borderRadius:18,padding:"0.85rem 1.1rem",backdropFilter:isMobile?"none":"blur(18px)",border:"1px solid rgba(var(--pink-deep-rgb),.1)",boxShadow:"0 2px 18px rgba(var(--pink-deep-rgb),.07)"}}>
+            style={{marginBottom:"2.2rem",background:"var(--cream)",borderRadius:18,padding:"0.85rem 1.1rem",border:"1px solid rgba(var(--pink-deep-rgb),.18)",boxShadow:"0 2px 18px rgba(var(--pink-deep-rgb),.1)"}}>
             <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap",alignItems:"center",marginBottom:"0.5rem"}}>
-              <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.12em",textTransform:"uppercase"}}>sort</span>
+              <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"var(--muted)",letterSpacing:"0.12em",textTransform:"uppercase"}}>sort</span>
               <Pill label="↑ oldest" active={sort==="asc"} onClick={()=>setSort("asc")}/>
               <Pill label="↓ newest" active={sort==="desc"} onClick={()=>setSort("desc")}/>
-              <div style={{width:1,height:14,background:"rgba(var(--pink-deep-rgb),.14)",margin:"0 .15rem"}}/>
-              <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.12em",textTransform:"uppercase"}}>group</span>
+              <div style={{width:1,height:14,background:"rgba(var(--pink-deep-rgb),.22)",margin:"0 .15rem"}}/>
+              <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"var(--muted)",letterSpacing:"0.12em",textTransform:"uppercase"}}>group</span>
               <Pill label="all" active={group==="none"} onClick={()=>setGroup("none")}/>
               <Pill label="month" active={group==="month"} onClick={()=>setGroup("month")}/>
               <Pill label="year" active={group==="year"} onClick={()=>setGroup("year")}/>
