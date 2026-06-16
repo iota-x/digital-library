@@ -3,8 +3,9 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
 import BucketListIdeas from "@/components/BucketListIdeas";
-import { useConfirm } from "@/components/ConfirmDialog";
 import { BucketStore } from "@/lib/resourceStores";
+import { useSoftDelete } from "@/lib/softDelete";
+import EmptyState from "@/components/EmptyState";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -36,7 +37,7 @@ const TABS: { key: "all" | "pending" | "done"; label: string }[] = [
 ];
 
 export default function BucketList() {
-  const confirm = useConfirm();
+  const softDelete = useSoftDelete<BucketItem>();
   // Shared SWR-style store — instant from cache, revalidates in background,
   // self-updates on SSE bucketlist:* events. Replaces the manual fetch+state.
   const { data: items, loading } = BucketStore.useResource() as { data: BucketItem[]; loading: boolean };
@@ -88,19 +89,19 @@ export default function BucketList() {
 
   async function del(id: string) {
     const item = items.find(x => x._id === id);
-    const ok = await confirm({
-      title: "delete this dream?",
-      body: item ? `"${item.text}" will be removed from your bucket list.` : "This will be removed from your bucket list.",
-      confirmLabel: "delete",
-      cancelLabel: "keep it",
-      destructive: true,
-    });
-    if (!ok) return;
-    BucketStore.removeWhere(x => x._id === id);
-    await fetch("/api/bucketlist", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ _id: id }),
+    await softDelete({
+      currentItems: items,
+      setCache: BucketStore.setCache,
+      predicate: (x: BucketItem) => x._id === id,
+      toastTitle: "removed",
+      toastMessage: item ? `"${item.text}" — tap Undo to keep it.` : "Tap Undo to keep it.",
+      commit: async () => {
+        await fetch("/api/bucketlist", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ _id: id }),
+        });
+      },
     });
   }
 
@@ -299,17 +300,14 @@ export default function BucketList() {
             opening the diary… 🌸
           </div>
         ) : visible.length === 0 ? (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}}
-            style={{ textAlign:"center", padding:"4rem 2rem" }}>
-            <div style={{ fontSize:"3rem", marginBottom:"0.8rem" }}>📖</div>
-            <p style={{ fontFamily:SERIF, fontStyle:"italic", fontSize:"1.2rem",
-              color:"rgba(var(--pink-deep-rgb),.38)", margin:"0 0 0.3rem" }}>
-              {tab==="done" ? "nothing done yet — go make memories!" : "this page is empty"}
-            </p>
-            <p style={{ fontFamily:SCRIPT, fontSize:"1.05rem", color:"rgba(var(--pink-deep-rgb),.3)", margin:0 }}>
-              {tab==="done" ? "" : "write your first dream together ✨"}
-            </p>
-          </motion.div>
+          <EmptyState
+            emoji="📖"
+            title={tab === "done" ? "no completed dreams yet" : tab === "pending" ? "no dreams waiting" : "your bucket list is empty"}
+            hint={tab === "done"
+              ? "Mark something off when you do it together — it'll live here forever."
+              : "Add the things you want to do together — from tiny coffee dates to wild trips."}
+            action={tab !== "done" ? { label: "✏️ add your first dream", onClick: () => setShowInput(true) } : undefined}
+          />
         ) : (
           <div className="dk-bucket-list" style={{
             background:"var(--bucket-list-bg)",

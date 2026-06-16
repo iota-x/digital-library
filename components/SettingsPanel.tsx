@@ -77,6 +77,10 @@ export default function SettingsPanel({ open, onClose }: Props) {
 
   const originalThemeRef = useRef("pink");
   const didSaveRef       = useRef(false);
+  const initialDraftRef  = useRef<string>("");
+  const initialDateRef   = useRef<string>("");
+  // True when the draft differs from what was last loaded — drives the save-button glow
+  const dirty = JSON.stringify(draft) !== initialDraftRef.current || startDate !== initialDateRef.current;
 
   // Reset save-tracking + check push status when panel opens
   useEffect(() => {
@@ -108,6 +112,8 @@ export default function SettingsPanel({ open, onClose }: Props) {
       };
       setDraft(merged);
       setStartDate(user.startDate ?? "");
+      initialDraftRef.current = JSON.stringify(merged);
+      initialDateRef.current  = user.startDate ?? "";
       // Only update originalTheme from server data when we haven't saved yet
       if (!didSaveRef.current) {
         originalThemeRef.current = user.settings.theme ?? "pink";
@@ -534,13 +540,20 @@ export default function SettingsPanel({ open, onClose }: Props) {
 
             {/* Sticky save button */}
             <div style={{ position: "sticky", bottom: 0, background: "var(--cream)", padding: "1rem 1.6rem 1.4rem", borderTop: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+              {dirty && !saved && !saving && (
+                <p style={{ fontFamily: SANS, fontSize: "0.74rem", color: "var(--pink-deep)", margin: "0 0 0.5rem", textAlign: "center" }}>
+                  • unsaved changes
+                </p>
+              )}
               {saveErr && (
                 <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "#ef4444", marginBottom: "0.6rem", textAlign: "center" }}>
                   ⚠️ {saveErr}
                 </p>
               )}
               <motion.button
-                onClick={save} disabled={saving}
+                onClick={save} disabled={saving || (!dirty && !saved)}
+                animate={dirty && !saved ? { scale: [1, 1.015, 1] } : { scale: 1 }}
+                transition={dirty && !saved ? { duration: 2.2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
                 whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.97 }}
                 style={{
                   width: "100%", padding: "0.95rem", borderRadius: 50, border: "none",
@@ -548,11 +561,14 @@ export default function SettingsPanel({ open, onClose }: Props) {
                     ? "linear-gradient(135deg,#86efac,#4ade80)"
                     : "linear-gradient(135deg,var(--pink),var(--pink-deep))",
                   color: "#fff", fontFamily: SCRIPT, fontSize: "1.15rem",
-                  cursor: saving ? "wait" : "pointer",
-                  boxShadow: "0 4px 20px rgba(var(--pink-deep-rgb,236,72,153),.3)",
-                  opacity: saving ? 0.75 : 1, transition: "background .3s",
+                  cursor: saving ? "wait" : !dirty && !saved ? "default" : "pointer",
+                  boxShadow: dirty && !saved
+                    ? "0 6px 28px rgba(var(--pink-deep-rgb,236,72,153),.45)"
+                    : "0 4px 20px rgba(var(--pink-deep-rgb,236,72,153),.3)",
+                  opacity: saving ? 0.75 : (!dirty && !saved ? 0.55 : 1),
+                  transition: "background .3s, opacity .25s, box-shadow .25s",
                 }}>
-                {saved ? "saved! 💗" : saving ? "saving…" : "save changes 🌸"}
+                {saved ? "saved! 💗" : saving ? "saving…" : dirty ? "save changes 🌸" : "all saved ✨"}
               </motion.button>
             </div>
           </motion.div>

@@ -8,6 +8,7 @@ import PwaRegister     from "@/components/PwaRegister";
 import DarkOverlay     from "@/components/DarkOverlay";
 import AppShell        from "@/components/AppShell";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
+import { ToasterProvider } from "@/components/Toaster";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -42,16 +43,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
-        <ConfirmProvider>
-          <DarkOverlay />
-          <AppShell />
-          <ScrollToTop />
-          <Navbar />
-          <CommandPalette />
-          <SwipeNav />
-          <PwaRegister />
-          {children}
-        </ConfirmProvider>
+        <ToasterProvider>
+          <ConfirmProvider>
+            <DarkOverlay />
+            <AppShell />
+            <ScrollToTop />
+            <Navbar />
+            <CommandPalette />
+            <SwipeNav />
+            <PwaRegister />
+            {children}
+          </ConfirmProvider>
+        </ToasterProvider>
       </body>
     </html>
   );

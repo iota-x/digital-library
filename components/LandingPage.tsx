@@ -341,7 +341,8 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
       const data = await res.json();
       if (!res.ok || !data.ok) { setError(data.error || "Invalid code"); return; }
       if (verifyPending) {
-        // If they registered, surface the invite code first; otherwise straight in
+        // Mark this as a fresh account so the Onboarding component shows after entry
+        try { localStorage.removeItem("ann_onboarded_v1"); } catch {}
         if (verifyInvite && verifyPending.role === "creator") {
           setInviteCode(verifyInvite); setPendingUser(verifyPending);
         } else {

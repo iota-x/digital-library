@@ -2,9 +2,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
-import { useConfirm } from "@/components/ConfirmDialog";
 import { WatchlistStore } from "@/lib/resourceStores";
 import { cldImg, cldSrcSet } from "@/lib/cldImg";
+import { useSoftDelete } from "@/lib/softDelete";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -43,7 +43,7 @@ async function fetchPoster(title:string,type:WatchType):Promise<string[]> {
 }
 
 export default function WatchlistSection() {
-  const confirm = useConfirm();
+  const softDelete = useSoftDelete<WatchItem>();
   const { data: items, loading } = WatchlistStore.useResource() as { data: WatchItem[]; loading: boolean };
   const load = () => WatchlistStore.refresh();
   const [tab,    setTab]     = useState<WatchStatus|"all">("all");
@@ -94,16 +94,17 @@ export default function WatchlistSection() {
 
   async function del(id:string){
     const item = items.find(i=>i._id===id);
-    const ok = await confirm({
-      title: "remove from watchlist?",
-      body: item ? `"${item.title}" will be removed from your shared watchlist.` : "This will be removed from your shared watchlist.",
-      confirmLabel: "remove",
-      cancelLabel: "keep it",
-      destructive: true,
+    await softDelete({
+      currentItems: items,
+      setCache: WatchlistStore.setCache,
+      predicate: (x: WatchItem) => x._id === id,
+      toastTitle: "removed from watchlist",
+      toastMessage: item ? `"${item.title}" — tap Undo.` : "Tap Undo to keep it.",
+      commit: async () => {
+        await fetch("/api/watchlist",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({_id:id})});
+        WatchlistStore.refresh();
+      },
     });
-    if (!ok) return;
-    await fetch("/api/watchlist",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({_id:id})});
-    load();
   }
 
   const done    = items.filter(i=>i.status==="completed").length;

@@ -2,9 +2,10 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
-import { useConfirm } from "@/components/ConfirmDialog";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { VoiceNoteStore } from "@/lib/resourceStores";
+import { useSoftDelete } from "@/lib/softDelete";
+import EmptyState from "@/components/EmptyState";
 
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -127,7 +128,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
 
 export default function VoiceNote() {
   const userData = useUserData();
-  const confirm = useConfirm();
+  const softDelete = useSoftDelete<VNote>();
   const { data: notes } = VoiceNoteStore.useResource() as { data: VNote[] };
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -205,6 +206,10 @@ export default function VoiceNote() {
         VoiceNoteStore.refresh();
         setFrom(""); setLabel(""); setShowForm(false);
         setSaved(true); setTimeout(() => setSaved(false), 3000);
+        // Contextually suggest enabling push — first voice note is a good moment.
+        window.dispatchEvent(new CustomEvent("annapp:push-suggest", {
+          detail: { reason: `Want a heads up when ${userData?.partnerName ?? "your partner"} sends you a voice note?` }
+        }));
       } catch (e) {
         alert("Upload failed — check your internet and try again.");
         console.error(e);
@@ -217,16 +222,16 @@ export default function VoiceNote() {
 
   async function deleteNote(id: string) {
     const note = notes.find(n => n.id === id);
-    const ok = await confirm({
-      title: "delete this voice note?",
-      body: note?.label ? `"${note.label}" will be permanently removed.` : "This voice note will be permanently removed for both of you.",
-      confirmLabel: "delete",
-      cancelLabel: "keep it",
-      destructive: true,
+    await softDelete({
+      currentItems: notes,
+      setCache: VoiceNoteStore.setCache,
+      predicate: (x: VNote) => x.id === id,
+      toastTitle: "voice note removed",
+      toastMessage: note?.label ? `"${note.label}" — tap Undo.` : "Tap Undo to keep it.",
+      commit: async () => {
+        await fetch("/api/voicenotes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      },
     });
-    if (!ok) return;
-    VoiceNoteStore.removeWhere(x => x.id === id);
-    await fetch("/api/voicenotes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
   }
 
   return (
@@ -376,12 +381,12 @@ export default function VoiceNote() {
         </AnimatePresence>
 
         {notes.length === 0 && !showForm && !recording && (
-          <div style={{ textAlign: "center", padding: "2rem 0" }}>
-            <p style={{ fontFamily: SCRIPT, fontSize: "1.1rem", color: "rgba(var(--pink-deep-rgb),.4)", lineHeight: 1.8, margin: 0 }}>
-              because hearing your voice is my favourite thing.<br />
-              <strong style={{ color: "var(--pink-deep)" }}>so i thought maybe you should hear mine too.</strong>
-            </p>
-          </div>
+          <EmptyState
+            emoji="🎙️"
+            title="no voice notes yet"
+            hint="A 10-second hello, an inside joke, a song you sang in the car — leave one for your favourite person."
+            action={{ label: "🎙️ record your first one", onClick: () => setShowForm(true) }}
+          />
         )}
       </motion.div>
     </section>

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
+import EmptyState from "@/components/EmptyState";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -114,12 +115,12 @@ export default function MonthlyRecap() {
         </div>
 
         {isEmpty?(
-          <div style={{textAlign:"center",padding:"4rem 1rem"}}>
-            <div style={{fontSize:"2.5rem",marginBottom:"1rem",opacity:0.45}}>🌙</div>
-            <p style={{fontFamily:SANS,fontSize:"0.95rem",color:"var(--muted)",margin:0}}>
-              No memories logged for {MONTHS[viewMonth]} yet
-            </p>
-          </div>
+          <EmptyState
+            emoji="🌙"
+            title={`nothing logged for ${MONTHS[viewMonth]}`}
+            hint="Tap a day in the calendar above and drop a note, mood, or photo to start filling this month in."
+            size="inline"
+          />
         ):(
           <>
             {/* Stats */}

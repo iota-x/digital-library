@@ -29,12 +29,13 @@ export const VoiceNoteStore = createResourceStore<VNote>({
   sseEventTypes: ["voicenote:"],
 });
 
-/* ── Watchlist ───────────────────────────────────────────────── */
+/* ── Watchlist ───────────────────────────────────────────────────
+   Schema mirrors WatchlistSection.tsx — keep them in sync.            */
 export interface WatchItem {
   _id: string;
   title: string;
-  type: "movie" | "tv" | "anime" | "manga" | "kdrama" | "documentary" | "other";
-  status: "plan-to-watch" | "watching" | "completed" | "dropped";
+  type: "movie" | "series" | "anime";
+  status: "plan-to-watch" | "watching" | "completed";
   rating?: number | null;
   notes?: string;
   coverImage?: string;

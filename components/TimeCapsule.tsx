@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { cldImg, cldThumb } from "@/lib/cldImg";
+import EmptyState from "@/components/EmptyState";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -436,10 +437,12 @@ export default function TimeCapsule() {
         </AnimatePresence>
 
         {unlocked.length===0&&pending.length===0&&!composing&&(
-          <div style={{textAlign:"center",padding:"3rem 1rem"}}>
-            <div style={{fontSize:"2.5rem",marginBottom:"0.8rem",opacity:0.45}}>💌</div>
-            <p style={{fontFamily:SANS,fontSize:"0.9rem",color:"var(--muted)",margin:0}}>No letters yet — write the first one</p>
-          </div>
+          <EmptyState
+            emoji="💌"
+            title="no letters sealed yet"
+            hint="Write something only the future you two will read. A pep talk, a thank-you, a promise — sealed until any date you pick."
+            action={{ label: "✍️ write the first letter", onClick: () => setComposing(true) }}
+          />
         )}
       </motion.div>
     </section>

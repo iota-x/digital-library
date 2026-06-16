@@ -3,8 +3,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { useUserData, clearUserData } from "@/lib/userStore";
+import { useUserData, clearUserData, updateUserData } from "@/lib/userStore";
 import { invalidateCalendarCache } from "@/lib/calendarStore";
+import { useToast } from "@/components/Toaster";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const ROUTES = [
   { href: "/",         label: "home",      emoji: "🌸" },
@@ -32,6 +34,9 @@ export default function Navbar() {
   const [vnBadge,     setVnBadge]     = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [copied,       setCopied]       = useState(false);
+  const [rotating,     setRotating]     = useState(false);
+  const toaster = useToast();
+  const confirm = useConfirm();
 
   /* scroll shadow */
   useEffect(() => {
@@ -89,6 +94,30 @@ export default function Navbar() {
     navigator.clipboard.writeText(user.inviteCode).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const rotateInviteCode = async () => {
+    if (!user || rotating) return;
+    const ok = await confirm({
+      title: "rotate invite code?",
+      body: "A new code will be generated. The old code will stop working immediately. Use this if you accidentally shared the old one.",
+      confirmLabel: "rotate",
+      cancelLabel: "cancel",
+    });
+    if (!ok) return;
+    setRotating(true);
+    try {
+      const res = await fetch("/api/couples/invite-code", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        toaster.toast({ variant: "error", message: data.error || "Couldn't rotate code", durationMs: 4000 });
+        return;
+      }
+      updateUserData({ inviteCode: data.inviteCode });
+      toaster.toast({ variant: "success", title: "new invite code", message: data.inviteCode, durationMs: 6000 });
+    } catch {
+      toaster.toast({ variant: "error", message: "Network error — try again.", durationMs: 4000 });
+    } finally { setRotating(false); }
   };
 
   return (
@@ -275,6 +304,16 @@ export default function Navbar() {
                           >
                             {copied ? "✓" : "copy"}
                           </button>
+                          {user.role === "creator" && !user.partnerName && (
+                            <button
+                              onClick={rotateInviteCode}
+                              disabled={rotating}
+                              title="generate a new code if you accidentally shared the old one"
+                              style={{ background: "transparent", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: rotating ? "wait" : "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--muted)" }}
+                            >
+                              {rotating ? "…" : "rotate"}
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}

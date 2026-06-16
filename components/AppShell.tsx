@@ -3,6 +3,9 @@ import { useState, useEffect, useCallback } from "react";
 import ThemeProvider         from "@/components/ThemeProvider";
 import SettingsPanel         from "@/components/SettingsPanel";
 import MilestoneCelebration  from "@/components/MilestoneCelebration";
+import ShortcutSheet         from "@/components/ShortcutSheet";
+import Onboarding            from "@/components/Onboarding";
+import PushPrompt            from "@/components/PushPrompt";
 
 export default function AppShell() {
   const [open, setOpen] = useState(false);
@@ -19,6 +22,9 @@ export default function AppShell() {
     <>
       <ThemeProvider />
       <MilestoneCelebration />
+      <Onboarding />
+      <PushPrompt />
+      <ShortcutSheet />
       <SettingsPanel open={open} onClose={handleClose} />
     </>
   );

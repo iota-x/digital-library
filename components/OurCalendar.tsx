@@ -370,7 +370,52 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   }, []);
 
   const removeMedia = (i: number) => setDraft(d => ({ ...d, photos: (d.photos || []).filter((_, idx) => idx !== i) }));
-  const save = async () => { setSaving(true); await onSave(draft); setSaving(false); };
+
+  // Track autosave state for an inline indicator
+  const [autoState, setAutoState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
+  const [savedAt,   setSavedAt]   = useState<Date | null>(null);
+  const lastSerialised = useRef<string>("");
+  const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Init the baseline on mount so opening an entry doesn't flag it dirty
+  useEffect(() => {
+    lastSerialised.current = JSON.stringify(draft);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced autosave — 1.4s of inactivity
+  useEffect(() => {
+    const current = JSON.stringify(draft);
+    if (current === lastSerialised.current) return;
+    setAutoState("dirty");
+    if (autoTimer.current) clearTimeout(autoTimer.current);
+    autoTimer.current = setTimeout(async () => {
+      setAutoState("saving");
+      try {
+        await onSave(draft);
+        lastSerialised.current = JSON.stringify(draft);
+        setSavedAt(new Date());
+        setAutoState("saved");
+        setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
+      } catch {
+        setAutoState("error");
+      }
+    }, 1400);
+    return () => { if (autoTimer.current) clearTimeout(autoTimer.current); };
+  }, [draft, onSave]);
+
+  const save = async () => {
+    if (autoTimer.current) clearTimeout(autoTimer.current);
+    setSaving(true); setAutoState("saving");
+    try {
+      await onSave(draft);
+      lastSerialised.current = JSON.stringify(draft);
+      setSavedAt(new Date());
+      setAutoState("saved");
+      setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
+    } catch { setAutoState("error"); }
+    finally { setSaving(false); }
+  };
 
   // ESC closes the day view, but only when the lightbox isn't open (lightbox handles its own ESC)
   useEscKey(onClose, lbIdx === null);
@@ -543,6 +588,34 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                   </AnimatePresence>
                 </div>
 
+                {/* Autosave indicator */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.45rem", padding: "0 0 0.4rem", minHeight: 18, fontFamily: SANS, fontSize: "0.72rem" }}>
+                  {autoState === "saving" && (
+                    <>
+                      <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }} style={{ display: "inline-block", color: "var(--muted)" }}>✦</motion.span>
+                      <span style={{ color: "var(--muted)" }}>saving…</span>
+                    </>
+                  )}
+                  {autoState === "saved" && (
+                    <>
+                      <span style={{ color: "#16a34a" }}>✓</span>
+                      <span style={{ color: "var(--muted)" }}>saved {savedAt ? "just now" : ""}</span>
+                    </>
+                  )}
+                  {autoState === "dirty" && (
+                    <>
+                      <span style={{ color: "var(--muted)" }}>•</span>
+                      <span style={{ color: "var(--muted)" }}>unsaved changes</span>
+                    </>
+                  )}
+                  {autoState === "error" && (
+                    <>
+                      <span style={{ color: "#ef4444" }}>⚠</span>
+                      <span style={{ color: "#ef4444" }}>save failed — retry?</span>
+                    </>
+                  )}
+                </div>
+
                 {/* Actions */}
                 <div style={{ display: "flex", gap: "0.8rem", paddingBottom: "1rem" }}>
                   <motion.button onClick={save} disabled={saving || uploading}
@@ -565,6 +638,45 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
         {lbIdx !== null && <Lightbox media={draft.photos!} startIdx={lbIdx} onClose={() => setLbIdx(null)} />}
       </AnimatePresence>
     </>
+  );
+}
+
+/* ─── one-time swipe hint ─── */
+function SwipeHint() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("ann_swipe_hint_v1")) return;
+    } catch {}
+    const t = setTimeout(() => setShow(true), 800);
+    return () => clearTimeout(t);
+  }, []);
+  if (!show) return null;
+  const dismiss = () => {
+    try { localStorage.setItem("ann_swipe_hint_v1", "seen"); } catch {}
+    setShow(false);
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+      onClick={dismiss}
+      style={{
+        display: "flex", alignItems: "center", justifyContent: "center", gap: "0.55rem",
+        background: "rgba(var(--pink-rgb),.14)",
+        border: "1px dashed rgba(var(--pink-rgb),.5)",
+        borderRadius: 50, padding: "0.45rem 1rem",
+        margin: "0 auto 0.9rem", maxWidth: 320,
+        fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
+        fontSize: "0.74rem", color: "var(--text)",
+        cursor: "pointer",
+      }}
+      onAnimationComplete={() => setTimeout(() => { try { localStorage.setItem("ann_swipe_hint_v1", "seen"); } catch {} }, 6000)}
+    >
+      <motion.span animate={{ x: [-4, 4, -4] }} transition={{ repeat: Infinity, duration: 1.6 }}>👈</motion.span>
+      <span>swipe to change months</span>
+      <motion.span animate={{ x: [4, -4, 4] }} transition={{ repeat: Infinity, duration: 1.6 }}>👉</motion.span>
+      <span style={{ color: "var(--muted)", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</span>
+    </motion.div>
   );
 }
 
@@ -659,6 +771,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
       </motion.div>
 
       <div style={{ position: "relative", zIndex: 2, maxWidth: 780, margin: "0 auto" }}>
+        <SwipeHint />
         <motion.div animate={{ rotateY: flipDir === "right" ? -12 : flipDir === "left" ? 12 : 0, scale: flipDir ? 0.97 : 1, opacity: flipDir ? 0.6 : 1 }} transition={{ duration: 0.24, ease: "easeInOut" }}
           className="dk-cal-card"
           style={{ background: "var(--cal-card-bg)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "var(--cal-card-shadow)" }}>
