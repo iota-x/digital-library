@@ -1,16 +1,18 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
-import { useUserData } from "@/lib/userStore";
-import { getMemoryCards } from "@/lib/themes";
+import { useUserData, updateSettings } from "@/lib/userStore";
+import { DEFAULT_MEMORY_CARDS, type MemoryCardEntry } from "@/lib/themes";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { useFocusTrap } from "@/lib/useFocusTrap";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
 // Stable card rotations — applied to whichever cards we render
 const ROTATIONS = [-2, 1.5, -1, 2, -2.5, 1, -1.8, 2.2, -1.4, 1.6];
 
-// Personal memories that only render for Ankit & Juhi's account
-const ANKIT_JUHI_MEMORIES = [
+// Personal seed for Ankit & Juhi — used when they haven't edited anything yet
+const ANKIT_JUHI_MEMORIES: MemoryCardEntry[] = [
   { title: "The Beginning 🌸", body: "So it all started when we met on that one valorant swift LMAO, but it was so much more than that for me personally. You've literally become the person I care the most about in this world. I think of you even more than I think of myself at times. You have that effect on me, you're just magical I genuinely want to immerse myself in this beautiful journey of ours ♡ " },
   { title: "Your voice 💗",     body: "Aapki voice toh is something I can most definitely say is my weakness, it is literally so cute and hot at the same time. I just can't explain how much I get turned on just listening to you on a daily basis <3 There are times when so sound soooooo cutee and ofc there are times when you sound so fuckin hot omg. But anyways, I feel blessed listening to you daily its like im so lucky that I get to listen to you daily? and like always? im literally so lucky and blessed to have you MWAHHHH" },
   { title: "us at 2 am 🌷",    body: "Our late night calls are something which kinda grew on me so much that at this point its a non-negotiable in our books! I can safely say its the best part of my day or one of the best parts truly, listening to you while you're almost asleep or very eepy is so fuckin cute omg and we do talk some crazy stuff out there. It all feels like a dream to me sometimes and is a very good dream which genuinely came true and im legit so grateful and proud of myself that I made it true? Our late night talks are very comfy and something I look forward to the whole day cuz I can't wait to talk to you while we're both so comfy on our beds and sharing our deep thoughts or resolving stuff or doing stuff or sending reels or laughing ahahah we're so cute together like frfr. " },
@@ -36,67 +38,113 @@ interface Variant {
 }
 
 const CARD_VARIANTS: Variant[] = [
-  // 1 — pinned sticky note (lined paper, themed pin)
-  {
-    bg: "var(--cream)",
-    border: "1px solid rgba(var(--pink-rgb),.45)",
-    extraStyle: {
-      backgroundImage: "repeating-linear-gradient(transparent, transparent 26px, rgba(var(--pink-deep-rgb),.12) 27px)",
-      borderTop: "4px solid var(--pink)",
-    },
-    decor: { emoji: "📌", pos: "top-center", rotate: 0 },
-  },
-  // 2 — translucent ribbon card (warm theme glass)
-  {
-    bg: "linear-gradient(135deg, rgba(var(--pink-rgb),.32) 0%, rgba(var(--pink-rgb),.18) 100%)",
+  { bg: "var(--cream)", border: "1px solid rgba(var(--pink-rgb),.45)",
+    extraStyle: { backgroundImage: "repeating-linear-gradient(transparent, transparent 26px, rgba(var(--pink-deep-rgb),.12) 27px)", borderTop: "4px solid var(--pink)" },
+    decor: { emoji: "📌", pos: "top-center", rotate: 0 } },
+  { bg: "linear-gradient(135deg, rgba(var(--pink-rgb),.32) 0%, rgba(var(--pink-rgb),.18) 100%)",
     border: "1px solid rgba(var(--pink-rgb),.5)",
-    decor: { emoji: "🎀", pos: "top-right", rotate: 18 },
-    titleColor: "var(--pink-deep)",
-  },
-  // 3 — polaroid (cream with thick accent edge on left)
-  {
-    bg: "var(--cream)",
-    border: "1px solid rgba(var(--pink-deep-rgb),.35)",
+    decor: { emoji: "🎀", pos: "top-right", rotate: 18 }, titleColor: "var(--pink-deep)" },
+  { bg: "var(--cream)", border: "1px solid rgba(var(--pink-deep-rgb),.35)",
     extraStyle: { borderLeft: "5px solid var(--pink-deep)" },
-    decor: { emoji: "🌸", pos: "top-left", rotate: -12 },
-  },
-  // 4 — sealed letter (gradient + double border + star)
-  {
-    bg: "linear-gradient(160deg, rgba(var(--pink-mid-rgb),.55) 0%, rgba(var(--pink-rgb),.32) 100%)",
+    decor: { emoji: "🌸", pos: "top-left", rotate: -12 } },
+  { bg: "linear-gradient(160deg, rgba(var(--pink-mid-rgb),.55) 0%, rgba(var(--pink-rgb),.32) 100%)",
     border: "1.5px double rgba(var(--pink-deep-rgb),.6)",
-    decor: { emoji: "⭐", pos: "top-right", rotate: -8 },
-    titleColor: "var(--pink-deep)",
-  },
-  // 5 — tape-cornered note (dashed border)
-  {
-    bg: "rgba(var(--pink-rgb),.14)",
-    border: "1.5px dashed rgba(var(--pink-rgb),.6)",
-    decor: { emoji: "🩹", pos: "top-center", rotate: -4 },
-  },
-  // 6 — postcard (deep gradient + stamp corner)
-  {
-    bg: "linear-gradient(135deg, rgba(var(--pink-deep-rgb),.32) 0%, rgba(var(--pink-rgb),.18) 100%)",
+    decor: { emoji: "⭐", pos: "top-right", rotate: -8 }, titleColor: "var(--pink-deep)" },
+  { bg: "rgba(var(--pink-rgb),.14)", border: "1.5px dashed rgba(var(--pink-rgb),.6)",
+    decor: { emoji: "🩹", pos: "top-center", rotate: -4 } },
+  { bg: "linear-gradient(135deg, rgba(var(--pink-deep-rgb),.32) 0%, rgba(var(--pink-rgb),.18) 100%)",
     border: "1px solid rgba(var(--pink-deep-rgb),.5)",
     extraStyle: { borderTop: "4px solid rgba(var(--pink-deep-rgb),.6)" },
-    decor: { emoji: "💌", pos: "top-right", rotate: 14 },
-    titleColor: "var(--pink-deep)",
-  },
+    decor: { emoji: "💌", pos: "top-right", rotate: 14 }, titleColor: "var(--pink-deep)" },
 ];
 
+interface EditorState {
+  index: number | "new";
+  title: string;
+  body: string;
+  isPrompt: boolean;  // body is just a question — clear it on focus
+}
+
 export default function MemoryCards() {
-  const [active, setActive] = useState<number | null>(null);
   const ref = useRef(null);
   const inView = useInView(ref, { once:true, margin:"-80px" });
-  useEscKey(() => setActive(null), active !== null);
   const userData = useUserData();
   const isMobile = useIsMobile();
 
-  // Memory source: personal for Ankit & Juhi, otherwise couple's saved cards or generic defaults
-  const MEMORIES = isAnkitJuhi(userData?.name, userData?.partnerName)
-    ? ANKIT_JUHI_MEMORIES
-    : getMemoryCards(userData?.settings);
+  // Seed source — Ankit & Juhi get their personal memories as starter, others
+  // get the generic question prompts. Either can edit on the spot.
+  const seed = useMemo<MemoryCardEntry[]>(() =>
+    isAnkitJuhi(userData?.name, userData?.partnerName)
+      ? ANKIT_JUHI_MEMORIES
+      : DEFAULT_MEMORY_CARDS,
+    [userData?.name, userData?.partnerName]
+  );
 
-  const activeVariant = active !== null ? CARD_VARIANTS[active % CARD_VARIANTS.length] : null;
+  // Local mirror of saved cards so optimistic UI is instant
+  const [cards, setCards] = useState<MemoryCardEntry[]>(() => {
+    const saved = userData?.settings?.memoryCards;
+    return saved && saved.length > 0 ? saved : seed;
+  });
+
+  // Stay in sync when settings change from elsewhere (settings panel, partner edit)
+  useEffect(() => {
+    const saved = userData?.settings?.memoryCards;
+    if (saved && saved.length > 0) setCards(saved);
+  }, [userData?.settings?.memoryCards]);
+
+  const [editor, setEditor] = useState<EditorState | null>(null);
+  const [saving, setSaving] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(editorRef, { active: editor !== null, onEscape: () => setEditor(null) });
+  useEscKey(() => setEditor(null), editor !== null);
+
+  const persist = async (next: MemoryCardEntry[]) => {
+    if (!userData?.settings) return;
+    const settings = { ...userData.settings, memoryCards: next };
+    setSaving(true);
+    try {
+      await fetch("/api/couples/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings }),
+      });
+      updateSettings(settings);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEdit = (i: number) => {
+    const c = cards[i];
+    // If the card is still showing the prompt seed (not user-edited), treat
+    // body as a placeholder the user should overwrite, not append to.
+    const savedFromUser = userData?.settings?.memoryCards;
+    const isPrompt = !savedFromUser || savedFromUser.length === 0;
+    setEditor({ index: i, title: c.title, body: isPrompt ? "" : c.body, isPrompt });
+  };
+  const openNew = () => setEditor({ index: "new", title: "", body: "", isPrompt: false });
+
+  const saveEditor = async () => {
+    if (!editor) return;
+    const trimmedTitle = editor.title.trim() || "untitled 🌸";
+    const trimmedBody  = editor.body.trim();
+    let next: MemoryCardEntry[];
+    if (editor.index === "new") {
+      next = [...cards, { title: trimmedTitle, body: trimmedBody }];
+    } else {
+      next = cards.map((c, idx) => idx === editor.index ? { title: trimmedTitle, body: trimmedBody } : c);
+    }
+    setCards(next);
+    setEditor(null);
+    await persist(next);
+  };
+
+  const removeCard = async (i: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = cards.filter((_, idx) => idx !== i);
+    setCards(next);
+    await persist(next);
+  };
 
   return (
     <section
@@ -135,7 +183,7 @@ export default function MemoryCards() {
           margin:"0 auto clamp(2rem,5vh,3.5rem)", maxWidth:480,
         }}
       >
-        tap a card to read the full thing 💌
+        tap a card to write your answer · ✕ removes · + adds a new one
       </motion.p>
 
       <div style={{
@@ -146,7 +194,7 @@ export default function MemoryCards() {
         margin:"0 auto",
         width:"100%",
       }}>
-        {MEMORIES.map((m, i) => {
+        {cards.map((m, i) => {
           const variant  = CARD_VARIANTS[i % CARD_VARIANTS.length];
           const rotation = ROTATIONS[i % ROTATIONS.length];
           const decorStyle: React.CSSProperties =
@@ -155,10 +203,12 @@ export default function MemoryCards() {
               : variant.decor.pos === "top-left"
                 ? { top:-12, left:14, transform:`rotate(${variant.decor.rotate}deg)` }
                 : { top:-12, right:14, transform:`rotate(${variant.decor.rotate}deg)` };
+          const savedFromUser = userData?.settings?.memoryCards;
+          const isPrompt = !savedFromUser || savedFromUser.length === 0;
           return (
             <motion.div
               key={i}
-              onClick={() => setActive(i)}
+              onClick={() => openEdit(i)}
               initial={{ opacity:0, y:50, rotate:rotation }}
               animate={inView ? { opacity:1, y:0, rotate:rotation } : {}}
               transition={{ duration:0.5, delay:i * 0.08 }}
@@ -179,11 +229,25 @@ export default function MemoryCards() {
                 ...variant.extraStyle,
               }}
             >
-              <span style={{
+              <span aria-hidden style={{
                 position:"absolute", fontSize:"1.5rem",
                 filter:"drop-shadow(0 2px 4px rgba(0,0,0,.25))",
                 ...decorStyle,
               }}>{variant.decor.emoji}</span>
+              <button
+                onClick={e => removeCard(i, e)}
+                aria-label="remove this card"
+                style={{
+                  position:"absolute", top:6, right:8,
+                  width:30, height:30, borderRadius:"50%",
+                  background:"rgba(255,255,255,.55)", border:"1px solid rgba(var(--pink-deep-rgb),.25)",
+                  color:"var(--pink-deep)", fontSize:"0.9rem", cursor:"pointer",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  opacity:0.7, transition:"opacity .15s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+                onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
+              >✕</button>
               <h3 style={{
                 fontFamily:"var(--font-caveat)", fontWeight:600,
                 fontSize:"clamp(1.05rem,2.5vw,1.25rem)",
@@ -194,24 +258,53 @@ export default function MemoryCards() {
               <p style={{
                 fontFamily:"var(--font-caveat)",
                 fontSize:"clamp(0.88rem,2vw,1rem)",
-                lineHeight:1.55, flex:1, color:"var(--muted)",
+                lineHeight:1.55, flex:1,
+                color: isPrompt ? "var(--muted)" : "var(--text)",
+                fontStyle: isPrompt ? "italic" : "normal",
+                opacity: isPrompt ? 0.85 : 1,
               }}>
-                {m.body.length > 90 ? m.body.slice(0,90)+"…" : m.body}
+                {m.body.length > 0
+                  ? (m.body.length > 90 ? m.body.slice(0,90)+"…" : m.body)
+                  : "tap to answer…"}
               </p>
               <span style={{
                 fontFamily:"var(--font-lato)", fontSize:"0.72rem",
                 marginTop:"0.7rem", color:"var(--pink-deep)", opacity:0.75,
               }}>
-                tap to read more ✨
+                {isPrompt ? "tap to write yours ✨" : "tap to edit ✨"}
               </span>
             </motion.div>
           );
         })}
+
+        {/* + add card tile */}
+        <motion.button
+          onClick={openNew}
+          initial={{ opacity:0, y:50 }}
+          animate={inView ? { opacity:1, y:0 } : {}}
+          transition={{ duration:0.5, delay:cards.length * 0.08 }}
+          whileHover={isMobile ? undefined : { scale:1.04 }}
+          aria-label="add a new memory card"
+          style={{
+            background: "transparent",
+            border: "2px dashed rgba(var(--pink-deep-rgb),.4)",
+            borderRadius: 6,
+            padding: "clamp(1.3rem,3vw,2rem)",
+            minHeight: "clamp(170px,20vw,210px)",
+            cursor: "pointer",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: "0.5rem",
+            fontFamily: SCRIPT, color: "var(--pink-deep)",
+          }}
+        >
+          <span aria-hidden style={{ fontSize: "2rem" }}>＋</span>
+          <span style={{ fontSize: "1.05rem" }}>add a card</span>
+        </motion.button>
       </div>
 
-      {/* Modal */}
+      {/* Editor modal */}
       <AnimatePresence>
-        {active !== null && (
+        {editor !== null && (
           <motion.div
             style={{
               position:"fixed", inset:0, zIndex:2000,
@@ -222,52 +315,103 @@ export default function MemoryCards() {
               WebkitBackdropFilter:"blur(10px)",
             }}
             initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-            onClick={() => setActive(null)}
+            onClick={() => setEditor(null)}
           >
             <motion.div
-              className="memory-modal"
+              ref={editorRef}
+              className="memory-modal mobile-sheet"
+              role="dialog" aria-modal="true" aria-labelledby="mc-edit-title"
               style={{
-                background: activeVariant?.bg ?? "var(--cream)",
-                border: activeVariant?.border ?? "1px solid var(--pink-mid)",
+                background: "var(--cream)",
+                border: "1px solid var(--pink-mid)",
                 borderRadius: 24,
-                padding: "clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem)",
-                maxWidth: 500, width:"100%",
+                padding: "clamp(1.8rem,4.5vw,2.4rem)",
+                maxWidth: 520, width:"100%",
                 position:"relative",
                 boxShadow:`0 24px 60px rgba(var(--pink-deep-rgb),.28)`,
                 maxHeight: "85dvh",
                 overflowY: "auto",
+                display:"flex", flexDirection:"column", gap:"1rem",
               }}
-              initial={{ scale:0.88, y:40 }}
+              initial={{ scale:0.92, y:30 }}
               animate={{ scale:1, y:0 }}
-              exit={{ scale:0.88, y:40 }}
-              transition={{ type:"spring", stiffness:200, damping:22 }}
+              exit={{ scale:0.92, y:30 }}
+              transition={{ type:"spring", stiffness:240, damping:24 }}
               onClick={e => e.stopPropagation()}
             >
               <button
-                onClick={() => setActive(null)}
-                aria-label="close memory"
+                onClick={() => setEditor(null)}
+                aria-label="close editor"
                 style={{
-                  position:"absolute", top:14, right:16, fontSize:"1.2rem",
+                  position:"absolute", top:14, right:16, fontSize:"1.1rem",
                   background:"var(--cream)", border:"1px solid var(--pink-mid)",
-                  borderRadius:"50%", width:30, height:30,
+                  borderRadius:"50%", width:34, height:34,
                   cursor:"pointer", color:"var(--muted)", lineHeight:1,
                   display:"flex", alignItems:"center", justifyContent:"center",
                 }}
               >✕</button>
-              <h2 style={{
-                fontFamily:"var(--font-playfair)", fontStyle:"italic",
+              <h2 id="mc-edit-title" style={{
+                fontFamily:SERIF, fontStyle:"italic",
                 fontSize:"clamp(1.3rem,3.5vw,1.6rem)",
-                color:"var(--pink-deep)", marginBottom:"1rem",
+                color:"var(--pink-deep)", margin:0,
               }}>
-                {MEMORIES[active].title}
+                {editor.index === "new" ? "a new little memory" : "edit this card"}
               </h2>
-              <p style={{
-                fontFamily:"var(--font-caveat)",
-                fontSize:"clamp(1rem,2.5vw,1.2rem)",
-                color:"var(--text)", lineHeight:1.8,
-              }}>
-                {MEMORIES[active].body}
-              </p>
+
+              <label style={{ display:"flex", flexDirection:"column", gap:"0.35rem" }}>
+                <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"var(--muted)", letterSpacing:"0.14em", textTransform:"uppercase" }}>title</span>
+                <input
+                  autoFocus
+                  value={editor.title}
+                  onChange={e => setEditor(s => s ? { ...s, title: e.target.value } : s)}
+                  placeholder="give it a name 🌸"
+                  style={{
+                    padding:"0.7rem 0.9rem", borderRadius:10,
+                    border:"1px solid var(--pink-mid)", outline:"none",
+                    background:"rgba(255,255,255,.7)",
+                    fontFamily:SCRIPT, fontSize:"1.1rem", color:"var(--text)", fontWeight:600,
+                  }}
+                />
+              </label>
+
+              <label style={{ display:"flex", flexDirection:"column", gap:"0.35rem" }}>
+                <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"var(--muted)", letterSpacing:"0.14em", textTransform:"uppercase" }}>your answer</span>
+                <textarea
+                  value={editor.body}
+                  onChange={e => setEditor(s => s ? { ...s, body: e.target.value } : s)}
+                  placeholder={editor.isPrompt ? cards[editor.index as number]?.body ?? "write your memory…" : "write your memory…"}
+                  rows={8}
+                  style={{
+                    padding:"0.8rem 0.9rem", borderRadius:12,
+                    border:"1px solid var(--pink-mid)", outline:"none",
+                    background:"rgba(255,255,255,.7)",
+                    fontFamily:SCRIPT, fontSize:"1.05rem", color:"var(--text)",
+                    lineHeight:1.6, resize:"vertical", minHeight: 140,
+                  }}
+                />
+              </label>
+
+              <div style={{ display:"flex", gap:"0.6rem", justifyContent:"flex-end", marginTop:"0.4rem" }}>
+                <button
+                  onClick={() => setEditor(null)}
+                  style={{
+                    padding:"0.55rem 1.1rem", borderRadius:50,
+                    background:"transparent", border:"1px solid var(--pink-mid)",
+                    color:"var(--muted)", fontFamily:SANS, fontSize:"0.85rem", cursor:"pointer",
+                  }}
+                >cancel</button>
+                <button
+                  onClick={saveEditor}
+                  disabled={saving}
+                  style={{
+                    padding:"0.55rem 1.3rem", borderRadius:50,
+                    background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
+                    border:"none", color:"#fff",
+                    fontFamily:SANS, fontSize:"0.85rem", fontWeight:700, cursor: saving ? "wait" : "pointer",
+                    boxShadow:"0 4px 14px rgba(var(--pink-deep-rgb),.35)",
+                  }}
+                >{saving ? "saving…" : "save 🌸"}</button>
+              </div>
             </motion.div>
           </motion.div>
         )}

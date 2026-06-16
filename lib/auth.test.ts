@@ -5,9 +5,16 @@
  * Mocks the env so JWT_SECRET is deterministic per run.
  */
 import { describe, it, expect, beforeAll } from "vitest";
+import { webcrypto } from "node:crypto";
 
 beforeAll(() => {
   process.env.JWT_SECRET = "test-secret-do-not-use-in-prod";
+  // `jose` calls the Web Crypto API via `globalThis.crypto`. Node 18 doesn't
+  // expose it as a global; pin it from `node:crypto` so the test runs on any
+  // Node version. (Real Next.js routes run on a runtime that already has it.)
+  if (!(globalThis as { crypto?: unknown }).crypto) {
+    (globalThis as unknown as { crypto: typeof webcrypto }).crypto = webcrypto;
+  }
 });
 
 // Import after env is set so lib/env's eager check sees a value.

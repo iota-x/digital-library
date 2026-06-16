@@ -154,18 +154,6 @@ export default function SettingsPanel({ open, onClose }: Props) {
     set("loveNotes", draft.loveNotes.filter((_, idx) => idx !== i));
   };
 
-  const addMemoryCard = () => {
-    set("memoryCards", [...(draft.memoryCards ?? []), { title: "new memory 🌸", body: "" }]);
-  };
-
-  const updateMemoryCard = (i: number, field: "title"|"body", value: string) => {
-    set("memoryCards", draft.memoryCards.map((c, idx) => idx === i ? { ...c, [field]: value } : c));
-  };
-
-  const removeMemoryCard = (i: number) => {
-    set("memoryCards", draft.memoryCards.filter((_, idx) => idx !== i));
-  };
-
   const togglePush = async () => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
     setPushLoading(true);
@@ -444,60 +432,8 @@ export default function SettingsPanel({ open, onClose }: Props) {
                 </motion.button>
               </div>
 
-              {/* ─── Memory cards ─── */}
-              <GroupLabel>📌 memory cards</GroupLabel>
-              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.6rem", lineHeight: 1.5 }}>
-                The pinned cards on your home page. Write your own little memories — anything that means something to the two of you.
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem", marginBottom: "0.7rem" }}>
-                {(draft.memoryCards ?? []).map((card, i) => (
-                  <div key={i} style={{
-                    background: "rgba(255,255,255,.7)",
-                    border: "1px solid var(--pink-mid)",
-                    borderRadius: 12,
-                    padding: "0.7rem 0.9rem",
-                    display: "flex", flexDirection: "column", gap: "0.4rem",
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <input
-                        value={card.title}
-                        onChange={e => updateMemoryCard(i, "title", e.target.value)}
-                        placeholder="title…"
-                        style={{
-                          flex: 1, padding: "0.4rem 0.6rem", borderRadius: 8,
-                          border: "1px solid var(--pink-mid)", outline: "none",
-                          background: "rgba(255,255,255,.6)", fontFamily: SCRIPT, fontSize: "1rem",
-                          color: "var(--text)", fontWeight: 600,
-                        }}
-                      />
-                      <button onClick={() => removeMemoryCard(i)} aria-label="remove memory card" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "0.85rem", padding: "0 0.3rem" }}>✕</button>
-                    </div>
-                    <textarea
-                      value={card.body}
-                      onChange={e => updateMemoryCard(i, "body", e.target.value)}
-                      placeholder="write the memory…"
-                      rows={3}
-                      style={{
-                        width: "100%", boxSizing: "border-box",
-                        padding: "0.5rem 0.6rem", borderRadius: 8,
-                        border: "1px solid var(--pink-mid)", outline: "none",
-                        background: "rgba(255,255,255,.6)", fontFamily: SCRIPT, fontSize: "0.95rem",
-                        color: "var(--text)", resize: "vertical", minHeight: 60, lineHeight: 1.5,
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-              <motion.button onClick={addMemoryCard} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                style={{
-                  width: "100%", padding: "0.6rem", borderRadius: 10,
-                  border: "1.5px dashed var(--pink-mid)",
-                  background: "rgba(255,255,255,.4)",
-                  color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
-                  cursor: "pointer",
-                }}>
-                + add a memory card
-              </motion.button>
+              {/* Memory cards now live as in-place editors on the home page.
+                  (Tap any card to write your answer, ✕ to remove, + to add.) */}
 
               {/* ─── Push notifications ─── */}
               {"Notification" in window && (
