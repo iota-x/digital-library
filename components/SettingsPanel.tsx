@@ -3,8 +3,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
 import { THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { publicEnv } from "@/lib/env";
 
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+const VAPID_PUBLIC = publicEnv.VAPID_PUBLIC_KEY;
 
 function urlBase64ToUint8Array(base64: string) {
   const pad = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -12,10 +14,6 @@ function urlBase64ToUint8Array(base64: string) {
   const raw = atob(b64);
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
-
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
 

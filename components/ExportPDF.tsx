@@ -3,13 +3,11 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useUserData } from "@/lib/userStore";
 import { motion, AnimatePresence } from "framer-motion";
 import BgAccents from "@/components/BgAccents";
+import { SERIF, SANS, MONO } from "@/lib/typography";
+import { startDateFrom } from "@/lib/relationship";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const MONO  = `"Courier New",Courier,monospace`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS= ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-// START is loaded from userStore at runtime (see below)
 
 /* Theme-adaptive: section uses page theme bg, inner cards are themed cream. */
 const ACC = "var(--pink-deep)";
@@ -24,9 +22,7 @@ function dayOfWeek(d:string){ return DAYS[new Date(d+"T12:00:00").getDay()]; }
 
 export default function ExportPDF() {
   const userData = useUserData();
-  const startDate = useMemo(() =>
-    userData?.startDate ? new Date(userData.startDate + "T00:00:00") : new Date("2026-03-11"),
-  [userData?.startDate]);
+  const startDate = useMemo(() => startDateFrom(userData?.startDate, true), [userData?.startDate]);
   const dayNum = useMemo(() => makeDayNum(startDate), [startDate]);
 
   const coupleName = userData?.settings?.coupleName?.trim() ||

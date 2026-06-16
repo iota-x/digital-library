@@ -6,9 +6,8 @@ import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { cldImg, cldThumb } from "@/lib/cldImg";
 import EmptyState from "@/components/EmptyState";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { SERIF, SANS } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const BG     = "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,var(--pink) 65%,var(--pink-deep) 100%)";
 const ACC    = "var(--pink-deep)";
@@ -246,7 +245,7 @@ export default function TimeCapsule() {
                   <div style={{position:"relative",marginBottom:"1rem",borderRadius:12,overflow:"hidden",maxHeight:180}}>
                     <img src={cldImg(photoUrl, { w: 720 })} alt="" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
                     <button onClick={()=>setPhotoUrl("")} aria-label="remove photo"
-                      style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,.55)",border:"none",borderRadius:"50%",width:28,height:28,color:"#fff",cursor:"pointer",fontSize:"0.8rem",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+                      style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,.55)",border:"none",borderRadius:"50%",width:38,height:38,color:"#fff",cursor:"pointer",fontSize:"0.95rem",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
                   </div>
                 ) : (
                   <motion.button onClick={()=>fileRef.current?.click()} disabled={photoUploading}
@@ -303,7 +302,8 @@ export default function TimeCapsule() {
                       <motion.button onClick={()=>deletePending(i)}
                         whileHover={{scale:1.1,color:"var(--pink-deep)"}} whileTap={{scale:0.9}}
                         title="delete"
-                        style={{background:"none",border:"none",cursor:"pointer",color:"var(--muted)",fontSize:"1rem",padding:"2px 4px",flexShrink:0}}>
+                        aria-label="delete sealed letter"
+                        style={{background:"none",border:"none",cursor:"pointer",color:"var(--muted)",fontSize:"1.1rem",padding:"0",flexShrink:0,minWidth:38,minHeight:38,display:"flex",alignItems:"center",justifyContent:"center"}}>
                         ×
                       </motion.button>
                     </div>
@@ -408,6 +408,7 @@ export default function TimeCapsule() {
                 <motion.div ref={confirmRef} initial={{opacity:0,scale:0.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:0.95}}
                   role="dialog" aria-modal="true"
                   aria-labelledby="release-title" aria-describedby="release-body"
+                  className="mobile-sheet"
                   style={{
                     position:"fixed",zIndex:9001,
                     top:"50%",left:"50%",transform:"translate(-50%,-50%)",

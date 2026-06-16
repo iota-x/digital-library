@@ -2,11 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { SERIF, SANS } from "@/lib/typography";
+import { publicEnv } from "@/lib/env";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
-
-const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
+const VAPID_PUBLIC = publicEnv.VAPID_PUBLIC_KEY;
 const STORAGE_KEY = "ann_push_prompt_v1"; // values: "asked" | "later"
 
 function urlBase64ToUint8Array(base64: string) {

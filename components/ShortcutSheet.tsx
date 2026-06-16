@@ -2,10 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { SERIF, SANS, MONO } from "@/lib/typography";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const MONO  = `"Courier New",Courier,monospace`;
 
 interface Shortcut { keys: string[]; label: string; mobile?: string }
 
@@ -65,6 +63,7 @@ export default function ShortcutSheet() {
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
             role="dialog" aria-modal="true" aria-label="keyboard shortcuts"
+            className="mobile-sheet"
             style={{
               position: "fixed", zIndex: 9981,
               top: "50%", left: "50%", transform: "translate(-50%, -50%)",

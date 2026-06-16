@@ -4,10 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useUserData } from "@/lib/userStore";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
 
 const STORAGE_KEY = "ann_onboarded_v1";
 
@@ -98,6 +96,7 @@ export default function Onboarding() {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
             role="dialog" aria-modal="true" aria-labelledby="onboard-title" aria-describedby="onboard-body"
+            className="mobile-sheet"
             style={{
               position: "fixed", zIndex: 9971,
               top: "50%", left: "50%", transform: "translate(-50%, -50%)",

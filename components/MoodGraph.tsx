@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SERIF, SANS, MONO } from "@/lib/typography";
+import { defaultStartDate } from "@/lib/relationship";
 
 /* ── Unique aesthetic: dark observatory / star chart ── */
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const MONO   = `"Courier New", Courier, monospace`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -28,7 +27,7 @@ const MOOD_LABEL: Record<string,string> = {
   "🌙":"moonlit","💗":"love","✨":"sparkling","🎮":"gaming",
   "🌷":"peaceful","😴":"sleepy","🤭":"giggly","💫":"dreamy",
 };
-const START = new Date("2026-03-11");
+const START = defaultStartDate();
 
 interface Entry { date:string; mood:string; note:string; photos:string[]; }
 interface DataPoint { date:Date; mood:string; dayNum:number; }

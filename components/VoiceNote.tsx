@@ -6,10 +6,8 @@ import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { VoiceNoteStore } from "@/lib/resourceStores";
 import { useSoftDelete } from "@/lib/softDelete";
 import EmptyState from "@/components/EmptyState";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
 
 const WAVE_HEIGHTS = [12,20,35,50,44,38,28,50,42,30,22,40,50,36,28,20,44,50,38,25,18,42,50,40,30];
 
@@ -87,7 +85,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
         <button
           onClick={() => onDelete(note.id)}
           aria-label="delete voice note"
-          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "1rem", padding: "2px 4px" }}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "1.1rem", padding: 0, minWidth: 38, minHeight: 38, display: "flex", alignItems: "center", justifyContent: "center" }}
           title="delete"
         >×</button>
       </div>

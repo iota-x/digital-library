@@ -5,10 +5,8 @@ import { useEscKey } from "@/lib/useEscKey";
 import { WatchlistStore } from "@/lib/resourceStores";
 import { cldImg, cldSrcSet } from "@/lib/cldImg";
 import { useSoftDelete } from "@/lib/softDelete";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
 
 type WatchStatus = "plan-to-watch" | "watching" | "completed";
 type WatchType   = "movie" | "series" | "anime";
@@ -447,8 +445,9 @@ const BTN:React.CSSProperties = {
   border:"none",borderRadius:50,padding:"0.55rem 1.2rem",cursor:"pointer",
 };
 const ICON_BTN:React.CSSProperties = {
-  width:28,height:28,border:"none",borderRadius:8,background:"rgba(0,0,0,.55)",
+  // 38×38 visual; CSS guard (.touch-target in globals) bumps to 44 hit area on touch devices
+  width:38,height:38,border:"none",borderRadius:10,background:"rgba(0,0,0,.55)",
   cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
-  fontSize:"0.78rem",boxShadow:"0 2px 8px rgba(0,0,0,.3)",
+  fontSize:"0.95rem",boxShadow:"0 2px 8px rgba(0,0,0,.3)",
   backdropFilter:"blur(6px)",
 };

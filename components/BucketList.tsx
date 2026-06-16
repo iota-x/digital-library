@@ -6,10 +6,8 @@ import BucketListIdeas from "@/components/BucketListIdeas";
 import { BucketStore } from "@/lib/resourceStores";
 import { useSoftDelete } from "@/lib/softDelete";
 import EmptyState from "@/components/EmptyState";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
 
 type Category = "dates" | "travel" | "experiences" | "firsts" | "other";
 

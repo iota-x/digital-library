@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { log } from "@/lib/log";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -31,7 +32,8 @@ export async function GET(req: NextRequest) {
         .map(x => (x.artworkUrl100 ?? "").replace("100x100bb", "600x600bb"))
         .filter(Boolean),
     });
-  } catch {
+  } catch (err) {
+    log.warn({ msg: "poster search failed", err, title, type });
     return NextResponse.json({ urls: [] });
   }
 }

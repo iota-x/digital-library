@@ -1,13 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
+import { serverEnv } from "@/lib/env";
 
 const COOKIE_NAME = "ann_session";
 const MAX_AGE = 60 * 60 * 24 * 60; // 60 days
 
 function getSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET is not set");
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(serverEnv.JWT_SECRET);
 }
 
 export interface SessionPayload {

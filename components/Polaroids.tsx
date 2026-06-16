@@ -3,6 +3,7 @@ import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { useUserData } from "@/lib/userStore";
+import { startDateFrom } from "@/lib/relationship";
 
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
 
@@ -234,7 +235,7 @@ function computeHeroText(startDate: Date) {
 
 export default function Polaroids() {
   const userData = useUserData();
-  const startDate = userData?.startDate ? new Date(userData.startDate) : new Date("2026-03-11");
+  const startDate = startDateFrom(userData?.startDate);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target:ref, offset:["start start","end start"] });
   const titleY = useTransform(scrollYProgress,[0,1],[0,60]);

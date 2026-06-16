@@ -2,10 +2,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 interface Milestone { days: number; label: string; emoji: string }
 

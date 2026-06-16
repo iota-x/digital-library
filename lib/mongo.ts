@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import { serverEnv } from "@/lib/env";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -6,11 +7,8 @@ declare global {
 }
 
 export function getClient(): MongoClient {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error("MONGODB_URI is not set in .env.local");
-
   if (!global._mongoClient) {
-    global._mongoClient = new MongoClient(uri, {
+    global._mongoClient = new MongoClient(serverEnv.MONGODB_URI, {
       // keep connections alive — critical for serverless/Next.js
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,

@@ -5,9 +5,8 @@ import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
 import EmptyState from "@/components/EmptyState";
+import { SERIF, SANS } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MOOD_LABELS: Record<string,string> = {
   "🥰":"loved","😊":"happy","🥺":"soft","😂":"laughing","🌙":"moonlit",

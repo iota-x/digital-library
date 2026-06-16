@@ -3,6 +3,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserInfo } from "@/lib/userStore";
 import { DEFAULT_SETTINGS } from "@/lib/themes";
+import { DEFAULT_START_DATE } from "@/lib/relationship";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
 type Mode = "create" | "join" | "signin" | "forgot" | "verify";
 
@@ -11,10 +13,6 @@ interface LandingPageProps {
 }
 
 const FLOATERS = ["🌸","💗","🩷","✨","🌷","💕","💫","🌙","⭐","🌸","💗","🩷"];
-
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
 
 function inputStyle(hasError = false): React.CSSProperties {
   return {
@@ -275,7 +273,7 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
           role: meData.role,
           partnerName: meData.partnerName ?? null,
           inviteCode: meData.inviteCode ?? null,
-          startDate: meData.startDate ?? "2026-03-11",
+          startDate: meData.startDate ?? DEFAULT_START_DATE,
           settings: meData.settings ?? DEFAULT_SETTINGS,
         };
         setVerifyPending(user);
@@ -317,7 +315,7 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
           role: meData.role,
           partnerName: meData.partnerName ?? null,
           inviteCode: meData.inviteCode ?? null,
-          startDate: meData.startDate ?? "2026-03-11",
+          startDate: meData.startDate ?? DEFAULT_START_DATE,
           settings: meData.settings ?? DEFAULT_SETTINGS,
         });
       }

@@ -2,14 +2,14 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { SERIF, SANS } from "@/lib/typography";
+import { startDateFrom } from "@/lib/relationship";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS= ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 export default function AnniversaryBanner() {
   const userData = useUserData();
-  const START = userData?.startDate ? new Date(userData.startDate) : new Date("2026-03-11");
+  const START = startDateFrom(userData?.startDate);
   const [next,    setNext]    = useState<{date:Date;months:number;daysUntil:number}|null>(null);
   const [isToday, setIsToday] = useState(false);
 

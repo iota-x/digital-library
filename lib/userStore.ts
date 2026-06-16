@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
+import { DEFAULT_START_DATE, startDateFrom } from "@/lib/relationship";
 
 export interface UserInfo {
   userId:      string;
@@ -30,7 +31,7 @@ export async function fetchUserData(): Promise<UserInfo | null> {
       role:        data.role,
       partnerName: data.partnerName ?? null,
       inviteCode:  data.inviteCode  ?? null,
-      startDate:   data.startDate   ?? "2026-03-11",
+      startDate:   data.startDate   ?? DEFAULT_START_DATE,
       settings:    data.settings    ?? DEFAULT_SETTINGS,
     };
     _user = u; notify(u); return u;
@@ -41,7 +42,7 @@ export async function fetchUserData(): Promise<UserInfo | null> {
 
 export function setUser(u: UserInfo): void        { _user = u; notify(u); }
 export function clearUserData(): void              { _user = null; notify(null); }
-export function getStartDate(): Date               { return _user?.startDate ? new Date(_user.startDate) : new Date("2026-03-11"); }
+export function getStartDate(): Date               { return startDateFrom(_user?.startDate); }
 
 export function updateSettings(settings: CoupleSettings): void {
   if (!_user) return;

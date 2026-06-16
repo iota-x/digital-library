@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { defaultStartDate } from "@/lib/relationship";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
-const START  = new Date("2026-03-11");
+const START  = defaultStartDate();
 const ME     = "ankit";
 const HER    = "juhi";
 const PLAYLIST_ID = "41LuF5qeH9u3erSTc5LkPw";

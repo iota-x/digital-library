@@ -1,8 +1,8 @@
 "use client";
 import { createContext, useCallback, useContext, useState, useEffect, useRef, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SANS } from "@/lib/typography";
 
-const SANS = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 export interface ToastAction {
   label: string;

@@ -4,9 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
+import { SERIF, SANS } from "@/lib/typography";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 /* Theme-adaptive: dark accent text on light section in light mode,
    bright accent text on dark section in dark mode (handled by globals). */

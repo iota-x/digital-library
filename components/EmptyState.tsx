@@ -1,8 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
+import { SERIF, SANS } from "@/lib/typography";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 interface Props {
   /** Big emoji shown at the top. */

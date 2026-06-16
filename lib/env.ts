@@ -1,0 +1,48 @@
+/**
+ * Validated env access.
+ *
+ * Replaces `process.env.X!` non-null assertions, which silently produce
+ * `undefined` until a request actually hits a missing var — by which point
+ * the stack trace points at jose/web-push/mongo internals, not at the
+ * misconfiguration.
+ *
+ * Pattern: read once, throw with a clear name on first access. Server-only
+ * keys are not exposed to the client (Next.js already enforces that for
+ * non-NEXT_PUBLIC_ names; this file just makes the access typed and loud).
+ */
+
+function required(name: string): string {
+  const v = process.env[name];
+  if (!v || v.length === 0) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return v;
+}
+
+function optional(name: string, fallback = ""): string {
+  return process.env[name] ?? fallback;
+}
+
+/** Server-only secrets. Throws if read on the client. */
+export const serverEnv = {
+  get JWT_SECRET()           { return required("JWT_SECRET"); },
+  get MONGODB_URI()          { return required("MONGODB_URI"); },
+  get CLOUDINARY_API_KEY()   { return required("CLOUDINARY_API_KEY"); },
+  get CLOUDINARY_API_SECRET(){ return required("CLOUDINARY_API_SECRET"); },
+  get VAPID_SUBJECT()        { return required("VAPID_SUBJECT"); },
+  get VAPID_PRIVATE_KEY()    { return required("VAPID_PRIVATE_KEY"); },
+  // Optional with sensible runtime fallbacks
+  get RESEND_API_KEY()       { return optional("RESEND_API_KEY"); },
+  get SPOTIFY_CLIENT_ID()    { return optional("SPOTIFY_CLIENT_ID"); },
+  get SPOTIFY_CLIENT_SECRET(){ return optional("SPOTIFY_CLIENT_SECRET"); },
+  get NOTIFY_EMAIL_1()       { return optional("NOTIFY_EMAIL_1"); },
+  get NOTIFY_EMAIL_2()       { return optional("NOTIFY_EMAIL_2"); },
+  get EMAIL_FROM()           { return optional("EMAIL_FROM", "Us <onboarding@resend.dev>"); },
+};
+
+/** Public env — safe to read from the client. */
+export const publicEnv = {
+  get CLOUDINARY_CLOUD_NAME() { return optional("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"); },
+  get VAPID_PUBLIC_KEY()      { return optional("NEXT_PUBLIC_VAPID_PUBLIC_KEY"); },
+  get APP_NAME()              { return optional("NEXT_PUBLIC_APP_NAME", "Us"); },
+};

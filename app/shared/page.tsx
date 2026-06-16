@@ -5,10 +5,8 @@ import WatchlistSection from "@/components/WatchlistSection";
 import BucketList       from "@/components/BucketList";
 import { useUserData }  from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 function SharedHero() {
   const floaters = [

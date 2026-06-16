@@ -1,10 +1,11 @@
 import webpush from "web-push";
 import { getCol } from "@/lib/mongo";
+import { serverEnv, publicEnv } from "@/lib/env";
 
 webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
+  serverEnv.VAPID_SUBJECT,
+  publicEnv.VAPID_PUBLIC_KEY,
+  serverEnv.VAPID_PRIVATE_KEY,
 );
 
 export async function sendPushToCouple(coupleId: string, payload: { title: string; body: string; icon?: string }) {

@@ -1,10 +1,8 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
 
 type Category = "dates" | "travel" | "experiences" | "firsts" | "other";
 
@@ -102,6 +100,7 @@ export default function BucketListIdeas({ onAdd }: Props) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.97 }}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="mobile-sheet"
               style={{
                 position: "fixed", zIndex: 9001,
                 top: "50%", left: "50%", transform: "translate(-50%,-50%)",

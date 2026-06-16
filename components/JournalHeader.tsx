@@ -1,11 +1,10 @@
 "use client";
 import { useMemo } from "react";
 import { useCalendarData } from "@/lib/calendarStore";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { defaultStartDate } from "@/lib/relationship";
 
-const START = new Date("2026-03-11");
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Segoe Script",cursive`;
+const START = defaultStartDate();
 
 const SECTIONS = [
   { label: "calendar", emoji: "📅", href: "#calendar" },

@@ -3,6 +3,9 @@ import React, { useRef, useState, useCallback, useMemo, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry } from "@/lib/calendarStore";
 import { useEscKey } from "@/lib/useEscKey";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { defaultStartDate } from "@/lib/relationship";
+import { queuedFetch } from "@/lib/offlineQueue";
 
 /* ─── types ─── */
 interface DraftEntry extends Omit<CalEntry, "date"> {}
@@ -14,8 +17,7 @@ const DAYS_FULL  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
 const SPECIAL_LABELS = ["🌹 First date","💗 Special moment","🌙 Late night talk","✈️ Adventure","🎂 Birthday","💌 Important","⭐ Favourite memory","🎶 Our song","🌸 Just us","🎮 Gaming night","🍜 Food date","🌃 Night out"];
 const BIRTHDAYS: Record<string, string> = { "12-20": "🎂 Ankit's Birthday", "07-06": "🎂 Juhi's Birthday" };
 const MOODS = ["🥰","😊","🥺","😂","🌙","💗","✨","🎮","🌷","😴","🤭","💫"];
-// TODO: replace hardcoded start date with dynamic value from userStore.getStartDate()
-const START = new Date("2026-03-11");
+const START = defaultStartDate();
 
 /* ─── stable per-decoration values — computed once, never on render ─── */
 const DECO_SYMS   = ["💗","🌸","💕","🩷","✨"] as const;
@@ -32,9 +34,6 @@ function dayNum(key: string) { return Math.floor((new Date(key + "T12:00:00").ge
 function fmtDate(key: string) { const d = new Date(key + "T12:00:00"); return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`; }
 function isVideoSrc(src: string) { return src.startsWith("data:video") || /\.(mp4|mov|webm)$/i.test(src); }
 
-const SERIF  = `"Georgia", "Times New Roman", serif`;
-const SCRIPT = `var(--font-caveat), "Segoe Script", cursive`;
-const SANS   = `var(--font-lato), "Inter", system-ui, sans-serif`;
 const GRAIN  = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E")`;
 
 function isAcceptedMedia(file: File) {
@@ -744,14 +743,16 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
   const handleSave = useCallback(async (draft: DraftEntry) => {
     if (!selected) return;
     const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
-    await fetch("/api/calendar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    // queuedFetch persists offline — local cache updates either way so the
+    // entry shows immediately; replay happens when the browser comes back
+    await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });
     updateCalendarCache(payload);
     setSelected(null);
   }, [selected]);
 
   const handleDelete = useCallback(async () => {
     if (!selected) return;
-    await fetch("/api/calendar", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ date: selected }) });
+    await queuedFetch({ url: "/api/calendar", method: "DELETE", body: { date: selected }, id: `cal:del:${selected}` });
     deleteFromCalendarCache(selected);
     setSelected(null);
   }, [selected]);

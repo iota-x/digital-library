@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { getLoveNotes } from "@/lib/themes";
+import { startDateFrom } from "@/lib/relationship";
 
 function pad(n: number) { return String(n).padStart(2,"0"); }
 
@@ -138,7 +139,7 @@ export default function LiveTimer() {
   const loveNotes = isAnkitJuhi(userData?.name, userData?.partnerName)
     ? ANKIT_JUHI_NOTES
     : getLoveNotes(userData?.settings);
-  const START = userData?.startDate ? new Date(userData.startDate + "T00:00:00") : new Date("2026-03-11T00:00:00");
+  const START = startDateFrom(userData?.startDate, true);
   const [time, setTime] = useState<ReturnType<typeof getElapsed>|null>(null);
   const [durationPill, setDurationPill] = useState("🎀 our journey");
   const ref    = useRef(null);

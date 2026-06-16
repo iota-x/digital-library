@@ -5,12 +5,12 @@ import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
 import { cldImg } from "@/lib/cldImg";
+import { SERIF, SANS } from "@/lib/typography";
+import { defaultStartDate } from "@/lib/relationship";
 
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const START  = new Date("2026-03-11");
+const START  = defaultStartDate();
 function dayNum(key:string){ return Math.floor((new Date(key+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
 
 const STARS = Array.from({length:22},(_,i)=>({

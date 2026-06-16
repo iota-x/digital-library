@@ -8,6 +8,7 @@ import PwaRegister     from "@/components/PwaRegister";
 import DarkOverlay     from "@/components/DarkOverlay";
 import AppShell        from "@/components/AppShell";
 import MotionRoot     from "@/components/MotionRoot";
+import MobileTabBar   from "@/components/MobileTabBar";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { ToasterProvider } from "@/components/Toaster";
 import "./globals.css";
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <CommandPalette />
               <SwipeNav />
               <PwaRegister />
+              <MobileTabBar />
               {children}
             </ConfirmProvider>
           </ToasterProvider>

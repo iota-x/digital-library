@@ -2,9 +2,7 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFocusTrap } from "@/lib/useFocusTrap";
-
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
+import { SERIF, SANS } from "@/lib/typography";
 
 interface ConfirmOptions {
   title: string;
@@ -67,6 +65,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               role="dialog" aria-modal="true"
               aria-labelledby="confirm-title"
               aria-describedby={state.opts.body ? "confirm-body" : undefined}
+              className="mobile-sheet"
               style={{
                 position: "fixed", zIndex: 9991,
                 top: "50%", left: "50%", transform: "translate(-50%, -50%)",

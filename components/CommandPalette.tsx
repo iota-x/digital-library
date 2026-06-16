@@ -3,9 +3,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
+import { SERIF, SANS } from "@/lib/typography";
 
-const SERIF = `"Georgia","Times New Roman",serif`;
-const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
 const ROUTES = [
   { href:"/",         label:"home",     emoji:"🌸", desc:"photos, memories & our timer"                 },

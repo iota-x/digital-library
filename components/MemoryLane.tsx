@@ -5,15 +5,12 @@ import Image from "next/image";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { defaultStartDate } from "@/lib/relationship";
 
-/* ─── fonts / palette ─── */
-const SERIF  = `"Georgia","Times New Roman",serif`;
-const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
-const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-// TODO: replace hardcoded start date with dynamic value from userStore.getStartDate()
-const START  = new Date("2026-03-11");
+const START  = defaultStartDate();
 const PINK   = "var(--pink-deep)";
 const CARD_W = 264;
 

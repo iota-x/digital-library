@@ -6,14 +6,16 @@
  */
 import crypto from "crypto";
 import { getCol } from "@/lib/mongo";
+import { serverEnv, publicEnv } from "@/lib/env";
+import { log } from "@/lib/log";
 
-const FROM = process.env.EMAIL_FROM || "Us <onboarding@resend.dev>";
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Us";
+const FROM = serverEnv.EMAIL_FROM;
+const APP_NAME = publicEnv.APP_NAME;
 
 export async function sendMail(to: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = serverEnv.RESEND_API_KEY;
   if (!apiKey || apiKey.startsWith("re_placeholder")) {
-    console.log(`[email:dev] would send to ${to} — ${subject}\n${html.replace(/<[^>]+>/g, "").slice(0, 500)}`);
+    log.info({ msg: "email:dev — skipped send", to, subject });
     return { ok: true };
   }
   try {
@@ -21,9 +23,9 @@ export async function sendMail(to: string, subject: string, html: string): Promi
     const resend = new Resend(apiKey);
     await resend.emails.send({ from: FROM, to, subject, html });
     return { ok: true };
-  } catch (e) {
-    console.error("Mail send failed:", e);
-    return { ok: false, error: String(e) };
+  } catch (err) {
+    log.error({ msg: "mail send failed", err, to, subject });
+    return { ok: false, error: String(err) };
   }
 }
 
@@ -31,10 +33,8 @@ export async function sendMail(to: string, subject: string, html: string): Promi
    One pending code per email per purpose. Keeps last issue + expiry +
    bcrypt-style hash so the raw code isn't stored. */
 
-const otpSecret = process.env.JWT_SECRET || "fallback-otp-pepper";
-
 function hashCode(code: string, email: string): string {
-  return crypto.createHmac("sha256", otpSecret).update(`${email}:${code}`).digest("hex");
+  return crypto.createHmac("sha256", serverEnv.JWT_SECRET).update(`${email}:${code}`).digest("hex");
 }
 
 export function generateOtp(): string {

@@ -3,12 +3,14 @@ import { ObjectId } from "mongodb";
 import { getSession } from "@/lib/auth";
 import { getCol } from "@/lib/mongo";
 import { DEFAULT_SETTINGS } from "@/lib/themes";
+import { serverEnv } from "@/lib/env";
+import { log } from "@/lib/log";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const clientId     = process.env.SPOTIFY_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const clientId     = serverEnv.SPOTIFY_CLIENT_ID;
+  const clientSecret = serverEnv.SPOTIFY_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     return NextResponse.json({ tracks: [], noCredentials: true });
@@ -48,7 +50,8 @@ export async function GET(req: NextRequest) {
 
     const { items } = await tracksRes.json() as { items: unknown[] };
     return NextResponse.json({ tracks: items });
-  } catch {
+  } catch (err) {
+    log.error({ msg: "spotify fetch failed", err });
     return NextResponse.json({ tracks: [], error: true });
   }
 }
