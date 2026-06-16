@@ -136,6 +136,31 @@ html.dark nav {
    classNames added to the elements in each component file.
    ───────────────────────────────────────────────────────────────── */
 
+/* Watchlist status pills — light-mode colors are baked into JS; in dark
+   mode they collapse (e.g. gold-on-gold). Override per status here so
+   each pill stays high-contrast against the dark card. */
+html.dark .wl-pill {
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+html.dark .wl-pill[data-status="plan-to-watch"] {
+  background: rgba(var(--pink-deep-rgb), 0.85) !important;
+}
+html.dark .wl-pill[data-status="plan-to-watch"] span {
+  color: #0a0410 !important;
+}
+html.dark .wl-pill[data-status="watching"] {
+  background: rgba(251, 191, 36, 0.92) !important;
+}
+html.dark .wl-pill[data-status="watching"] span {
+  color: #1a0e00 !important;
+}
+html.dark .wl-pill[data-status="completed"] {
+  background: rgba(34, 197, 94, 0.92) !important;
+}
+html.dark .wl-pill[data-status="completed"] span {
+  color: #022c14 !important;
+}
+
 /* MemoryCards editor — inputs ship with a white-ish background for the
    light theme; in dark mode that goes near-opaque against the dark modal,
    making the themed text nearly unreadable. Swap to a tinted dark surface

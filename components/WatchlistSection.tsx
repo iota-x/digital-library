@@ -366,11 +366,12 @@ export default function WatchlistSection() {
                             alt="" loading="lazy" decoding="async"
                             style={{width:"100%",height:"100%",objectFit:"cover"}} />
                           <div style={{position:"absolute",bottom:0,left:0,right:0,height:"48%",
-                            background:"linear-gradient(to top,rgba(80,0,40,.75),transparent)"}} />
-                          <div style={{position:"absolute",bottom:"0.5rem",left:"0.55rem",
+                            background:"linear-gradient(to top,rgba(0,0,0,.78),transparent)"}} />
+                          <div className="wl-pill" data-status={item.status}
+                            style={{position:"absolute",bottom:"0.5rem",left:"0.55rem",
                             background:sm.bg,backdropFilter:"blur(8px)",
-                            borderRadius:6,padding:"0.1rem 0.45rem"}}>
-                            <span style={{fontFamily:SANS,fontSize:"0.58rem",fontWeight:700,color:sm.text}}>
+                            borderRadius:6,padding:"0.15rem 0.5rem"}}>
+                            <span style={{fontFamily:SANS,fontSize:"0.6rem",fontWeight:700,color:sm.text}}>
                               {sm.label}
                             </span>
                           </div>
@@ -379,9 +380,10 @@ export default function WatchlistSection() {
                         <div style={{width:"100%",height:"100%",display:"flex",flexDirection:"column",
                           alignItems:"center",justifyContent:"center",gap:"0.5rem",position:"relative"}}>
                           <span style={{fontSize:"2.6rem"}}>{TYPE_EMOJI[item.type]}</span>
-                          <div style={{position:"absolute",bottom:"0.5rem",left:"0.55rem",
-                            background:sm.bg,borderRadius:6,padding:"0.1rem 0.45rem"}}>
-                            <span style={{fontFamily:SANS,fontSize:"0.58rem",fontWeight:700,color:sm.text}}>
+                          <div className="wl-pill" data-status={item.status}
+                            style={{position:"absolute",bottom:"0.5rem",left:"0.55rem",
+                            background:sm.bg,borderRadius:6,padding:"0.15rem 0.5rem"}}>
+                            <span style={{fontFamily:SANS,fontSize:"0.6rem",fontWeight:700,color:sm.text}}>
                               {sm.label}
                             </span>
                           </div>
