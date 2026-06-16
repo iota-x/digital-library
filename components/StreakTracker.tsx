@@ -7,13 +7,8 @@ import SectionSkeleton from "@/components/SectionSkeleton";
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 
-/* Intentionally DEEP themed section — solid opaque colors via color-mix so it
-   stays genuinely dark themed in BOTH light and dark page modes.
-   ACC stays bright; inner cards use rgba(0,0,0,X) for depth. */
-const BG   = "linear-gradient(180deg, color-mix(in srgb, var(--pink-deep), #000 25%) 0%, color-mix(in srgb, var(--pink-deep), #000 55%) 60%, color-mix(in srgb, var(--pink-deep), #000 40%) 100%)";
-const ACC  = "var(--pink)";
-const DIM  = "rgba(var(--pink-rgb),.75)";
-const GLOW = "rgba(var(--pink-rgb),.2)";
+/* Theme-adaptive: dark accent text on light section in light mode,
+   bright accent text on dark section in dark mode (handled by globals). */
 
 export default function StreakTracker() {
   const { data, loading } = useCalendarData();
@@ -39,18 +34,18 @@ export default function StreakTracker() {
     return { streak: cur, longest: max, todayDone: dates.has(todayKey), celebrate: cur >= 7 };
   }, [data]);
 
-  if (loading) return <SectionSkeleton bg={BG} accent="rgba(var(--pink-rgb),.25)" lines={5}/>;
+  if (loading) return <SectionSkeleton accent="rgba(var(--pink-rgb),.25)" lines={5}/>;
 
   const milestones    = [3,7,14,30,60,100];
   const nextMilestone = milestones.find(m=>m>streak) ?? streak+10;
   const progress      = Math.min((streak/nextMilestone)*100,100);
 
   return (
-    <section id="streak" className="deep-themed" style={{
+    <section id="streak" style={{
       position:"relative",width:"100%",minHeight:"100vh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
-      background:BG, overflow:"hidden",
+      overflow:"hidden",
     }}>
       {/* Confetti burst */}
       <AnimatePresence>
@@ -70,21 +65,26 @@ export default function StreakTracker() {
       </AnimatePresence>
 
       {/* Soft glow */}
-      <div style={{position:"absolute",top:"30%",left:"50%",transform:"translateX(-50%)",width:"60%",height:"40%",borderRadius:"50%",background:"rgba(var(--pink-light-rgb),.06)",filter:"blur(80px)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:"30%",left:"50%",transform:"translateX(-50%)",width:"60%",height:"40%",borderRadius:"50%",background:"rgba(var(--pink-rgb),.08)",filter:"blur(80px)",pointerEvents:"none"}}/>
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
         style={{maxWidth:520,width:"100%",textAlign:"center",position:"relative",zIndex:2}}>
 
         {/* Header */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1rem"}}>
-          <div style={{width:55,height:1,background:`linear-gradient(90deg,transparent,${ACC}44)`}}/>
-          <span className="occ-fire-icon" style={{fontSize:"2rem","--occ-glow":`drop-shadow(0 0 12px ${ACC}88)`} as React.CSSProperties}>🔥</span>
-          <div style={{width:55,height:1,background:`linear-gradient(90deg,${ACC}44,transparent)`}}/>
+          <div style={{width:55,height:1,background:"linear-gradient(90deg,transparent,rgba(var(--pink-rgb),.4))"}}/>
+          <span className="occ-fire-icon" style={{fontSize:"2rem","--occ-glow":"drop-shadow(0 0 12px rgba(var(--pink-rgb),.6))"} as React.CSSProperties}>🔥</span>
+          <div style={{width:55,height:1,background:"linear-gradient(90deg,rgba(var(--pink-rgb),.4),transparent)"}}/>
         </div>
-        <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.8rem,5vw,2.8rem)",color:ACC,margin:"0 0 0.5rem",fontWeight:400,textShadow:`0 2px 20px ${GLOW}`}}>
+        <h2 style={{
+          fontFamily:SERIF,fontStyle:"italic",
+          fontSize:"clamp(1.8rem,5vw,2.8rem)",
+          color:"var(--pink-deep)",margin:"0 0 0.5rem",fontWeight:400,
+          textShadow:"0 2px 20px rgba(var(--pink-rgb),.18)",
+        }}>
           our streak
         </h2>
-        <p style={{fontFamily:SANS,fontSize:"0.9rem",color:DIM,margin:"0 0 2.5rem",lineHeight:1.5}}>
+        <p style={{fontFamily:SANS,fontSize:"0.9rem",color:"var(--muted)",margin:"0 0 2.5rem",lineHeight:1.5}}>
           {todayDone
             ? "✓ memory added today — streak's alive 🌸"
             : "add a memory today to keep the streak going 💗"}
@@ -93,17 +93,24 @@ export default function StreakTracker() {
         {/* Big number */}
         <div style={{
             display:"inline-flex",flexDirection:"column",alignItems:"center",
-            background:"rgba(0,0,0,.2)",
-            border:`1px solid ${ACC}30`,
+            background:"var(--cream)",
+            border:"1px solid rgba(var(--pink-rgb),.25)",
             borderRadius:32,padding:"2.5rem 5rem",marginBottom:"2.5rem",
-            boxShadow:`0 0 80px rgba(var(--pink-light-rgb),.08),inset 0 0 40px rgba(0,0,0,.2)`,
+            boxShadow:"0 6px 30px rgba(var(--pink-deep-rgb),.12), inset 0 0 30px rgba(var(--pink-rgb),.04)",
             position:"relative",overflow:"hidden",
           }}>
-          <div style={{position:"absolute",inset:0,background:`radial-gradient(circle at 50% 30%,${GLOW} 0%,transparent 65%)`,pointerEvents:"none"}}/>
-          <span style={{fontFamily:SERIF,fontSize:"clamp(4.5rem,14vw,8rem)",color:ACC,lineHeight:1,fontWeight:700,textShadow:`0 0 50px ${ACC}55`,position:"relative",zIndex:1}}>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 50% 30%,rgba(var(--pink-rgb),.15) 0%,transparent 65%)",pointerEvents:"none"}}/>
+          <span style={{
+            fontFamily:SERIF,
+            fontSize:"clamp(4.5rem,14vw,8rem)",
+            color:"var(--pink-deep)",
+            lineHeight:1,fontWeight:700,
+            textShadow:"0 0 40px rgba(var(--pink-rgb),.35)",
+            position:"relative",zIndex:1,
+          }}>
             {streak}
           </span>
-          <span style={{fontFamily:SANS,fontSize:"0.8rem",color:`${ACC}77`,letterSpacing:"0.22em",textTransform:"uppercase",marginTop:"0.5rem",position:"relative",zIndex:1}}>
+          <span style={{fontFamily:SANS,fontSize:"0.8rem",color:"var(--muted)",letterSpacing:"0.22em",textTransform:"uppercase",marginTop:"0.5rem",position:"relative",zIndex:1}}>
             day{streak!==1?"s":""} in a row
           </span>
         </div>
@@ -111,12 +118,12 @@ export default function StreakTracker() {
         {/* Progress */}
         <div style={{marginBottom:"2rem"}}>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:"0.5rem"}}>
-            <span style={{fontFamily:SANS,fontSize:"0.75rem",color:`${ACC}66`}}>next milestone: {nextMilestone} days</span>
-            <span style={{fontFamily:SANS,fontSize:"0.75rem",color:ACC,fontWeight:600}}>{streak}/{nextMilestone}</span>
+            <span style={{fontFamily:SANS,fontSize:"0.75rem",color:"var(--muted)"}}>next milestone: {nextMilestone} days</span>
+            <span style={{fontFamily:SANS,fontSize:"0.75rem",color:"var(--pink-deep)",fontWeight:600}}>{streak}/{nextMilestone}</span>
           </div>
-          <div style={{height:6,borderRadius:3,background:`${ACC}18`,overflow:"hidden",boxShadow:`inset 0 0 8px rgba(0,0,0,.2)`}}>
+          <div style={{height:6,borderRadius:3,background:"rgba(var(--pink-rgb),.15)",overflow:"hidden"}}>
             <motion.div initial={{width:0}} animate={{width:`${progress}%`}} transition={{duration:1.4,ease:"easeOut",delay:0.4}}
-              style={{height:"100%",borderRadius:3,background:`linear-gradient(90deg,${ACC}88,${ACC})`,boxShadow:`0 0 10px ${ACC}66`}}/>
+              style={{height:"100%",borderRadius:3,background:"linear-gradient(90deg,var(--pink),var(--pink-deep))",boxShadow:"0 0 10px rgba(var(--pink-rgb),.5)"}}/>
           </div>
         </div>
 
@@ -128,28 +135,36 @@ export default function StreakTracker() {
             {e:todayDone?"✅":"💭",v:todayDone?"done!":"pending",l:"today"},
           ].map((s,i)=>(
             <motion.div key={i} whileHover={{y:-3,scale:1.03}}
-              style={{background:"rgba(0,0,0,.18)",border:`1px solid ${ACC}22`,borderRadius:18,padding:"1.1rem 0.5rem",textAlign:"center",boxShadow:`0 4px 16px rgba(0,0,0,.15)`}}>
+              style={{
+                background:"var(--cream)",
+                border:"1px solid rgba(var(--pink-rgb),.22)",
+                borderRadius:18,padding:"1.1rem 0.5rem",textAlign:"center",
+                boxShadow:"0 4px 16px rgba(var(--pink-deep-rgb),.08)",
+              }}>
               <div style={{fontSize:"1.5rem",marginBottom:"0.3rem"}}>{s.e}</div>
-              <div style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.1rem",color:ACC,lineHeight:1,marginBottom:"0.2rem"}}>{s.v}</div>
-              <div style={{fontFamily:SANS,fontSize:"0.65rem",color:`${ACC}66`,textTransform:"uppercase",letterSpacing:"0.1em"}}>{s.l}</div>
+              <div style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.1rem",color:"var(--pink-deep)",lineHeight:1,marginBottom:"0.2rem"}}>{s.v}</div>
+              <div style={{fontFamily:SANS,fontSize:"0.65rem",color:"var(--muted)",textTransform:"uppercase",letterSpacing:"0.1em"}}>{s.l}</div>
             </motion.div>
           ))}
         </div>
 
         {/* Milestone badges */}
         <div style={{display:"flex",gap:"0.5rem",justifyContent:"center",flexWrap:"wrap"}}>
-          {milestones.map(m=>(
-            <motion.div key={m} whileHover={{scale:1.08,y:-2}}
-              style={{
-                padding:"0.3rem 0.9rem",borderRadius:22,fontFamily:SANS,fontSize:"0.75rem",
-                background:streak>=m?`${ACC}25`:"rgba(0,0,0,.18)",
-                color:streak>=m?ACC:`${ACC}44`,
-                border:`1px solid ${streak>=m?`${ACC}55`:`${ACC}15`}`,
-                boxShadow:streak>=m?`0 0 14px ${ACC}22`:"none",
-              }}>
-              {streak>=m?"🏆 ":""}{m}d
-            </motion.div>
-          ))}
+          {milestones.map(m=>{
+            const reached = streak>=m;
+            return (
+              <motion.div key={m} whileHover={{scale:1.08,y:-2}}
+                style={{
+                  padding:"0.3rem 0.9rem",borderRadius:22,fontFamily:SANS,fontSize:"0.75rem",
+                  background: reached ? "rgba(var(--pink-rgb),.22)" : "var(--cream)",
+                  color: reached ? "var(--pink-deep)" : "var(--muted)",
+                  border: `1px solid rgba(var(--pink-rgb),${reached?.5:.18})`,
+                  boxShadow: reached ? "0 0 14px rgba(var(--pink-rgb),.25)" : "none",
+                }}>
+                {reached?"🏆 ":""}{m}d
+              </motion.div>
+            );
+          })}
         </div>
       </motion.div>
     </section>

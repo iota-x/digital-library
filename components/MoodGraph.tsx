@@ -72,7 +72,7 @@ export default function MoodGraph() {
     const pinkDeepRgb = cssVar("--pink-deep-rgb");
 
     /* Grid lines */
-    ctx.strokeStyle=`rgba(${pinkRgb},0.06)`;
+    ctx.strokeStyle=`rgba(${pinkRgb},0.18)`;
     ctx.lineWidth=1;
     for(let i=0;i<=4;i++){
       const y=30+i*(H-60)/4;
@@ -164,11 +164,10 @@ export default function MoodGraph() {
   const topMoods=Object.entries(freqMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
 
   return (
-    <section className="deep-themed" style={{
+    <section style={{
       position:"relative", width:"100%", minHeight:"100vh",
       display:"flex", alignItems:"center", justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,3vw,2rem)",
-      background:"linear-gradient(160deg, color-mix(in srgb, var(--pink-deep), #000 75%) 0%, color-mix(in srgb, var(--pink-deep), #000 85%) 50%, color-mix(in srgb, var(--pink-deep), #000 75%) 100%)",
       overflow:"hidden",
     }}>
       {/* Star field bg */}
@@ -197,7 +196,7 @@ export default function MoodGraph() {
               animate={{rotate:[0,360]}} transition={{repeat:Infinity,duration:20,ease:"linear"}}>✦</motion.span>
             <div style={{width:50,height:1,background:"linear-gradient(90deg,rgba(var(--pink-rgb),0.5),transparent)"}}/>
           </div>
-          <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.5rem,4vw,2.2rem)",color:"var(--pink)",margin:"0 0 0.4rem",fontWeight:400}}>
+          <h2 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1.5rem,4vw,2.2rem)",color:"var(--pink-deep)",margin:"0 0 0.4rem",fontWeight:400}}>
             mood constellation
           </h2>
           <p style={{fontFamily:MONO,fontSize:"0.75rem",color:"rgba(var(--pink-rgb),0.75)",margin:0,letterSpacing:"0.18em",textTransform:"uppercase"}}>
@@ -224,10 +223,10 @@ export default function MoodGraph() {
         {/* Canvas chart */}
         <div style={{
           position:"relative",
-          background:"rgba(255,255,255,0.02)",
-          border:"1px solid rgba(var(--pink-rgb),0.1)",
+          background:"var(--cream)",
+          border:"1px solid rgba(var(--pink-rgb),.22)",
           borderRadius:20,overflow:"hidden",
-          boxShadow:"0 0 60px rgba(var(--pink-deep-rgb),0.05), inset 0 0 40px rgba(0,0,0,0.3)",
+          boxShadow:"0 6px 30px rgba(var(--pink-deep-rgb),.1)",
         }}>
           {loaded&&filtered.length>0?(
             <div style={{position:"relative"}}>
@@ -242,7 +241,7 @@ export default function MoodGraph() {
                       position:"absolute",
                       left:Math.min(hoverPos.x+12, (canvasRef.current?.offsetWidth??300)-160),
                       top:Math.max(hoverPos.y-60,8),
-                      background:"rgba(22,6,14,0.95)",
+                      background:"var(--cream)",
                       border:`1px solid ${MOOD_COLOR[hovered.mood]||"rgba(var(--pink-rgb),0.3)"}`,
                       borderRadius:12,padding:"0.7rem 1rem",
                       pointerEvents:"none",minWidth:140,
