@@ -65,27 +65,26 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       style={{
-        background: "rgba(255,255,255,.85)",
-        border: "1.5px solid var(--pink)",
+        background: "var(--cream)",
+        border: "1.5px solid rgba(var(--pink-rgb),.4)",
         borderRadius: 20,
         padding: "1.4rem 1.6rem",
-        boxShadow: "0 4px 24px rgba(var(--pink-rgb),.15)",
-        backdropFilter: "blur(8px)",
+        boxShadow: "0 4px 24px rgba(var(--pink-deep-rgb),.12)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", marginBottom: "0.9rem" }}>
         <span style={{ fontSize: "1.4rem" }}>🎙️</span>
         <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontFamily: SERIF, fontStyle: "italic", fontSize: "0.95rem", color: "#4a1628" }}>
+          <p style={{ margin: 0, fontFamily: SERIF, fontStyle: "italic", fontSize: "0.95rem", color: "var(--text)" }}>
             {note.label || (note.from ? `from ${note.from}` : "a voice note")}
           </p>
-          <p style={{ margin: "0.1rem 0 0", fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-deep-rgb),.5)" }}>
+          <p style={{ margin: "0.1rem 0 0", fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)" }}>
             {note.from && note.label ? `from ${note.from} · ` : ""}{fmtDate(note.createdAt)}
           </p>
         </div>
         <button
           onClick={() => onDelete(note.id)}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--pink-deep-rgb),.3)", fontSize: "1rem", padding: "2px 4px" }}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "1rem", padding: "2px 4px" }}
           title="delete"
         >×</button>
       </div>
@@ -115,10 +114,10 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
           }}>
           {playing ? "⏸" : "▶"}
         </motion.button>
-        <div onClick={seek} style={{ flex: 1, height: 7, background: "var(--pink-light)", borderRadius: 7, cursor: "pointer", overflow: "hidden" }}>
+        <div onClick={seek} style={{ flex: 1, height: 7, background: "rgba(var(--pink-rgb),.18)", borderRadius: 7, cursor: "pointer", overflow: "hidden" }}>
           <div style={{ height: "100%", background: "linear-gradient(to right,var(--pink),var(--pink-deep))", borderRadius: 7, width: `${progress}%`, transition: "width 0.1s" }} />
         </div>
-        <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-deep-rgb),.5)", flexShrink: 0, minWidth: 32 }}>{timeStr}</span>
+        <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", flexShrink: 0, minWidth: 32 }}>{timeStr}</span>
       </div>
       <audio ref={audioRef} src={note.url} preload="metadata" />
     </motion.div>
@@ -270,7 +269,7 @@ export default function VoiceNote() {
               )}
             </AnimatePresence>
           </div>
-          <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "rgba(var(--pink-deep-rgb),.55)", margin: 0 }}>
+          <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "var(--muted)", margin: 0 }}>
             record a little something — it lives here forever 💗
           </p>
         </div>
@@ -290,14 +289,14 @@ export default function VoiceNote() {
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.15 }}
-          style={{ background: "#fff", border: "2px solid var(--pink)", borderRadius: 24, padding: "2rem 1.8rem", marginBottom: "1.5rem", boxShadow: "0 8px 40px rgba(var(--pink-rgb),.18)" }}
+          style={{ background: "var(--cream)", border: "2px solid rgba(var(--pink-rgb),.45)", borderRadius: 24, padding: "2rem 1.8rem", marginBottom: "1.5rem", boxShadow: "0 8px 40px rgba(var(--pink-deep-rgb),.15)" }}
         >
           {!showForm && !recording && !uploading && (
             <motion.button
               onClick={() => setShowForm(true)}
               whileHover={{ scale: 1.02, y: -2, boxShadow: "0 10px 32px rgba(var(--pink-deep-rgb),.22)" }}
               whileTap={{ scale: 0.97 }}
-              style={{ width: "100%", padding: "1.1rem", border: "1.5px dashed rgba(var(--pink-deep-rgb),.4)", borderRadius: 16, background: "rgba(var(--pink-light-rgb),.3)", cursor: "pointer", fontFamily: SERIF, fontStyle: "italic", fontSize: "1.05rem", color: "var(--pink-deep)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}
+              style={{ width: "100%", padding: "1.1rem", border: "1.5px dashed rgba(var(--pink-deep-rgb),.4)", borderRadius: 16, background: "rgba(var(--pink-rgb),.1)", cursor: "pointer", fontFamily: SERIF, fontStyle: "italic", fontSize: "1.05rem", color: "var(--pink-deep)", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem" }}
             >
               🎙️ record a new voice note
             </motion.button>
@@ -306,12 +305,12 @@ export default function VoiceNote() {
           <AnimatePresence>
             {showForm && !recording && !uploading && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
-                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>from</p>
+                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>from</p>
                 <input value={from} onChange={e => setFrom(e.target.value)} placeholder="your name"
-                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", marginBottom: "0.9rem" }} />
-                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "rgba(var(--pink-deep-rgb),.5)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>label (optional)</p>
+                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "var(--text)", outline: "none", background: "rgba(var(--pink-rgb),.1)", boxSizing: "border-box", marginBottom: "0.9rem" }} />
+                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", letterSpacing: "0.16em", textTransform: "uppercase", margin: "0 0 0.35rem" }}>label (optional)</p>
                 <input value={label} onChange={e => setLabel(e.target.value)} placeholder="e.g. good morning, goodnight, i miss you…"
-                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "#4a1628", outline: "none", background: "rgba(var(--pink-light-rgb),.3)", boxSizing: "border-box", marginBottom: "1.2rem" }} />
+                  style={{ width: "100%", padding: "0.7rem 1rem", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem", color: "var(--text)", outline: "none", background: "rgba(var(--pink-rgb),.1)", boxSizing: "border-box", marginBottom: "1.2rem" }} />
                 <div style={{ display: "flex", gap: "0.7rem" }}>
                   <motion.button onClick={startRecording}
                     whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
