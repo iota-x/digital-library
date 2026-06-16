@@ -4,6 +4,7 @@ import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToCouple } from "@/lib/pushNotify";
+import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,7 +13,10 @@ export async function GET(req: NextRequest) {
 
     const col = await getCol("voicenotes");
     const docs = await col.find({ coupleId: session.coupleId }).sort({ createdAt: -1 }).toArray();
-    return NextResponse.json(docs.map(d => ({ ...d, id: d._id.toString(), _id: undefined })));
+    return NextResponse.json(
+      docs.map(d => ({ ...d, id: d._id.toString(), _id: undefined })),
+      { headers: READ_CACHE_HEADERS },
+    );
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

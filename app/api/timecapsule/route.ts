@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
+import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 
 async function sendUnlockEmail(capsules: { letter: string; from: string; unlockDate: string }[]) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
     }
 
     const safe = docs.map(d => ({ ...d, id: d._id.toString(), _id: undefined, emailSent: undefined, imageUrl: d.imageUrl || "" }));
-    return NextResponse.json(safe);
+    return NextResponse.json(safe, { headers: READ_CACHE_HEADERS });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

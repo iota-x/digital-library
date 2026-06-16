@@ -43,27 +43,12 @@ function isAcceptedMedia(file: File) {
 
 /* ─── Cloudinary signed upload (via /api/upload/sign) ─── */
 import { uploadToCloudinary as _uploadToCloudinary } from "@/lib/cloudUpload";
+import { cldThumb as _cldThumb } from "@/lib/cldImg";
 async function uploadToCloudinary(file: File): Promise<string> {
   const resourceType = file.type.startsWith("video/") ? "video" : "image";
   return _uploadToCloudinary(file, { resourceType, folder: "journal" });
 }
-
-/* ─── lightweight thumbnail URLs ───────────────────────────────────────────
-   Inserts a Cloudinary transformation segment right after `/upload/` so
-   thumbnails are small + compressed, and (for video) a static jpg frame —
-   instead of loading the full original image/video for every grid item.
-   This is the main fix for lag with many items. Full quality is only
-   loaded in the Lightbox (uses the original `src`).
-   ──────────────────────────────────────────────────────────────────────── */
-function cldThumb(src: string, w = 200): string {
-  if (!src.includes("res.cloudinary.com") || !src.includes("/upload/")) return src;
-  if (isVideoSrc(src)) {
-    return src
-      .replace("/video/upload/", `/video/upload/so_0,w_${w},h_${w},c_fill,q_auto,f_jpg/`)
-      .replace(/\.(mp4|mov|webm)$/i, ".jpg");
-  }
-  return src.replace("/upload/", `/upload/w_${w},h_${w},c_fill,q_auto,f_auto/`);
-}
+const cldThumb = (src: string, w = 200) => _cldThumb(src, w);
 
 /* ─── media thumbnail (always renders a static <img>, never <video>) ─── */
 function MediaThumb({ src, onClick }: { src: string; onClick: () => void }) {

@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
 import { useUserData } from "@/lib/userStore";
 import { getMemoryCards } from "@/lib/themes";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 // Stable card rotations — applied to whichever cards we render
 const ROTATIONS = [-2, 1.5, -1, 2, -2.5, 1, -1.8, 2.2, -1.4, 1.6];
@@ -88,6 +89,7 @@ export default function MemoryCards() {
   const inView = useInView(ref, { once:true, margin:"-80px" });
   useEscKey(() => setActive(null), active !== null);
   const userData = useUserData();
+  const isMobile = useIsMobile();
 
   // Memory source: personal for Ankit & Juhi, otherwise couple's saved cards or generic defaults
   const MEMORIES = isAnkitJuhi(userData?.name, userData?.partnerName)
@@ -160,7 +162,7 @@ export default function MemoryCards() {
               initial={{ opacity:0, y:50, rotate:rotation }}
               animate={inView ? { opacity:1, y:0, rotate:rotation } : {}}
               transition={{ duration:0.5, delay:i * 0.08 }}
-              whileHover={{ scale:1.04, rotate:0, zIndex:10, boxShadow:`8px 8px 32px rgba(var(--pink-deep-rgb),.22)` }}
+              whileHover={isMobile ? undefined : { scale:1.04, rotate:0, zIndex:10, boxShadow:`8px 8px 32px rgba(var(--pink-deep-rgb),.22)` }}
               style={{
                 background: variant.bg,
                 border: variant.border,

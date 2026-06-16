@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
 import BucketListIdeas from "@/components/BucketListIdeas";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { BucketStore } from "@/lib/resourceStores";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -36,8 +37,9 @@ const TABS: { key: "all" | "pending" | "done"; label: string }[] = [
 
 export default function BucketList() {
   const confirm = useConfirm();
-  const [items,   setItems]   = useState<BucketItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Shared SWR-style store — instant from cache, revalidates in background,
+  // self-updates on SSE bucketlist:* events. Replaces the manual fetch+state.
+  const { data: items, loading } = BucketStore.useResource() as { data: BucketItem[]; loading: boolean };
   const [tab,     setTab]     = useState<"all"|"pending"|"done">("all");
   const [newText, setNewText] = useState("");
   const [newCat,  setNewCat]  = useState<Category>("dates");
@@ -45,27 +47,10 @@ export default function BucketList() {
   const [showInput, setShowInput] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function load() {
-    const r = await fetch("/api/bucketlist");
-    const d = await r.json();
-    setItems(Array.isArray(d) ? d : []);
-    setLoading(false);
-  }
-  useEffect(() => { load(); }, []);
-
   useEffect(() => {
     if (showInput) setTimeout(() => inputRef.current?.focus(), 80);
   }, [showInput]);
 
-  // Re-fetch when partner makes changes (via SSE broadcast)
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const type = (e as CustomEvent).detail?.type as string;
-      if (type?.startsWith("bucketlist:")) load();
-    };
-    window.addEventListener("annapp:sse", handler);
-    return () => window.removeEventListener("annapp:sse", handler);
-  }, []);
   useEscKey(() => { setShowInput(false); setNewText(""); }, showInput);
 
   const visible = items.filter(i => {
@@ -78,12 +63,14 @@ export default function BucketList() {
 
   async function toggle(item: BucketItem) {
     const next = !item.completed;
-    setItems(prev => prev.map(x => x._id === item._id ? { ...x, completed: next } : x));
+    // Optimistic update in shared cache; broadcasts to all subscribers
+    BucketStore.setCache(items.map(x => x._id === item._id ? { ...x, completed: next } : x));
     await fetch("/api/bucketlist", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ _id: item._id, completed: next }),
     });
+    BucketStore.refresh();
   }
 
   async function addItem(text = newText, cat = newCat) {
@@ -96,7 +83,7 @@ export default function BucketList() {
     });
     if (text === newText) { setNewText(""); setShowInput(false); }
     setAdding(false);
-    load();
+    BucketStore.refresh();
   }
 
   async function del(id: string) {
@@ -109,7 +96,7 @@ export default function BucketList() {
       destructive: true,
     });
     if (!ok) return;
-    setItems(prev => prev.filter(x => x._id !== id));
+    BucketStore.removeWhere(x => x._id === id);
     await fetch("/api/bucketlist", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },

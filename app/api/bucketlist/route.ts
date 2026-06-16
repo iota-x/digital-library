@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
+import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
 
     const c = await getCol("bucketlist");
     const items = await c.find({ coupleId: session.coupleId }).sort({ addedAt: 1 }).toArray();
-    return NextResponse.json(items.map(i => ({ ...i, _id: i._id.toString() })));
+    return NextResponse.json(items.map(i => ({ ...i, _id: i._id.toString() })), { headers: READ_CACHE_HEADERS });
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }

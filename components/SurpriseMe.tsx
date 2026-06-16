@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
+import { cldImg } from "@/lib/cldImg";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -114,7 +115,7 @@ export default function SurpriseMe() {
               {(shown.photos?.length??0)>0&&(
                 <div style={{position:"relative",height:"clamp(160px,35vw,260px)"}}>
                   <AnimatePresence mode="wait">
-                    <motion.img key={imgIdx} src={shown.photos[imgIdx]} alt=""
+                    <motion.img key={imgIdx} src={cldImg(shown.photos[imgIdx], { w: 800, videoFrame: true })} alt=""
                       initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.25}}
                       style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
                   </AnimatePresence>

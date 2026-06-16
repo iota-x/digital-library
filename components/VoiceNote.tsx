@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { useConfirm } from "@/components/ConfirmDialog";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
+import { VoiceNoteStore } from "@/lib/resourceStores";
 
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -127,7 +128,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
 export default function VoiceNote() {
   const userData = useUserData();
   const confirm = useConfirm();
-  const [notes, setNotes] = useState<VNote[]>([]);
+  const { data: notes } = VoiceNoteStore.useResource() as { data: VNote[] };
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [recSecs, setRecSecs] = useState(0);
@@ -147,18 +148,15 @@ export default function VoiceNote() {
     if (userData?.name && !from) setFrom(userData.name);
   }, [userData?.name, from]);
 
+  // "New voice note" badge — broadcast to navbar when newest changes
   useEffect(() => {
-    fetch("/api/voicenotes").then(r => r.json()).then((data: VNote[]) => {
-      setNotes(data);
-      if (data.length > 0) {
-        const newest   = data[0]?.createdAt || "0";
-        const lastSeen = localStorage.getItem("vn_last_seen") || "0";
-        localStorage.setItem("vn_latest", newest);
-        window.dispatchEvent(new Event("annapp:vn-update"));
-        setHasNew(newest > lastSeen);
-      }
-    }).catch(() => {});
-  }, []);
+    if (notes.length === 0) return;
+    const newest   = notes[0]?.createdAt || "0";
+    const lastSeen = localStorage.getItem("vn_last_seen") || "0";
+    localStorage.setItem("vn_latest", newest);
+    window.dispatchEvent(new Event("annapp:vn-update"));
+    setHasNew(newest > lastSeen);
+  }, [notes]);
 
   useEffect(() => {
     if (!inView || notes.length === 0) return;
@@ -204,8 +202,7 @@ export default function VoiceNote() {
           body: JSON.stringify({ url, from, label }),
         });
 
-        const updated = await fetch("/api/voicenotes").then(r => r.json());
-        setNotes(updated);
+        VoiceNoteStore.refresh();
         setFrom(""); setLabel(""); setShowForm(false);
         setSaved(true); setTimeout(() => setSaved(false), 3000);
       } catch (e) {
@@ -228,8 +225,8 @@ export default function VoiceNote() {
       destructive: true,
     });
     if (!ok) return;
+    VoiceNoteStore.removeWhere(x => x.id === id);
     await fetch("/api/voicenotes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-    setNotes(n => n.filter(x => x.id !== id));
   }
 
   return (

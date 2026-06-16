@@ -2,18 +2,12 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
+import { cldThumb } from "@/lib/cldImg";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-
-function cldThumb(src: string, w = 128): string {
-  if (!src.includes("res.cloudinary.com") || !src.includes("/upload/")) return src;
-  if (/\.(mp4|mov|webm)$/i.test(src))
-    return src.replace("/video/upload/", `/video/upload/so_0,w_${w},h_${w},c_fill,q_auto,f_jpg/`).replace(/\.(mp4|mov|webm)$/i,".jpg");
-  return src.replace("/upload/", `/upload/w_${w},h_${w},c_fill,q_auto,f_auto/`);
-}
 
 function toKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;

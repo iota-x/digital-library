@@ -3,6 +3,8 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { WatchlistStore } from "@/lib/resourceStores";
+import { cldImg, cldSrcSet } from "@/lib/cldImg";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -42,8 +44,8 @@ async function fetchPoster(title:string,type:WatchType):Promise<string[]> {
 
 export default function WatchlistSection() {
   const confirm = useConfirm();
-  const [items,  setItems]   = useState<WatchItem[]>([]);
-  const [loading,setLoading] = useState(true);
+  const { data: items, loading } = WatchlistStore.useResource() as { data: WatchItem[]; loading: boolean };
+  const load = () => WatchlistStore.refresh();
   const [tab,    setTab]     = useState<WatchStatus|"all">("all");
   const [showForm,setShowForm] = useState(false);
   const [form,   setForm]    = useState(BLANK);
@@ -51,14 +53,6 @@ export default function WatchlistSection() {
   const [editId, setEditId]  = useState<string|null>(null);
   const [posters,setPosters] = useState<string[]>([]);
   const [searching,setSearching] = useState(false);
-
-  async function load() {
-    const r = await fetch("/api/watchlist");
-    const d = await r.json();
-    setItems(Array.isArray(d)?d:[]);
-    setLoading(false);
-  }
-  useEffect(()=>{load();},[]);
 
   const visible = tab==="all"?items:items.filter(i=>i.status===tab);
 
@@ -366,7 +360,11 @@ export default function WatchlistSection() {
                       display:"flex",alignItems:"center",justifyContent:"center"}}>
                       {item.coverImage ? (
                         <>
-                          <img src={item.coverImage} alt="" loading="lazy" decoding="async"
+                          <img
+                            src={cldImg(item.coverImage, { w: 360 })}
+                            srcSet={cldSrcSet(item.coverImage, [180, 280, 360, 480])}
+                            sizes="(max-width: 480px) 45vw, 220px"
+                            alt="" loading="lazy" decoding="async"
                             style={{width:"100%",height:"100%",objectFit:"cover"}} />
                           <div style={{position:"absolute",bottom:0,left:0,right:0,height:"48%",
                             background:"linear-gradient(to top,rgba(80,0,40,.75),transparent)"}} />

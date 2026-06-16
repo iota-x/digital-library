@@ -1,8 +1,14 @@
-const CACHE = "ann-v3";
-const NAV_ROUTES = ["/", "/journal", "/timeline", "/capsule", "/shared"];
+const CACHE = "ann-v4";
+const NAV_ROUTES = ["/", "/journal", "/timeline", "/capsule", "/shared", "/map", "/favicon.svg", "/manifest.json"];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(NAV_ROUTES)));
+  e.waitUntil(
+    caches.open(CACHE).then(c =>
+      // addAll is atomic — one missing route aborts the install. Add individually
+      // so a 404 on a single route doesn't break PWA install.
+      Promise.allSettled(NAV_ROUTES.map(r => c.add(r).catch(() => null)))
+    )
+  );
   self.skipWaiting();
 });
 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useMemo, useCallback, useEffect, Fragment } from "react";
+import { useState, useRef, useMemo, useCallback, useEffect, Fragment, memo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
@@ -35,8 +35,9 @@ function fmtDate(k:string){ const d=new Date(k+"T12:00:00"); return `${DAYS[d.ge
 function mLabel(k:string){ const d=new Date(k+"T12:00:00"); return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
 function yLabel(k:string){ return new Date(k+"T12:00:00").getFullYear().toString(); }
 function isVid(s:string){ return /\.(mp4|mov|webm)$/i.test(s); }
-function cldHero(src:string,w=520){ if(!src.includes("res.cloudinary.com")||!src.includes("/upload/")) return src; if(isVid(src)) return src.replace("/video/upload/",`/video/upload/so_0,w_${w},q_auto,f_jpg/`).replace(/\.(mp4|mov|webm)$/i,".jpg"); return src.replace("/upload/",`/upload/w_${w},q_auto,f_auto/`); }
-function cldSq(src:string,w=140){ if(!src.includes("res.cloudinary.com")||!src.includes("/upload/")) return src; if(isVid(src)) return src.replace("/video/upload/",`/video/upload/so_0,w_${w},h_${w},c_fill,q_auto,f_jpg/`).replace(/\.(mp4|mov|webm)$/i,".jpg"); return src.replace("/upload/",`/upload/w_${w},h_${w},c_fill,q_auto,f_auto/`); }
+import { cldImg, cldThumb } from "@/lib/cldImg";
+const cldHero = (src:string, w=520) => cldImg(src, { w, videoFrame: true });
+const cldSq   = (src:string, w=140) => cldThumb(src, w);
 function getX(i:number,cW:number){ return Math.round((SCATTER[i%SCATTER.length]/100)*Math.max(0,cW-CARD_W)); }
 
 /* cubic bezier value at t */
@@ -280,7 +281,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
 }
 
 /* ─── polaroid-style photo card ─── */
-function MemCard({ entry,cardIdx,glow,onOpen,setRef,isMobile }:{ entry:Entry; cardIdx:number; glow:boolean; onOpen:()=>void; setRef:(el:HTMLDivElement|null)=>void; isMobile:boolean }) {
+const MemCard = memo(function MemCard({ entry,cardIdx,glow,onOpen,setRef,isMobile }:{ entry:Entry; cardIdx:number; glow:boolean; onOpen:()=>void; setRef:(el:HTMLDivElement|null)=>void; isMobile:boolean }) {
   const wrapRef  = useRef<HTMLDivElement>(null);
   const inView   = useInView(wrapRef,{once:true,margin:"-30px"});
   const [hovered,setHovered] = useState(false);
@@ -424,12 +425,14 @@ function MemCard({ entry,cardIdx,glow,onOpen,setRef,isMobile }:{ entry:Entry; ca
       </motion.div>
     </div>
   );
-}
+});
 
 /* ─── filter pill ─── */
-function Pill({ label,active,onClick }:{ label:string; active:boolean; onClick:()=>void }) {
+function Pill({ label,active,onClick,isMobile }:{ label:string; active:boolean; onClick:()=>void; isMobile?:boolean }) {
   return (
-    <motion.button onClick={onClick} whileHover={{scale:1.06}} whileTap={{scale:0.93}}
+    <motion.button onClick={onClick}
+      whileHover={isMobile ? undefined : {scale:1.06}}
+      whileTap={{scale:0.93}}
       style={{flexShrink:0,padding:"0.34rem 0.88rem",borderRadius:50,cursor:"pointer",
         background:active?"linear-gradient(135deg,var(--pink),var(--pink-deep))":"rgba(var(--pink-rgb),.14)",
         color:active?"#fff":"var(--text)",

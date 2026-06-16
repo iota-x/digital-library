@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
+import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
       _id: item._id.toString(),
     }));
 
-    return NextResponse.json(serialized);
+    return NextResponse.json(serialized, { headers: READ_CACHE_HEADERS });
   } catch {
     return NextResponse.json({ error: "Failed to fetch watchlist" }, { status: 500 });
   }

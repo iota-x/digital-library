@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
+import { cldImg, cldThumb } from "@/lib/cldImg";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -239,7 +240,7 @@ export default function TimeCapsule() {
                   onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadPhoto(f); e.target.value=""; }}/>
                 {photoUrl ? (
                   <div style={{position:"relative",marginBottom:"1rem",borderRadius:12,overflow:"hidden",maxHeight:180}}>
-                    <img src={photoUrl} alt="" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
+                    <img src={cldImg(photoUrl, { w: 720 })} alt="" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
                     <button onClick={()=>setPhotoUrl("")}
                       style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,.55)",border:"none",borderRadius:"50%",width:28,height:28,color:"#fff",cursor:"pointer",fontSize:"0.8rem",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
                   </div>
@@ -278,7 +279,7 @@ export default function TimeCapsule() {
                   <div key={i} style={{background:"var(--cream)",border:"1px solid rgba(var(--pink-deep-rgb),.2)",borderRadius:14,overflow:"hidden",boxShadow:"0 2px 12px rgba(var(--pink-deep-rgb),.06)"}}>
                     {p.imageUrl && (
                       <div style={{height:80,overflow:"hidden"}}>
-                        <img src={p.imageUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block",filter:"blur(6px) brightness(.7)",transform:"scale(1.08)"}}/>
+                        <img src={cldThumb(p.imageUrl, 200)} alt="" style={{width:"100%",height:"100%",objectFit:"cover",display:"block",filter:"blur(6px) brightness(.7)",transform:"scale(1.08)"}}/>
                       </div>
                     )}
                     <div style={{padding:"0.9rem 1.1rem",display:"flex",alignItems:"center",gap:"0.8rem"}}>
@@ -515,7 +516,7 @@ function LetterCard({
             style={{overflow:"hidden"}}>
             {c.imageUrl&&(
               <div style={{maxHeight:280,overflow:"hidden"}}>
-                <img src={c.imageUrl} alt="" style={{width:"100%",maxHeight:280,objectFit:"cover",display:"block"}}/>
+                <img src={cldImg(c.imageUrl, { w: 1000 })} alt="" style={{width:"100%",maxHeight:280,objectFit:"cover",display:"block"}}/>
               </div>
             )}
             <div style={{padding:"0 1.5rem 1.6rem",backgroundImage:"repeating-linear-gradient(transparent,transparent 31px,rgba(var(--pink-deep-rgb),.05) 31px,rgba(var(--pink-deep-rgb),.05) 32px)"}}>

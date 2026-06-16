@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCol } from "@/lib/mongo";
 import { broadcastCalendarUpdate } from "@/lib/sseBroadcast";
 import { getSession } from "@/lib/auth";
+import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     const col = await getCol("calendar");
     const entries = await col.find({ coupleId: session.coupleId }).toArray();
-    return NextResponse.json(entries);
+    return NextResponse.json(entries, { headers: READ_CACHE_HEADERS });
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
