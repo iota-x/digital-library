@@ -160,7 +160,7 @@ export default function WatchlistSection() {
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
           flexWrap:"wrap",gap:"0.75rem",marginBottom:"1.6rem"}}>
           <div style={{display:"flex",gap:"0.28rem",
-            background:"rgba(var(--pink-light-rgb),.55)",border:"1px solid rgba(var(--pink-deep-rgb),.22)",
+            background:"rgba(var(--pink-rgb),.12)",border:"1px solid rgba(var(--pink-rgb),.28)",
             borderRadius:50,padding:"0.28rem",flexWrap:"wrap"}}>
             {TABS.map(t=>{
               const active=tab===t.key;
@@ -168,17 +168,18 @@ export default function WatchlistSection() {
               return (
                 <button key={t.key} onClick={()=>setTab(t.key)} className="wl-tab" style={{
                   fontFamily:SANS,fontSize:"0.73rem",fontWeight:active?700:500,
-                  color:active?"#fff":"var(--muted)",
+                  color:active?"#fff":"var(--text)",
                   background:active?"linear-gradient(135deg,var(--pink),var(--pink-deep))":"transparent",
                   boxShadow:active?"0 2px 12px rgba(var(--pink-deep-rgb),.3)":"none",
                   border:"none",borderRadius:40,
                   padding:"0.38rem 0.8rem",
                   display:"flex",alignItems:"center",gap:"0.3rem",
+                  opacity:active?1:0.85,
                 }}>
                   {t.label}
-                  {cnt>0&&<span style={{background:active?"rgba(255,255,255,.25)":"rgba(var(--pink-deep-rgb),.12)",
+                  {cnt>0&&<span style={{background:active?"rgba(255,255,255,.25)":"rgba(var(--pink-rgb),.2)",
                     borderRadius:50,padding:"0.02rem 0.38rem",fontSize:"0.62rem",fontWeight:700,
-                    color:active?"#fff":"var(--muted)"}}>{cnt}</span>}
+                    color:active?"#fff":"var(--text)"}}>{cnt}</span>}
                 </button>
               );
             })}
