@@ -433,19 +433,37 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
 
       <motion.div
         initial={{ opacity: 0, scale: 0.08, borderRadius: 999, x: ox, y: oy }}
-        animate={{ opacity: 1, scale: 1, borderRadius: 18, x: 0, y: 0 }}
+        animate={{ opacity: 1, scale: 1, borderRadius: 22, x: 0, y: 0 }}
         exit={{ opacity: 0, scale: 0.06, borderRadius: 999 }}
         transition={{ type: "spring", stiffness: 230, damping: 30, mass: 0.8 }}
         style={{
           position: "fixed", top: "2vh", left: "2vw", right: "2vw", bottom: "2vh", zIndex: 3001,
-          background: "linear-gradient(148deg,#17060f 0%,#280c1a 50%,#190810 100%)",
-          backgroundImage: `${GRAIN},linear-gradient(148deg,#17060f 0%,#280c1a 50%,#190810 100%)`,
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% 0%, rgba(var(--pink-rgb),.22), transparent 65%),
+            radial-gradient(ellipse 60% 45% at 50% 100%, rgba(var(--pink-deep-rgb),.18), transparent 70%),
+            linear-gradient(160deg,
+              color-mix(in srgb, var(--pink-deep), #000 62%) 0%,
+              color-mix(in srgb, var(--pink-deep), #000 78%) 50%,
+              color-mix(in srgb, var(--pink-deep), #000 70%) 100%)
+          `,
           display: "flex", flexDirection: "column", overflow: "hidden",
-          boxShadow: "0 30px 100px rgba(0,0,0,.9),0 0 0 1px rgba(var(--pink-deep-rgb),.1)",
+          border: "1.5px solid rgba(var(--pink-rgb),.35)",
+          boxShadow: `
+            0 30px 100px rgba(0,0,0,.85),
+            0 0 80px rgba(var(--pink-deep-rgb),.35),
+            inset 0 1px 0 rgba(255,255,255,.06)
+          `,
         }}
       >
+        {/* Themed shimmer along top edge */}
+        <div style={{
+          position:"absolute", top:0, left:0, right:0, height:2,
+          background: "linear-gradient(90deg, transparent, var(--pink), var(--pink-deep), var(--pink), transparent)",
+          opacity: 0.65, pointerEvents:"none",
+        }}/>
+
         {/* ── Header ── */}
-        <div style={{ padding: "clamp(1rem,3vw,1.8rem) clamp(1rem,3vw,2rem) clamp(0.8rem,2vw,1.2rem)", borderBottom: "1px solid rgba(var(--pink-deep-rgb),.1)", background: "linear-gradient(180deg,rgba(var(--pink-deep-rgb),.06) 0%,transparent)", flexShrink: 0, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.8rem" }}>
+        <div style={{ padding: "clamp(1rem,3vw,1.8rem) clamp(1rem,3vw,2rem) clamp(0.8rem,2vw,1.2rem)", borderBottom: "1px solid rgba(var(--pink-rgb),.18)", background: "linear-gradient(180deg,rgba(var(--pink-rgb),.08) 0%,transparent)", flexShrink: 0, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.8rem", position: "relative" }}>
           <div style={{ minWidth: 0, flex: 1 }}>
             {birthdayLabel && (
               <motion.span
@@ -454,29 +472,37 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                 {birthdayLabel}! 🎉
               </motion.span>
             )}
-            {dn && <span style={{ fontFamily: SANS, fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--pink-rgb),.4)", display: "block", marginBottom: "0.3rem" }}>day {dn} of us 🌸</span>}
-            <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.1rem,3.5vw,1.8rem)", color: "var(--pink-light)", margin: 0, lineHeight: 1.25, fontWeight: 400 }}>
+            {dn && (
+              <span style={{ fontFamily: SANS, fontSize: "0.68rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--pink)", display: "block", marginBottom: "0.3rem", fontWeight: 700, opacity: 0.85 }}>
+                day {dn} of us 🌸
+              </span>
+            )}
+            <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.15rem,3.5vw,1.9rem)", color: "#fff", margin: 0, lineHeight: 1.25, fontWeight: 500, textShadow: "0 2px 16px rgba(var(--pink-deep-rgb),.5)" }}>
               {DAYS_FULL[displayDate.getDay()]}, {MONTHS[displayDate.getMonth()]} {displayDate.getDate()}, {displayDate.getFullYear()}
             </h2>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
-              {entry.specialLabel && <span style={{ fontFamily: SANS, fontSize: "0.82rem", color: "var(--pink)" }}>{entry.specialLabel}</span>}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
+              {entry.specialLabel && (
+                <span style={{ fontFamily: SANS, fontSize: "0.75rem", color: "#fff", background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", padding: "0.18rem 0.65rem", borderRadius: 20, fontWeight: 600, boxShadow: "0 2px 10px rgba(var(--pink-deep-rgb),.4)" }}>
+                  ✨ {entry.specialLabel}
+                </span>
+              )}
               {draft.mood && <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>{draft.mood}</span>}
-              <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(var(--pink-rgb),.3)", letterSpacing: "0.1em" }}>{fmtDate(dateKey)}</span>
+              <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,.45)", letterSpacing: "0.1em" }}>{fmtDate(dateKey)}</span>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
             {hasContent && (
-              <div style={{ background: "rgba(255,255,255,.05)", borderRadius: 28, padding: "0.18rem", display: "flex", border: "1px solid rgba(var(--pink-deep-rgb),.15)" }}>
+              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 28, padding: "0.18rem", display: "flex", border: "1px solid rgba(var(--pink-rgb),.3)", backdropFilter: "blur(8px)" }}>
                 {(["view", "edit"] as const).map(t => (
                   <button key={t} onClick={() => setTab(t)}
-                    style={{ padding: "0.28rem 0.85rem", borderRadius: 24, border: "none", fontFamily: SANS, fontSize: "0.82rem", cursor: "pointer", transition: "all 0.2s", background: tab === t ? "linear-gradient(135deg,rgba(var(--pink-deep-rgb),.4),rgba(var(--pink-deep-rgb),.3))" : "transparent", color: tab === t ? "var(--pink-light)" : "rgba(var(--pink-light-rgb),.35)" }}>
+                    style={{ padding: "0.28rem 0.85rem", borderRadius: 24, border: "none", fontFamily: SANS, fontSize: "0.82rem", fontWeight: tab === t ? 700 : 500, cursor: "pointer", transition: "all 0.2s", background: tab === t ? "linear-gradient(135deg,var(--pink),var(--pink-deep))" : "transparent", color: tab === t ? "#fff" : "rgba(255,255,255,.7)", boxShadow: tab === t ? "0 2px 10px rgba(var(--pink-deep-rgb),.4)" : "none" }}>
                     {t === "view" ? "💌 memory" : "✏️ edit"}
                   </button>
                 ))}
               </div>
             )}
             <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
-              style={{ background: "rgba(255,255,255,.05)", border: "1px solid rgba(var(--pink-deep-rgb),.15)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "rgba(var(--pink-light-rgb),.6)", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</motion.button>
+              style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.4)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "#fff", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</motion.button>
           </div>
         </div>
 
@@ -490,11 +516,11 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                 {hasMedia && (
                   <div style={{ marginBottom: "1.8rem" }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.2rem" }}>
-                      <span style={{ fontFamily: SANS, fontSize: "0.75rem", color: "rgba(var(--pink-rgb),.5)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{draft.photos!.length} item{draft.photos!.length !== 1 ? "s" : ""}</span>
+                      <span style={{ fontFamily: SANS, fontSize: "0.75rem", color: "rgba(255,255,255,.7)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{draft.photos!.length} item{draft.photos!.length !== 1 ? "s" : ""}</span>
                       <div style={{ display: "flex", gap: "0.35rem" }}>
                         {(["polaroid", "film"] as const).map(m => (
                           <button key={m} onClick={() => setDispMode(m)}
-                            style={{ padding: "0.25rem 0.75rem", borderRadius: 18, cursor: "pointer", transition: "all 0.2s", fontFamily: SANS, fontSize: "0.78rem", border: `1px solid ${dispMode === m ? "rgba(var(--pink-deep-rgb),.45)" : "rgba(var(--pink-deep-rgb),.18)"}`, background: dispMode === m ? "rgba(var(--pink-deep-rgb),.15)" : "transparent", color: dispMode === m ? "var(--pink)" : "rgba(var(--pink-rgb),.38)" }}>
+                            style={{ padding: "0.25rem 0.75rem", borderRadius: 18, cursor: "pointer", transition: "all 0.2s", fontFamily: SANS, fontSize: "0.78rem", border: `1px solid ${dispMode === m ? "rgba(var(--pink-rgb),.5)" : "rgba(var(--pink-rgb),.22)"}`, background: dispMode === m ? "rgba(var(--pink-rgb),.22)" : "transparent", color: dispMode === m ? "#fff" : "rgba(255,255,255,.55)" }}>
                             {m === "polaroid" ? "🖼 polaroid" : "🎞 film"}
                           </button>
                         ))}
@@ -507,19 +533,19 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                   </div>
                 )}
                 {draft.note ? (
-                  <div style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(var(--pink-deep-rgb),.08)", borderRadius: 14, padding: "clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(2rem,4vw,2.5rem)", position: "relative", overflow: "hidden", marginTop: hasMedia ? "2rem" : "0" }}>
-                    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: "repeating-linear-gradient(transparent,transparent 31px,rgba(var(--pink-deep-rgb),.05) 31px,rgba(var(--pink-deep-rgb),.05) 32px)" }} />
-                    <div style={{ position: "absolute", left: "2.5rem", top: 0, bottom: 0, width: 1, background: "rgba(var(--pink-deep-rgb),.09)" }} />
-                    <p style={{ fontFamily: SERIF, fontSize: "clamp(1rem,2.2vw,1.18rem)", color: "rgba(var(--pink-light-rgb),.88)", lineHeight: 2, margin: 0, whiteSpace: "pre-wrap", position: "relative", zIndex: 1, letterSpacing: "0.01em", fontWeight: 400 }}>{draft.note}</p>
+                  <div style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(var(--pink-rgb),.22)", borderRadius: 14, padding: "clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(1.2rem,3vw,1.8rem) clamp(2rem,4vw,2.5rem)", position: "relative", overflow: "hidden", marginTop: hasMedia ? "2rem" : "0" }}>
+                    <div style={{ position: "absolute", inset: 0, pointerEvents: "none", backgroundImage: "repeating-linear-gradient(transparent,transparent 31px,rgba(var(--pink-rgb),.1) 31px,rgba(var(--pink-rgb),.1) 32px)" }} />
+                    <div style={{ position: "absolute", left: "2.5rem", top: 0, bottom: 0, width: 1, background: "rgba(var(--pink-rgb),.18)" }} />
+                    <p style={{ fontFamily: SERIF, fontSize: "clamp(1rem,2.2vw,1.18rem)", color: "rgba(255,255,255,.92)", lineHeight: 2, margin: 0, whiteSpace: "pre-wrap", position: "relative", zIndex: 1, letterSpacing: "0.01em", fontWeight: 400 }}>{draft.note}</p>
                     <div style={{ marginTop: "1.4rem", display: "flex", alignItems: "center", gap: "0.5rem", position: "relative", zIndex: 1 }}>
-                      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(var(--pink-deep-rgb),.28),transparent)" }} />
-                      <span style={{ fontFamily: SCRIPT, fontSize: "0.85rem", color: "rgba(var(--pink-rgb),.4)" }}>— with love 🩷</span>
+                      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(var(--pink-rgb),.4),transparent)" }} />
+                      <span style={{ fontFamily: SCRIPT, fontSize: "0.85rem", color: "var(--pink)" }}>— with love 🩷</span>
                     </div>
                   </div>
                 ) : !hasMedia && (
                   <div style={{ textAlign: "center", padding: "4rem 1rem" }}>
-                    <div style={{ fontSize: "2rem", marginBottom: "0.8rem", opacity: 0.4 }}>🌸</div>
-                    <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(var(--pink-rgb),.3)", margin: 0 }}>nothing here yet — tap edit to add a memory</p>
+                    <div style={{ fontSize: "2rem", marginBottom: "0.8rem", opacity: 0.65 }}>🌸</div>
+                    <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(255,255,255,.6)", margin: 0 }}>nothing here yet — tap edit to add a memory</p>
                   </div>
                 )}
               </motion.div>
@@ -531,7 +557,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
 
                 {/* Mood */}
                 <div>
-                  <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-rgb),.45)", marginBottom: "0.6rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>How are you feeling?</p>
+                  <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(255,255,255,.7)", marginBottom: "0.6rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>How are you feeling?</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
                     {MOODS.map(m => (
                       <motion.button key={m} onClick={() => setDraft(d => ({ ...d, mood: d.mood === m ? "" : m }))}

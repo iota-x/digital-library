@@ -182,13 +182,13 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
                   </span>
                 )}
               </div>
-              <p style={{fontFamily:SERIF,fontStyle:'italic',fontSize:'0.82rem',color:'rgba(var(--pink-deep-rgb),.5)',margin:0}}>
+              <p style={{fontFamily:SERIF,fontStyle:'italic',fontSize:'0.82rem',color:'var(--muted)',margin:0}}>
                 {fmtDate(entry.date)}
               </p>
             </div>
             <motion.button onClick={onClose} whileHover={{scale:1.1,rotate:90}} whileTap={{scale:0.9}}
               transition={{type:'spring',stiffness:300,damping:20}}
-              style={{flexShrink:0,width:32,height:32,borderRadius:'50%',border:'1px solid rgba(var(--pink-deep-rgb),.18)',background:'rgba(var(--pink-light-rgb),.8)',color:PINK,cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              style={{flexShrink:0,width:32,height:32,borderRadius:'50%',border:'1px solid rgba(var(--pink-rgb),.4)',background:'rgba(var(--pink-rgb),.18)',color:PINK,cursor:'pointer',fontSize:'0.82rem',display:'flex',alignItems:'center',justifyContent:'center'}}>
               ✕
             </motion.button>
           </div>
@@ -255,19 +255,19 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
               <div style={{flex:1,height:1,background:'linear-gradient(270deg,rgba(var(--pink-deep-rgb),.18),transparent)'}}/>
             </div>
             {pinned && pinned !== note && (
-              <div style={{background:'rgba(var(--pink-rgb),.1)',border:'1px solid rgba(var(--pink-rgb),.2)',borderRadius:14,padding:'0.9rem 1.1rem',marginBottom:'1.2rem'}}>
-                <p style={{fontFamily:SANS,fontSize:'0.56rem',color:'rgba(var(--pink-deep-rgb),.45)',letterSpacing:'0.14em',textTransform:'uppercase',margin:'0 0 0.3rem'}}>📌 pinned</p>
-                <p style={{fontFamily:SCRIPT,fontSize:'1.1rem',color:'#4a1628',lineHeight:1.75,margin:0,fontStyle:'italic'}}>{pinned}</p>
+              <div style={{background:'rgba(var(--pink-rgb),.12)',border:'1px solid rgba(var(--pink-rgb),.28)',borderRadius:14,padding:'0.9rem 1.1rem',marginBottom:'1.2rem'}}>
+                <p style={{fontFamily:SANS,fontSize:'0.56rem',color:'var(--muted)',letterSpacing:'0.14em',textTransform:'uppercase',margin:'0 0 0.3rem'}}>📌 pinned</p>
+                <p style={{fontFamily:SCRIPT,fontSize:'1.1rem',color:'var(--text)',lineHeight:1.75,margin:0,fontStyle:'italic'}}>{pinned}</p>
               </div>
             )}
             {note && (
-              <p style={{fontFamily:SERIF,fontStyle:'italic',fontSize:'clamp(1rem,2.5vw,1.12rem)',color:'#360e1c',lineHeight:2.0,margin:0,whiteSpace:'pre-wrap'}}>
+              <p style={{fontFamily:SERIF,fontStyle:'italic',fontSize:'clamp(1rem,2.5vw,1.12rem)',color:'var(--text)',lineHeight:2.0,margin:0,whiteSpace:'pre-wrap'}}>
                 {note}
               </p>
             )}
             <div style={{display:'flex',alignItems:'center',gap:'0.8rem',marginTop:'1.6rem'}}>
-              <div style={{flex:1,height:1,background:'linear-gradient(90deg,rgba(var(--pink-deep-rgb),.12),transparent)'}}/>
-              <span style={{fontFamily:SCRIPT,fontSize:'0.95rem',color:'rgba(var(--pink-deep-rgb),.45)'}}>— with love 🩷</span>
+              <div style={{flex:1,height:1,background:'linear-gradient(90deg,rgba(var(--pink-rgb),.3),transparent)'}}/>
+              <span style={{fontFamily:SCRIPT,fontSize:'0.95rem',color:'var(--muted)'}}>— with love 🩷</span>
             </div>
           </div>
         )}
