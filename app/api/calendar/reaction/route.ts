@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
 import { broadcastCalendarUpdate } from "@/lib/sseBroadcast";
-import { sendPushToCouple } from "@/lib/pushNotify";
+import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 
 /**
  * Toggle a reaction on a calendar entry.
@@ -48,9 +48,10 @@ export const POST = withAuth(async (req, session) => {
     broadcastCalendarUpdate(session.coupleId, { type: "update", entry: payload });
   }
 
-  // Only notify on add — un-reacting shouldn't ping
+  // Only notify on add — un-reacting shouldn't ping. Skip the sender so
+  // you don't get a push for your own reaction.
   if (!had) {
-    sendPushToCouple(session.coupleId, {
+    sendPushToOtherInCouple(session.coupleId, session.userId, {
       title: `${session.name} reacted ${emoji}`,
       body: `to your memory from ${date}`,
     });

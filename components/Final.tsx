@@ -18,7 +18,7 @@ const PAGES = [
   {
     icon: "💗",
     accent: "var(--pink-deep)",
-    bg: "linear-gradient(160deg,var(--pink-light),#ffd6e0)",
+    bg: "linear-gradient(160deg,var(--pink-light),var(--pink-mid))",
     text: `We will grow and learn together and we both will make efforts for each other — one thing I'm sure of is that I do plan on spending the rest of my life with you. It's not a hasty decision. I've thought about it properly and it's something I want you to know. 🩷`,
   },
   {
@@ -437,7 +437,7 @@ function Book({ active, prev, dir }: { active: number; prev: number; dir: "next"
             <p style={{
               fontFamily:"var(--font-caveat)",
               fontSize:"clamp(1.18rem,2.8vw,1.48rem)",
-              color:"#7c3f58", lineHeight:2.1,
+              color:"var(--text)", lineHeight:2.1,
               flex:1, margin:0,
             }}>
               {p.text}
@@ -500,6 +500,7 @@ function Arrow({ dir, onClick, disabled }: { dir:"left"|"right"; onClick:()=>voi
     <motion.button
       onClick={onClick}
       disabled={disabled}
+      aria-label={dir === "left" ? "previous page" : "next page"}
       whileHover={disabled ? {} : { scale:1.12, x: dir==="left" ? -3 : 3 }}
       whileTap={disabled ? {} : { scale:0.93 }}
       style={{
@@ -530,6 +531,8 @@ function Dots({ active, total, onGoTo }: { active:number; total:number; onGoTo:(
         <motion.button
           key={i}
           onClick={() => onGoTo(i)}
+          aria-label={`go to page ${i + 1}`}
+          aria-current={i === active ? "page" : undefined}
           animate={{ width: i === active ? 26 : 9, opacity: i <= active ? 1 : 0.3 }}
           transition={{ type:"spring", stiffness:320, damping:24 }}
           style={{
@@ -683,7 +686,7 @@ export default function Final() {
             animate={{ scale:[1,1.2,1] }} transition={{ repeat:Infinity, duration:2, ease:"easeInOut" }}>
             💗
           </motion.div>
-          <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1.2rem", color:"#9d3f68", margin:"0 0 0.4rem" }}>
+          <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1.2rem", color:"var(--pink-deep)", margin:"0 0 0.4rem" }}>
             made with way too much love by yours truly, for the one whom I love the most in this universe 🌸
           </p>
           <p style={{ fontFamily:"var(--font-playfair)", fontStyle:"italic", fontSize:"1.05rem", color:"var(--pink-deep)", margin:0 }}>

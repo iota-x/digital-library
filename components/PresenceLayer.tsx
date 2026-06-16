@@ -20,7 +20,8 @@ import { heartBump, buzz } from "@/lib/haptics";
  * reload, both states clear and re-sync within seconds.
  */
 
-const TICK_MS    = 4000;
+const TICK_FAST  = 4000;   // while partner is active
+const TICK_SLOW  = 20_000; // when nobody else is seen
 const STALE_MS   = 14_000; // partner chip disappears after this
 const HEART_TTL  = 1800;
 
@@ -43,6 +44,7 @@ export default function PresenceLayer() {
   const [sending, setSending] = useState(false);
   const currentSection = useRef<string>("");
   const lastTickAt = useRef<number>(0);
+  const lastPartnerSeenAt = useRef<number>(0);
 
   // Tick — POST current section periodically
   useEffect(() => {
@@ -82,7 +84,11 @@ export default function PresenceLayer() {
     const tick = async () => {
       if (document.visibilityState !== "visible") return;
       if (!currentSection.current) return;
-      if (Date.now() - lastTickAt.current < TICK_MS - 250) return;
+      // Adaptive cadence: tick fast (~4s) while the partner is actively seen,
+      // back off to slow (~20s) when their last tick was over 30s ago.
+      const partnerActive = Date.now() - lastPartnerSeenAt.current < 30_000;
+      const minGap = (partnerActive ? TICK_FAST : TICK_SLOW) - 250;
+      if (Date.now() - lastTickAt.current < minGap) return;
       lastTickAt.current = Date.now();
       try {
         await fetch("/api/presence", {
@@ -92,7 +98,9 @@ export default function PresenceLayer() {
         });
       } catch {}
     };
-    const interval = setInterval(tick, TICK_MS);
+    // setInterval runs at TICK_FAST so we *can* tick fast when needed; the
+    // tick body itself decides whether to actually send based on the gap.
+    const interval = setInterval(tick, TICK_FAST);
     // Also fire on visibility regained
     const visHandler = () => { if (document.visibilityState === "visible") tick(); };
     document.addEventListener("visibilitychange", visHandler);
@@ -116,8 +124,10 @@ export default function PresenceLayer() {
       if (detail.userId === userData.userId) return;
 
       if (detail.type === "presence:tick" && detail.section) {
+        lastPartnerSeenAt.current = Date.now();
         setPartner({ section: detail.section, name: detail.name || "them", ts: detail.ts || Date.now() });
       } else if (detail.type === "presence:heart") {
+        lastPartnerSeenAt.current = Date.now();
         const id = `h-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
         setHearts(hs => [...hs, { id, startedAt: Date.now(), fromMe: false }]);
         heartBump();
@@ -157,8 +167,11 @@ export default function PresenceLayer() {
     setTimeout(() => setSending(false), 600);
   };
 
-  // Only render when user is loaded
+  // Only render when user is loaded AND there's actually a partner to ping.
+  // Solo couples (creator hasn't been joined yet) get no heart button —
+  // there's nobody on the other end.
   if (!userData) return null;
+  if (!userData.partnerName) return null;
 
   return (
     <>

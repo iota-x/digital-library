@@ -769,6 +769,31 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
   transition: outline-offset .12s ease, box-shadow .12s ease;
 }
 
+/* Keyboard skip link — visible only on focus. Lets keyboard users bypass
+   the navbar/tab bar and jump straight into page content. */
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 1rem;
+  z-index: 10001;
+  padding: 0.6rem 1.1rem;
+  background: var(--pink-deep);
+  color: #fff;
+  font-family: var(--font-lato), "Inter", system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
+  transition: top .18s ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 1rem;
+  outline: 2.5px solid #fff;
+  outline-offset: 2px;
+}
+
 /* Screen-reader-only — visually hidden but read by assistive tech.
    Standard utility pattern (matches Tailwind's sr-only). */
 .sr-only {

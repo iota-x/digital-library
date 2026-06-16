@@ -21,6 +21,22 @@ export async function sendPushToCouple(coupleId: string, payload: { title: strin
   } catch {}
 }
 
+/** Push to everyone in the couple EXCEPT the given userId — for "self
+ *  triggered" events (a reaction, a heart) where notifying the sender is
+ *  noise. Sender still gets the in-app SSE update. */
+export async function sendPushToOtherInCouple(coupleId: string, exceptUserId: string, payload: { title: string; body: string; icon?: string }) {
+  try {
+    const col = await getCol("pushSubscriptions");
+    const subs = await col.find({ coupleId, userId: { $ne: exceptUserId } }).toArray();
+    const msg = JSON.stringify({ ...payload, icon: payload.icon ?? "/favicon.svg" });
+    await Promise.allSettled(
+      subs.map(s => webpush.sendNotification(s.subscription, msg).catch(() =>
+        col.deleteOne({ _id: s._id })
+      ))
+    );
+  } catch {}
+}
+
 export async function sendPushToUser(userId: string, payload: { title: string; body: string; icon?: string }) {
   try {
     const col = await getCol("pushSubscriptions");

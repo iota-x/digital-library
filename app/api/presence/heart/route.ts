@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
-import { sendPushToCouple } from "@/lib/pushNotify";
+import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 /**
@@ -26,10 +26,8 @@ export const POST = withAuth(async (req, session) => {
     ts: Date.now(),
   });
 
-  // Don't push to the sender, only the partner — broadcastToCouple already
-  // hits both, but for push we want partner-only. sendPushToCouple targets
-  // everyone subscribed; the receiver will recognise it's a notification.
-  sendPushToCouple(session.coupleId, {
+  // Partner-only push — don't notify the sender about their own heart.
+  sendPushToOtherInCouple(session.coupleId, session.userId, {
     title: "a heart for you 🩷",
     body: `${session.name} sent you a heart`,
   });

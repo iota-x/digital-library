@@ -56,7 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SwipeNav />
               <PwaRegister />
               <MobileTabBar />
-              {children}
+              {/* Keyboard skip link — visually hidden until focused */}
+              <a href="#main" className="skip-link">skip to content</a>
+              <div id="main">{children}</div>
             </ConfirmProvider>
           </ToasterProvider>
         </MotionRoot>

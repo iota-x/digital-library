@@ -59,7 +59,7 @@ function MediaThumb({ src, onClick }: { src: string; onClick: () => void }) {
   const isVid = isVideoSrc(src);
   return (
     <div style={{ position: "relative", cursor: "pointer", width: 64, height: 64 }} onClick={onClick}>
-      <img src={cldThumb(src, 128)} loading="lazy" decoding="async" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, display: "block", border: "1px solid rgba(var(--pink-deep-rgb),.18)", background: "#1a0a12" }} alt="" />
+      <img src={cldThumb(src, 128)} loading="lazy" decoding="async" style={{ width: 64, height: 64, objectFit: "cover", borderRadius: 8, display: "block", border: "1px solid rgba(var(--pink-deep-rgb),.18)", background: "#1a0a12" }} alt="memory photo" />
       {isVid && (
         <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.3)", borderRadius: 8 }}>
           <span style={{ fontSize: "1.2rem" }}>▶</span>
@@ -152,7 +152,7 @@ function Lightbox({
                 outlineOffset: editing ? 4 : 0,
               }}
             >
-              <img src={url} alt="" loading="eager" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", display: "block" }} />
+              <img src={url} alt={`photo ${idx + 1} of ${media.length}`} loading="eager" style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", display: "block" }} />
               {/* read-only renderer for non-edit mode */}
               {!editing && <StickerOverlay stickers={list} />}
               {/* In edit mode: render each sticker as a tappable button so the
@@ -290,7 +290,7 @@ function Polaroid({ src, dateKey, idx, total, isTop, offset, onClick, onBringFor
       onClick={isTop ? onClick : onBringForward}
     >
       <div style={{ width: "100%", paddingBottom: "100%", position: "relative", overflow: "hidden", background: "#e8d5dc" }}>
-        <img src={cldThumb(src, 360)} loading={isTop ? "eager" : "lazy"} decoding="async" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        <img src={cldThumb(src, 360)} loading={isTop ? "eager" : "lazy"} decoding="async" alt={`memory polaroid from ${dateKey}`} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         {isVid && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.25)" }}>
             <span style={{ fontSize: "2rem", filter: "drop-shadow(0 2px 8px rgba(0,0,0,.5))" }}>▶</span>
@@ -361,7 +361,7 @@ function FilmStrip({ media, dateKey, onMediaClick }: { media: string[]; dateKey:
               </React.Fragment>
             ))}
             <div style={{ width: "100%", aspectRatio: "1", position: "relative", overflow: "hidden" }}>
-              <img src={cldThumb(src, 280)} loading="lazy" decoding="async" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "saturate(0.9)" }} />
+              <img src={cldThumb(src, 280)} loading="lazy" decoding="async" alt={`memory frame ${i + 1} from ${dateKey}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", filter: "saturate(0.9)" }} />
               {isVid && (
                 <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,.3)" }}>
                   <span style={{ fontSize: "1.5rem" }}>▶</span>
@@ -984,7 +984,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
   const specialCnt = Object.values(entries).filter(e => e.special).length;
 
   return (
-    <section id="calendar" style={{ position: "relative", width: "100%", minHeight: "100vh", padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)", background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,#fad0e8 60%,#f0a8cc 85%,#c9447a 100%)", overflow: "hidden" }}>
+    <section id="calendar" style={{ position: "relative", width: "100%", minHeight: "100vh", padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)", background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,rgba(var(--pink-rgb),.55) 60%,rgba(var(--pink-rgb),.85) 85%,var(--pink-deep) 100%)", overflow: "hidden" }}>
       {DECO_SYMS.map((sym, i) => (
         <span key={i} className="occ-deco"
           style={{ left: `${8 + i * 18}%`, top: `${DECO_TOPS[i]}%`, fontSize: `${DECO_SIZES[i]}rem`, "--occ-dur": `${4 + i * 1.2}s`, "--occ-del": `${i * 0.8}s` } as React.CSSProperties}>

@@ -12,6 +12,7 @@ import OurCalendar       from "@/components/OurCalendar";
 import StreakTracker     from "@/components/StreakTracker";
 import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
+import ErrorBoundary     from "@/components/ErrorBoundary";
 
 if (typeof window !== "undefined") fetchCalendarData();
 
@@ -40,15 +41,15 @@ function JournalPageInner() {
         <div className={`ptr-indicator ${refreshing ? "spinning" : ""}`} aria-hidden>↻</div>
         <main>
           <JournalHeader />
-          <JournalSearch />
+          <ErrorBoundary><JournalSearch /></ErrorBoundary>
           <div style={{ padding: "2rem clamp(1rem,3vw,2rem) 0" }}>
-            <AnniversaryBanner />
-            <OnThisDay />
+            <ErrorBoundary><AnniversaryBanner /></ErrorBoundary>
+            <ErrorBoundary><OnThisDay /></ErrorBoundary>
           </div>
-          <OurCalendar initialDate={dateParam} />
-          <StreakTracker />
-          <SurpriseMe />
-          <MonthlyRecap />
+          <ErrorBoundary><OurCalendar initialDate={dateParam} /></ErrorBoundary>
+          <ErrorBoundary><StreakTracker /></ErrorBoundary>
+          <ErrorBoundary><SurpriseMe /></ErrorBoundary>
+          <ErrorBoundary><MonthlyRecap /></ErrorBoundary>
         </main>
       </div>
     </PasswordGate>

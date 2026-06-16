@@ -28,7 +28,7 @@ function HomeContent() {
         <ErrorBoundary><OnThisDay /></ErrorBoundary>
       </div>
       {sv("showMemoryCards") && <ErrorBoundary><MemoryCards /></ErrorBoundary>}
-      <ButtonSection />
+      <ErrorBoundary><ButtonSection /></ErrorBoundary>
       {sv("showVoiceNotes") && <ErrorBoundary><VoiceNote /></ErrorBoundary>}
       {sv("showCapsuleTeaser") && <ErrorBoundary><CapsuleTeaser /></ErrorBoundary>}
       {sv("showFinal") && <ErrorBoundary><Final /></ErrorBoundary>}

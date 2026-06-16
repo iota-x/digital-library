@@ -148,7 +148,7 @@ export default function OnThisDay() {
                 <p style={{
                   fontFamily:SERIF, fontStyle:"italic",
                   fontSize:"clamp(0.86rem,2vw,0.98rem)",
-                  color:"#4a1628", margin:0, lineHeight:1.7,
+                  color:"var(--text)", margin:0, lineHeight:1.7,
                   overflow:"hidden", display:"-webkit-box",
                   WebkitLineClamp:2, WebkitBoxOrient:"vertical" as const,
                 }}>

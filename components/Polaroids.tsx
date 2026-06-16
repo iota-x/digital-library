@@ -152,7 +152,7 @@ function CurtainReveal({ onDone }: { onDone: () => void }) {
         something made just for you…
       </motion.p>
       <motion.p
-        style={{ fontFamily:"var(--font-caveat)", fontSize:"clamp(1rem,2.5vw,1.3rem)", color:"#db2777", zIndex:2, margin:0 }}
+        style={{ fontFamily:"var(--font-caveat)", fontSize:"clamp(1rem,2.5vw,1.3rem)", color:"var(--pink-deep)", zIndex:2, margin:0 }}
         initial={{ opacity:0 }} animate={{ opacity:[0,1,1,0] }}
         transition={{ delay:0.9, duration:1.5, times:[0,0.2,0.7,1] }}
       >
