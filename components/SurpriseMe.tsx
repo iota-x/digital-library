@@ -3,6 +3,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
+import BgAccents from "@/components/BgAccents";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -50,13 +51,16 @@ export default function SurpriseMe() {
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
       overflow:"hidden",
     }}>
-      {/* Twinkling stars */}
+      {/* Twinkling stars (CSS — already optimised) */}
       {STARS.map((s,i)=>(
         <div key={i} className="occ-star"
           style={{ left:s.left, top:s.top, width:s.size, height:s.size,
             background:"var(--pink)", boxShadow:"0 0 5px rgba(var(--pink-rgb),.7)",
             "--occ-dur":s.dur, "--occ-del":s.del } as React.CSSProperties}/>
       ))}
+
+      {/* Themed drifting sparkles */}
+      <BgAccents variant="stardust" desktopCount={8} mobileCount={4} />
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
         style={{maxWidth:560,width:"100%",textAlign:"center",position:"relative",zIndex:2}}>

@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
+import BgAccents from "@/components/BgAccents";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -63,6 +64,9 @@ export default function MonthlyRecap() {
       ))}
       {/* Radial glow */}
       <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:"70%",height:"50%",borderRadius:"50%",background:"rgba(var(--pink-rgb),.08)",filter:"blur(80px)",pointerEvents:"none"}}/>
+
+      {/* Themed drifting sparkles */}
+      <BgAccents variant="stardust" desktopCount={10} mobileCount={5} />
 
       <motion.div initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
         style={{maxWidth:660,width:"100%",position:"relative",zIndex:2}}>
