@@ -2,9 +2,9 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { useConfirm } from "@/components/ConfirmDialog";
+import { uploadToCloudinary } from "@/lib/cloudUpload";
 
-const CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const SCRIPT = `var(--font-caveat),"Caveat",cursive`;
@@ -126,6 +126,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
 
 export default function VoiceNote() {
   const userData = useUserData();
+  const confirm = useConfirm();
   const [notes, setNotes] = useState<VNote[]>([]);
   const [recording, setRecording] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -194,18 +195,13 @@ export default function VoiceNote() {
       setUploading(true);
 
       try {
-        const fd = new FormData();
-        fd.append("file", blob, "voicenote.webm");
-        fd.append("upload_preset", PRESET);
-        fd.append("resource_type", "video");
-        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/video/upload`, { method: "POST", body: fd });
-        const data = await res.json();
-        if (!data.secure_url) throw new Error("Upload failed");
+        const file = new File([blob], "voicenote.webm", { type: recorder.mimeType || "audio/webm" });
+        const url = await uploadToCloudinary(file, { resourceType: "video", folder: "voicenotes" });
 
         await fetch("/api/voicenotes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: data.secure_url, from, label }),
+          body: JSON.stringify({ url, from, label }),
         });
 
         const updated = await fetch("/api/voicenotes").then(r => r.json());
@@ -223,6 +219,15 @@ export default function VoiceNote() {
   }, [from, label]);
 
   async function deleteNote(id: string) {
+    const note = notes.find(n => n.id === id);
+    const ok = await confirm({
+      title: "delete this voice note?",
+      body: note?.label ? `"${note.label}" will be permanently removed.` : "This voice note will be permanently removed for both of you.",
+      confirmLabel: "delete",
+      cancelLabel: "keep it",
+      destructive: true,
+    });
+    if (!ok) return;
     await fetch("/api/voicenotes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     setNotes(n => n.filter(x => x.id !== id));
   }

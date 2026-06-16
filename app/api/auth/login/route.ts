@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getCol } from "@/lib/mongo";
 import { signSession, setSessionCookie } from "@/lib/auth";
+import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +13,11 @@ export async function POST(req: NextRequest) {
     }
 
     const emailLower = email.trim().toLowerCase();
+
+    // Rate limit by IP+email — 5 attempts per 15 minutes
+    const rl = rateLimit(req, { scope: "auth:login", max: 5, windowMs: 15 * 60_000, identifier: emailLower });
+    if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many login attempts. Try again later.");
+
     const users = await getCol("users");
     const user = await users.findOne({ email: emailLower });
 
@@ -22,6 +28,10 @@ export async function POST(req: NextRequest) {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    }
+
+    if (user.emailVerified === false) {
+      return NextResponse.json({ error: "Please verify your email first. Check your inbox." }, { status: 403 });
     }
 
     const userId = user._id.toString();

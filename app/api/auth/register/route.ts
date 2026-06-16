@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getCol } from "@/lib/mongo";
 import { signSession, setSessionCookie } from "@/lib/auth";
+import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { generateOtp, storeOtp, sendMail, verifyEmailTemplate } from "@/lib/email";
 
 function generateInviteCode(): string {
-  // Uppercase alphanumeric, avoiding O/0/I/1 confusion
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
   for (let i = 0; i < 6; i++) {
@@ -24,9 +25,14 @@ async function getUniqueInviteCode(): Promise<string> {
 }
 
 const DATA_COLLECTIONS = ["calendar", "capsules", "voicenotes", "bucketlist", "watchlist"];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit by IP — 3 register attempts per hour
+    const rl = rateLimit(req, { scope: "auth:register", max: 3, windowMs: 60 * 60_000 });
+    if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many sign-up attempts. Try again later.");
+
     const body = await req.json();
     const { name, email, password, startDate } = body as {
       name?: string;
@@ -38,20 +44,23 @@ export async function POST(req: NextRequest) {
     if (!name?.trim() || !email?.trim() || !password || !startDate) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 });
     }
+    if (!EMAIL_RE.test(email.trim())) {
+      return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 });
+    }
+    if (password.length < 8) {
+      return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+    }
 
     const emailLower = email.trim().toLowerCase();
     const users = await getCol("users");
 
-    // Check email uniqueness
     const existingUser = await users.findOne({ email: emailLower });
     if (existingUser) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
 
-    // Generate unique invite code
     const inviteCode = await getUniqueInviteCode();
 
-    // Insert couple
     const couples = await getCol("couples");
     const coupleResult = await couples.insertOne({
       inviteCode,
@@ -62,7 +71,6 @@ export async function POST(req: NextRequest) {
     });
     const coupleId = coupleResult.insertedId.toString();
 
-    // Hash password and insert user
     const passwordHash = await bcrypt.hash(password, 12);
     const userResult = await users.insertOne({
       name: name.trim(),
@@ -70,29 +78,31 @@ export async function POST(req: NextRequest) {
       passwordHash,
       coupleId,
       role: "creator" as const,
+      emailVerified: false,
       createdAt: new Date().toISOString(),
     });
     const userId = userResult.insertedId.toString();
 
-    // Migration: if this is the FIRST couple, migrate existing data
+    // Migration: if first couple, attach any unowned existing data
     const coupleCount = await couples.countDocuments();
     if (coupleCount === 1) {
       for (const collName of DATA_COLLECTIONS) {
         try {
           const col = await getCol(collName);
-          await col.updateMany(
-            { coupleId: { $exists: false } },
-            { $set: { coupleId } }
-          );
-        } catch {
-          // non-fatal: collection might not exist yet
-        }
+          await col.updateMany({ coupleId: { $exists: false } }, { $set: { coupleId } });
+        } catch {}
       }
     }
 
-    // Sign JWT and set cookie
+    // Issue + email a 6-digit verification code
+    const code = generateOtp();
+    await storeOtp(emailLower, "verify-email", code, 15);
+    sendMail(emailLower, "Your verification code", verifyEmailTemplate(code)).catch(console.error);
+
+    // Sign session so the user can immediately enter the verify-code screen
+    // (but their account is flagged emailVerified:false until they confirm)
     const token = await signSession({ userId, coupleId, name: name.trim(), role: "creator" });
-    const res = NextResponse.json({ ok: true, inviteCode });
+    const res = NextResponse.json({ ok: true, inviteCode, requiresVerification: true });
     setSessionCookie(res, token);
     return res;
   } catch (e) {

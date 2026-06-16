@@ -2,15 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { uploadToCloudinary } from "@/lib/cloudUpload";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const BG     = "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,var(--pink) 65%,var(--pink-deep) 100%)";
 const ACC    = "var(--pink-deep)";
-
-const CLOUD  = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-const PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
 interface Capsule { id:string; letter:string; unlockDate:string; from:string; createdAt:string; imageUrl?:string; }
 interface Pending  { id?:string; unlockDate:string; from:string; createdAt:string; imageUrl?:string; }
@@ -93,12 +91,8 @@ export default function TimeCapsule() {
   const uploadPhoto = async (file: File) => {
     setPhotoUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("upload_preset", PRESET);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method: "POST", body: fd });
-      const data = await res.json();
-      setPhotoUrl(data.secure_url || "");
+      const url = await uploadToCloudinary(file, { resourceType: "image", folder: "capsules" });
+      setPhotoUrl(url);
     } catch { setPhotoUrl(""); }
     finally { setPhotoUploading(false); }
   };

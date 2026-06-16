@@ -41,22 +41,11 @@ function isAcceptedMedia(file: File) {
   return file.type.startsWith("image/") || ["video/mp4", "video/quicktime", "video/webm"].includes(file.type);
 }
 
-/* ─── Cloudinary unsigned upload ─── */
-const CLOUDINARY_CLOUD_NAME    = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
-
+/* ─── Cloudinary signed upload (via /api/upload/sign) ─── */
+import { uploadToCloudinary as _uploadToCloudinary } from "@/lib/cloudUpload";
 async function uploadToCloudinary(file: File): Promise<string> {
-  const isVideo  = file.type.startsWith("video/");
-  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${isVideo ? "video" : "image"}/upload`;
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-  const res = await fetch(endpoint, { method: "POST", body: fd });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any)?.error?.message || "Upload failed");
-  }
-  return ((await res.json()) as { secure_url: string }).secure_url;
+  const resourceType = file.type.startsWith("video/") ? "video" : "image";
+  return _uploadToCloudinary(file, { resourceType, folder: "journal" });
 }
 
 /* ─── lightweight thumbnail URLs ───────────────────────────────────────────

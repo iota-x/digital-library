@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UserInfo } from "@/lib/userStore";
 import { DEFAULT_SETTINGS } from "@/lib/themes";
 
-type Mode = "create" | "join" | "signin";
+type Mode = "create" | "join" | "signin" | "forgot" | "verify";
 
 interface LandingPageProps {
   onSuccess: (user: UserInfo) => void;
@@ -164,6 +164,18 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
   const [signinEmail, setSigninEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
 
+  // Forgot-password flow
+  const [forgotEmail,    setForgotEmail]    = useState("");
+  const [forgotCode,     setForgotCode]     = useState("");
+  const [forgotPassword, setForgotPassword] = useState("");
+  const [forgotStep,     setForgotStep]     = useState<"email" | "reset" | "done">("email");
+  const [info, setInfo] = useState("");
+
+  // Email verification flow (after register / join)
+  const [verifyCode,      setVerifyCode]    = useState("");
+  const [verifyPending,   setVerifyPending] = useState<UserInfo | null>(null);
+  const [verifyInvite,    setVerifyInvite]  = useState<string | null>(null);
+
   const switchMode = (m: Mode) => {
     setMode(m);
     setError("");
@@ -179,8 +191,8 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
       setError("Passwords do not match");
       return;
     }
-    if (createPassword.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (createPassword.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
     setLoading(true);
@@ -200,7 +212,7 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
         setError(data.error || "Registration failed");
         return;
       }
-      // Fetch user info and store invite code for display
+      // Fetch user info, then route to verification step
       const meRes = await fetch("/api/auth/me");
       const meData = await meRes.json();
       if (meData.ok) {
@@ -214,12 +226,10 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
           startDate: meData.startDate ?? createStartDate,
           settings: meData.settings ?? DEFAULT_SETTINGS,
         };
-        setPendingUser(user);
-        setInviteCode(data.inviteCode);
-        // Auto-proceed after 8 seconds
-        setTimeout(() => {
-          if (pendingUser || user) onSuccess(user);
-        }, 8000);
+        setVerifyPending(user);
+        setVerifyInvite(data.inviteCode ?? null);
+        setMode("verify");
+        setInfo(`We sent a 6-digit code to ${createEmail.trim()}. Enter it to finish setting up your space.`);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -232,6 +242,10 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
     setError("");
     if (!joinName.trim() || !joinEmail.trim() || !joinPassword || !joinCode.trim()) {
       setError("Please fill in all fields");
+      return;
+    }
+    if (joinPassword.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
     setLoading(true);
@@ -254,7 +268,7 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
       const meRes = await fetch("/api/auth/me");
       const meData = await meRes.json();
       if (meData.ok) {
-        onSuccess({
+        const user: UserInfo = {
           userId: meData.userId,
           coupleId: meData.coupleId,
           name: meData.name,
@@ -263,7 +277,10 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
           inviteCode: meData.inviteCode ?? null,
           startDate: meData.startDate ?? "2026-03-11",
           settings: meData.settings ?? DEFAULT_SETTINGS,
-        });
+        };
+        setVerifyPending(user);
+        setMode("verify");
+        setInfo(`We sent a 6-digit code to ${joinEmail.trim()}. Enter it to join your space.`);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -311,10 +328,89 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
     }
   };
 
+  const handleVerify = async () => {
+    setError(""); setInfo("");
+    if (!verifyCode.trim()) { setError("Enter the code from your email"); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: verifyCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) { setError(data.error || "Invalid code"); return; }
+      if (verifyPending) {
+        // If they registered, surface the invite code first; otherwise straight in
+        if (verifyInvite && verifyPending.role === "creator") {
+          setInviteCode(verifyInvite); setPendingUser(verifyPending);
+        } else {
+          onSuccess(verifyPending);
+        }
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally { setLoading(false); }
+  };
+
+  const handleResendCode = async () => {
+    setError(""); setInfo("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/verify", { method: "PUT" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) { setError(data.error || "Couldn't resend code"); return; }
+      setInfo("New code sent — check your email.");
+    } catch { setError("Couldn't resend the code."); }
+    finally { setLoading(false); }
+  };
+
+  const handleForgotRequest = async () => {
+    setError(""); setInfo("");
+    if (!forgotEmail.trim()) { setError("Enter your email"); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/forgot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || "Couldn't send code"); return; }
+      setInfo("If that email is registered, we sent a 6-digit code to it.");
+      setForgotStep("reset");
+    } catch { setError("Something went wrong. Please try again."); }
+    finally { setLoading(false); }
+  };
+
+  const handleForgotReset = async () => {
+    setError(""); setInfo("");
+    if (!forgotCode.trim() || !forgotPassword) { setError("Fill in both fields"); return; }
+    if (forgotPassword.length < 8) { setError("Password must be at least 8 characters"); return; }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim(), code: forgotCode.trim(), password: forgotPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) { setError(data.error || "Couldn't reset password"); return; }
+      setForgotStep("done");
+      setInfo("Password updated — you can sign in now.");
+    } catch { setError("Something went wrong. Please try again."); }
+    finally { setLoading(false); }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       if (mode === "create") handleCreate();
       else if (mode === "join") handleJoin();
+      else if (mode === "verify") handleVerify();
+      else if (mode === "forgot") {
+        if (forgotStep === "email") handleForgotRequest();
+        else if (forgotStep === "reset") handleForgotReset();
+      }
       else handleSignin();
     }
   };
@@ -424,19 +520,21 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
             </motion.div>
           ) : (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {/* Tab switcher */}
-              <div style={{
-                display: "flex", gap: "0.25rem",
-                background: "rgba(252,231,243,0.6)",
-                border: "1px solid rgba(249,168,212,0.3)",
-                borderRadius: 50,
-                padding: "0.3rem",
-                marginBottom: "1.5rem",
-              }}>
-                <button style={tabStyle("create")} onClick={() => switchMode("create")}>create</button>
-                <button style={tabStyle("join")} onClick={() => switchMode("join")}>join</button>
-                <button style={tabStyle("signin")} onClick={() => switchMode("signin")}>sign in</button>
-              </div>
+              {/* Tab switcher — hidden during verify/forgot since they're flow-driven */}
+              {mode !== "verify" && mode !== "forgot" && (
+                <div style={{
+                  display: "flex", gap: "0.25rem",
+                  background: "rgba(252,231,243,0.6)",
+                  border: "1px solid rgba(249,168,212,0.3)",
+                  borderRadius: 50,
+                  padding: "0.3rem",
+                  marginBottom: "1.5rem",
+                }}>
+                  <button style={tabStyle("create")} onClick={() => switchMode("create")}>create</button>
+                  <button style={tabStyle("join")} onClick={() => switchMode("join")}>join</button>
+                  <button style={tabStyle("signin")} onClick={() => switchMode("signin")}>sign in</button>
+                </div>
+              )}
 
               <AnimatePresence mode="wait">
                 {mode === "create" && (
@@ -555,6 +653,116 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
                       }}>
                       {loading ? "signing in…" : "sign in 🌸"}
                     </motion.button>
+                    <button onClick={() => { setMode("forgot"); setError(""); setInfo(""); setForgotStep("email"); }}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: SANS, fontSize: "0.8rem", color: "rgba(190,24,93,0.6)", marginTop: "0.8rem", textDecoration: "underline", display: "block", marginLeft: "auto", marginRight: "auto" }}>
+                      forgot password?
+                    </button>
+                  </motion.div>
+                )}
+
+                {mode === "verify" && (
+                  <motion.div
+                    key="verify"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1rem", lineHeight: 1.5 }}>
+                      {info || "We sent you a 6-digit code. Enter it to confirm your email."}
+                    </p>
+                    <label style={labelStyle()}>verification code</label>
+                    <input value={verifyCode}
+                      onChange={e => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="••••••" maxLength={6}
+                      style={{ ...inputStyle(), letterSpacing: "0.35em", textAlign: "center", fontFamily: SERIF, fontSize: "1.4rem" }} />
+                    {error && (
+                      <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+                        style={{ fontFamily: SANS, color: "#f43f5e", fontSize: "0.85rem", margin: "-0.4rem 0 0.9rem" }}>
+                        {error}
+                      </motion.p>
+                    )}
+                    <motion.button onClick={handleVerify} disabled={loading}
+                      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      style={{
+                        width: "100%", padding: "0.9rem", borderRadius: 50, border: "none",
+                        background: "linear-gradient(135deg,#f9a8d4,#ec4899)", color: "#fff",
+                        fontFamily: SCRIPT, fontSize: "1.15rem", cursor: loading ? "wait" : "pointer",
+                        boxShadow: "0 4px 20px rgba(236,72,153,0.35)", opacity: loading ? 0.7 : 1,
+                      }}>
+                      {loading ? "verifying…" : "verify 💗"}
+                    </motion.button>
+                    <button onClick={handleResendCode} disabled={loading}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: SANS, fontSize: "0.8rem", color: "rgba(190,24,93,0.6)", marginTop: "0.8rem", textDecoration: "underline", display: "block", marginLeft: "auto", marginRight: "auto" }}>
+                      resend code
+                    </button>
+                  </motion.div>
+                )}
+
+                {mode === "forgot" && (
+                  <motion.div
+                    key="forgot"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {forgotStep === "email" && (
+                      <>
+                        <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
+                          Enter your email and we&apos;ll send you a code to reset your password.
+                        </p>
+                        <label style={labelStyle()}>email</label>
+                        <input value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
+                        {error && <p style={{ fontFamily: SANS, color: "#f43f5e", fontSize: "0.85rem", margin: "-0.4rem 0 0.9rem" }}>{error}</p>}
+                        <motion.button onClick={handleForgotRequest} disabled={loading}
+                          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                          style={{
+                            width: "100%", padding: "0.9rem", borderRadius: 50, border: "none",
+                            background: "linear-gradient(135deg,#f9a8d4,#ec4899)", color: "#fff",
+                            fontFamily: SCRIPT, fontSize: "1.15rem", cursor: loading ? "wait" : "pointer",
+                            boxShadow: "0 4px 20px rgba(236,72,153,0.35)", opacity: loading ? 0.7 : 1,
+                          }}>
+                          {loading ? "sending…" : "send reset code"}
+                        </motion.button>
+                      </>
+                    )}
+                    {forgotStep === "reset" && (
+                      <>
+                        <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
+                          {info || `Check your inbox for a code, then pick a new password.`}
+                        </p>
+                        <label style={labelStyle()}>code</label>
+                        <input value={forgotCode}
+                          onChange={e => setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="••••••" maxLength={6}
+                          style={{ ...inputStyle(), letterSpacing: "0.35em", textAlign: "center", fontFamily: SERIF, fontSize: "1.4rem" }} />
+                        <label style={labelStyle()}>new password</label>
+                        <input value={forgotPassword} onChange={e => setForgotPassword(e.target.value)} placeholder="at least 8 characters" type="password" style={inputStyle()} autoComplete="new-password" />
+                        {error && <p style={{ fontFamily: SANS, color: "#f43f5e", fontSize: "0.85rem", margin: "-0.4rem 0 0.9rem" }}>{error}</p>}
+                        <motion.button onClick={handleForgotReset} disabled={loading}
+                          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                          style={{
+                            width: "100%", padding: "0.9rem", borderRadius: 50, border: "none",
+                            background: "linear-gradient(135deg,#f9a8d4,#ec4899)", color: "#fff",
+                            fontFamily: SCRIPT, fontSize: "1.15rem", cursor: loading ? "wait" : "pointer",
+                            boxShadow: "0 4px 20px rgba(236,72,153,0.35)", opacity: loading ? 0.7 : 1,
+                          }}>
+                          {loading ? "resetting…" : "set new password"}
+                        </motion.button>
+                      </>
+                    )}
+                    {forgotStep === "done" && (
+                      <>
+                        <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "#16a34a", margin: "0 0 1.2rem", textAlign: "center", lineHeight: 1.5 }}>
+                          ✓ {info || "Password updated."}
+                        </p>
+                      </>
+                    )}
+                    <button onClick={() => { setMode("signin"); setError(""); setInfo(""); setForgotStep("email"); setForgotCode(""); setForgotPassword(""); }}
+                      style={{ background: "none", border: "none", cursor: "pointer", fontFamily: SANS, fontSize: "0.8rem", color: "rgba(190,24,93,0.6)", marginTop: "0.8rem", textDecoration: "underline", display: "block", marginLeft: "auto", marginRight: "auto" }}>
+                      back to sign in
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>

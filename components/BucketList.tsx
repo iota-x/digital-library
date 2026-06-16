@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
 import BucketListIdeas from "@/components/BucketListIdeas";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -34,6 +35,7 @@ const TABS: { key: "all" | "pending" | "done"; label: string }[] = [
 ];
 
 export default function BucketList() {
+  const confirm = useConfirm();
   const [items,   setItems]   = useState<BucketItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState<"all"|"pending"|"done">("all");
@@ -98,6 +100,15 @@ export default function BucketList() {
   }
 
   async function del(id: string) {
+    const item = items.find(x => x._id === id);
+    const ok = await confirm({
+      title: "delete this dream?",
+      body: item ? `"${item.text}" will be removed from your bucket list.` : "This will be removed from your bucket list.",
+      confirmLabel: "delete",
+      cancelLabel: "keep it",
+      destructive: true,
+    });
+    if (!ok) return;
     setItems(prev => prev.filter(x => x._id !== id));
     await fetch("/api/bucketlist", {
       method: "DELETE",

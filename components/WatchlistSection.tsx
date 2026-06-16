@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -40,6 +41,7 @@ async function fetchPoster(title:string,type:WatchType):Promise<string[]> {
 }
 
 export default function WatchlistSection() {
+  const confirm = useConfirm();
   const [items,  setItems]   = useState<WatchItem[]>([]);
   const [loading,setLoading] = useState(true);
   const [tab,    setTab]     = useState<WatchStatus|"all">("all");
@@ -97,6 +99,15 @@ export default function WatchlistSection() {
   useEscKey(closeForm, showForm);
 
   async function del(id:string){
+    const item = items.find(i=>i._id===id);
+    const ok = await confirm({
+      title: "remove from watchlist?",
+      body: item ? `"${item.title}" will be removed from your shared watchlist.` : "This will be removed from your shared watchlist.",
+      confirmLabel: "remove",
+      cancelLabel: "keep it",
+      destructive: true,
+    });
+    if (!ok) return;
     await fetch("/api/watchlist",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({_id:id})});
     load();
   }
