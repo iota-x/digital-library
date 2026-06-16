@@ -1,6 +1,6 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useInView } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 
 const PAGES = [
   {
@@ -44,11 +44,16 @@ function Stars() {
     }));
     let raf: number;
     let visible = true;
-    // Resolve CSS vars once (re-read each frame so theme changes propagate)
+    // Resolve CSS vars once; re-read only when the theme changes.
+    let pinkRgb = "", pink = "";
+    const readVars = () => {
+      const style = getComputedStyle(document.documentElement);
+      pinkRgb = style.getPropertyValue("--pink-rgb").trim();
+      pink    = style.getPropertyValue("--pink").trim();
+    };
+    readVars();
+    window.addEventListener("annapp:theme", readVars);
     const draw = () => {
-      const style  = getComputedStyle(document.documentElement);
-      const pinkRgb = style.getPropertyValue("--pink-rgb").trim();
-      const pink    = style.getPropertyValue("--pink").trim();
       if (visible) {
         ctx.clearRect(0, 0, c.width, c.height);
         pts.forEach(p => {
@@ -65,7 +70,10 @@ function Stars() {
     draw();
     const obs = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
     obs.observe(c);
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); obs.disconnect(); };
+    return () => {
+      cancelAnimationFrame(raf); ro.disconnect(); obs.disconnect();
+      window.removeEventListener("annapp:theme", readVars);
+    };
   }, []);
   return <canvas ref={ref} style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", zIndex:0 }} />;
 }
@@ -366,7 +374,7 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
 }
 
 
-function Book({ active, prev, dir }: { active: number; prev: number; dir: "next"|"prev" }) {
+function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
   const p = PAGES[active];
 
   return (
@@ -550,14 +558,12 @@ function Dots({ active, total, onGoTo }: { active:number; total:number; onGoTo:(
 
 export default function Final() {
   const [active, setActive] = useState(0);
-  const [prev,   setPrev]   = useState(0);
   const [dir,    setDir]    = useState<"next"|"prev">("next");
   const [done,   setDone]   = useState(false);
 
   function goTo(i: number) {
     if (i === active) return;
     setDir(i > active ? "next" : "prev");
-    setPrev(active);
     setActive(i);
     if (i < PAGES.length - 1) setDone(false);
   }
@@ -629,7 +635,7 @@ export default function Final() {
             height:"clamp(320px,52vw,430px)",
             position:"relative",
           }}>
-            <Book active={active} prev={prev} dir={dir} />
+            <Book active={active} dir={dir} />
           </div>
 
           <Arrow dir="right" onClick={next} disabled={active === PAGES.length - 1 && done} />

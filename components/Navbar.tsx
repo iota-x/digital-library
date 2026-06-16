@@ -19,9 +19,9 @@ const ROUTES = [
 
 function hasNewVoiceNote(): boolean {
   try {
-    const latest   = localStorage.getItem("vn_latest")   || "0";
-    const lastSeen = localStorage.getItem("vn_last_seen") || "0";
-    return latest > lastSeen && latest !== "0";
+    const latest   = Number(localStorage.getItem("vn_latest"))    || 0;
+    const lastSeen = Number(localStorage.getItem("vn_last_seen")) || 0;
+    return latest > lastSeen && latest !== 0;
   } catch { return false; }
 }
 

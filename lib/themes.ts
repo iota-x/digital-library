@@ -4,6 +4,8 @@ export interface MemoryCardEntry {
 }
 
 export interface TimelineEvent {
+  /** Stable id so React keys survive reorder/delete. Hydrated on read. */
+  id?: string;
   /** The "remember when…" question shown on the card. */
   q: string;
   /** Short tag pill above the question. */

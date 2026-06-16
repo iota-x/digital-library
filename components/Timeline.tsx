@@ -4,7 +4,16 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useUserData, updateSettings } from "@/lib/userStore";
 import { DEFAULT_TIMELINE, type TimelineEvent } from "@/lib/themes";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+
+function makeId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `tl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+function withIds(list: TimelineEvent[]): TimelineEvent[] {
+  return list.map(e => e.id ? e : { ...e, id: makeId() });
+}
 
 /* ── Ankit + Juhi's personal seed timeline. Only used as the starter set
    when their account hasn't edited anything. Once they edit, their saved
@@ -114,13 +123,17 @@ function MemoryCard({
   ev, idx, isPrompt, onOpen, onRemove,
 }: {
   ev: TimelineEvent; idx: number; isPrompt: boolean;
-  onOpen: () => void; onRemove: (e: React.MouseEvent) => void;
+  onOpen: () => void; onRemove: () => void;
 }) {
   const ref    = useRef(null);
   const inView = useInView(ref, { once: true, amount: 0.3 });
   const isLeft = idx % 2 === 0;
   const icon = iconFor(idx);
   const color = colorFor(idx);
+
+  const onCardKey = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); }
+  };
 
   return (
     <div
@@ -135,8 +148,13 @@ function MemoryCard({
         position: "relative",
       }}
     >
-      <motion.button
+      {/* Card is a div+role=button so the ✕ inside can be a real <button>
+          (nesting button-in-button is invalid HTML). */}
+      <motion.div
         onClick={onOpen}
+        onKeyDown={onCardKey}
+        role="button"
+        tabIndex={0}
         initial={{ opacity: 0, x: isLeft ? -60 : 60 }}
         animate={inView ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: 0.65, ease: "easeOut" }}
@@ -169,12 +187,10 @@ function MemoryCard({
         }} />
 
         {/* ✕ remove — sits opposite the color blob */}
-        <span
-          onClick={onRemove}
-          role="button"
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onRemove(); }}
           aria-label="remove this card"
-          tabIndex={0}
-          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onRemove(e as unknown as React.MouseEvent); }}
           style={{
             position: "absolute", top: 10,
             [isLeft ? "right" : "left"]: 10,
@@ -183,8 +199,9 @@ function MemoryCard({
             color: "var(--pink-deep)", fontSize: "0.85rem",
             display: "flex", alignItems: "center", justifyContent: "center",
             cursor: "pointer", zIndex: 3, opacity: 0.7,
+            padding: 0, lineHeight: 1,
           }}
-        >✕</span>
+        >✕</button>
 
         <span style={{
           display: "inline-block",
@@ -215,7 +232,7 @@ function MemoryCard({
         }}>
           {isPrompt ? "tap to write yours ✨" : "tap to edit ✉️"}
         </span>
-      </motion.button>
+      </motion.div>
 
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
@@ -252,6 +269,7 @@ interface EditorState {
 
 export default function Timeline() {
   const userData = useUserData();
+  const confirm = useConfirm();
   const [active, setActive] = useState<number | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -272,21 +290,28 @@ export default function Timeline() {
 
   const [events, setEvents] = useState<TimelineEvent[]>(() => {
     const saved = userData?.settings?.timelineEvents;
-    return saved && saved.length > 0 ? saved : seed;
+    return withIds(saved && saved.length > 0 ? saved : seed);
   });
 
   // If a saved list lands from elsewhere (e.g. partner edit), mirror it
   useEffect(() => {
     const saved = userData?.settings?.timelineEvents;
-    if (saved && saved.length > 0) setEvents(saved);
+    if (saved && saved.length > 0) setEvents(withIds(saved));
   }, [userData?.settings?.timelineEvents]);
+
+  // Lock body scroll while a drawer is open; auto-restore on unmount or nav.
+  useEffect(() => {
+    if (active === null) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [active]);
 
   // No saved list yet → these cards are still showing seed content;
   // tapping a card should clear the placeholder body for the editor
   const isPromptMode = !userData?.settings?.timelineEvents || userData.settings.timelineEvents.length === 0;
 
-  function open(i: number)  { setActive(i);   document.body.style.overflow = "hidden"; }
-  function close()          { setActive(null); document.body.style.overflow = "";       }
+  function open(i: number)  { setActive(i);   }
+  function close()          { setActive(null); }
 
   const persist = async (next: TimelineEvent[]) => {
     if (!userData?.settings) return;
@@ -318,20 +343,32 @@ export default function Timeline() {
 
   const saveEditor = async () => {
     if (!editor) return;
-    const cleaned: TimelineEvent = {
+    const base = {
       q:      editor.q.trim()      || "remember when…",
       tag:    editor.tag.trim()    || "a moment 💗",
       letter: editor.letter.trim(),
     };
     let next: TimelineEvent[];
-    if (editor.index === "new") next = [...events, cleaned];
-    else                        next = events.map((e, i) => i === editor.index ? cleaned : e);
+    if (editor.index === "new") next = [...events, { id: makeId(), ...base }];
+    else                        next = events.map((e, i) => i === editor.index ? { ...e, ...base } : e);
     setEvents(next);
     setEditor(null);
     await persist(next);
   };
 
   const removeCard = async (i: number) => {
+    const ev = events[i];
+    const hasContent = ev.letter.trim().length > 0;
+    const ok = await confirm({
+      title: hasContent ? "delete this letter?" : "remove this card?",
+      body: hasContent
+        ? "the letter inside will be lost — this can't be undone."
+        : "you can always add a new one later.",
+      confirmLabel: "delete",
+      cancelLabel: "keep it",
+      destructive: true,
+    });
+    if (!ok) return;
     const next = events.filter((_, idx) => idx !== i);
     setEvents(next);
     await persist(next);
@@ -394,7 +431,7 @@ export default function Timeline() {
 
         {events.map((ev, i) => (
           <MemoryCard
-            key={i}
+            key={ev.id ?? i}
             ev={ev}
             idx={i}
             isPrompt={isPromptMode}
@@ -402,7 +439,7 @@ export default function Timeline() {
             // drawer and jump straight to the editor — the body is just
             // a question, no point displaying it twice.
             onOpen={() => isPromptMode ? openEdit(i) : open(i)}
-            onRemove={(e) => { e.stopPropagation(); removeCard(i); }}
+            onRemove={() => removeCard(i)}
           />
         ))}
 

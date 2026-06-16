@@ -1,8 +1,9 @@
 "use client";
 import { useRef, useState, useEffect, useCallback } from "react";
-import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import Image from "next/image";
 import { useUserData } from "@/lib/userStore";
+import { useIsMobile } from "@/lib/useIsMobile";
 import { startDateFrom } from "@/lib/relationship";
 
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
@@ -113,56 +114,7 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
   );
 }
 
-function CurtainReveal({ onDone }: { onDone: () => void }) {
-  return (
-    <motion.div
-      style={{
-        position:"fixed", inset:0, zIndex:9999,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        flexDirection:"column", gap:"1.5rem",
-        background:"linear-gradient(135deg,var(--pink-light) 0%,var(--pink-mid) 50%,var(--pink) 100%)",
-      }}
-      animate={{ opacity:[1,1,1,0], scale:[1,1,1.05,1.05] }}
-      transition={{ duration:2.8, times:[0,0.55,0.85,1], ease:"easeInOut" }}
-      onAnimationComplete={onDone}
-    >
-      {[0,0.35,0.7].map((d,i) => (
-        <motion.div key={i} style={{
-          position:"absolute", width:180, height:180, borderRadius:"50%",
-          border:"2px solid rgba(var(--pink-deep-rgb),0.45)",
-        }}
-          animate={{ scale:[0.4,3.2], opacity:[0.9,0] }}
-          transition={{ duration:1.8, delay:d, repeat:Infinity, ease:"easeOut" }}
-        />
-      ))}
-      <motion.div
-        style={{ fontSize:"5rem", zIndex:2, filter:"drop-shadow(0 0 30px rgba(var(--pink-rgb),0.8))" }}
-        animate={{ scale:[0.5,1.35,1,1.25,1], rotate:[-15,10,-8,6,0] }}
-        transition={{ duration:1.6, times:[0,0.3,0.5,0.75,1] }}
-      >💗</motion.div>
-      <motion.p
-        style={{
-          fontFamily:"var(--font-playfair)", fontStyle:"italic",
-          fontSize:"clamp(1.3rem,3vw,2rem)", color:"var(--pink-deep)",
-          zIndex:2, margin:0, textAlign:"center", padding:"0 2rem",
-        }}
-        initial={{ opacity:0, y:24 }} animate={{ opacity:1, y:0 }}
-        transition={{ delay:0.5, duration:0.9 }}
-      >
-        something made just for you…
-      </motion.p>
-      <motion.p
-        style={{ fontFamily:"var(--font-caveat)", fontSize:"clamp(1rem,2.5vw,1.3rem)", color:"var(--pink-deep)", zIndex:2, margin:0 }}
-        initial={{ opacity:0 }} animate={{ opacity:[0,1,1,0] }}
-        transition={{ delay:0.9, duration:1.5, times:[0,0.2,0.7,1] }}
-      >
-        🌸 for my favourite person 🌸
-      </motion.p>
-    </motion.div>
-  );
-}
-
-function ScrollIndicator({ entered }: { entered: boolean }) {
+function ScrollIndicator() {
   const handleClick = () => {
     document.getElementById("live-timer")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -171,7 +123,7 @@ function ScrollIndicator({ entered }: { entered: boolean }) {
     <motion.div
       onClick={handleClick}
       initial={{ opacity: 0 }}
-      animate={entered ? { opacity: 1 } : {}}
+      animate={{ opacity: 1 }}
       transition={{ delay: 1.3, duration: 0.8 }}
       style={{
         display: "flex", flexDirection: "column", alignItems: "center",
@@ -240,8 +192,7 @@ export default function Polaroids() {
   const { scrollYProgress } = useScroll({ target:ref, offset:["start start","end start"] });
   const titleY = useTransform(scrollYProgress,[0,1],[0,60]);
   const [petals, setPetals] = useState<PetalData[]>([]);
-  const [entered, setEntered] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const heroText = computeHeroText(startDate);
 
   useEffect(() => {
@@ -251,13 +202,6 @@ export default function Polaroids() {
       symbol:PETAL_SYMBOLS[Math.floor(Math.random()*PETAL_SYMBOLS.length)],
     })));
   },[]);
-
-  useEffect(() => {
-  const check = () => setIsMobile(window.innerWidth <= 768);
-  check(); // run on first load
-  window.addEventListener("resize", check);
-  return () => window.removeEventListener("resize", check);
-}, []);
 
   return (
     <>
@@ -282,7 +226,7 @@ export default function Polaroids() {
 
         <motion.div
           initial={{ opacity:0, y:90 }}
-          animate={entered?{opacity:1,y:0}:{}}
+          animate={{ opacity:1, y:0 }}
           transition={{ duration:1.2, delay:0.15, ease:[0.16,1,0.3,1] }}
 
           style={{
@@ -299,7 +243,7 @@ export default function Polaroids() {
         >
           <MagneticPolaroid rotate={-6} label="her" emoji="🩷">
             <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))" }}>
-              <Image src="/photos/her.jpg" alt="her" fill style={{ objectFit:"cover", objectPosition:"center 30%" }} />
+              <Image src="/photos/her.jpg" alt="polaroid photo of her" fill style={{ objectFit:"cover", objectPosition:"center 30%" }} />
             </div>
           </MagneticPolaroid>
 
@@ -317,21 +261,21 @@ export default function Polaroids() {
 
           <MagneticPolaroid rotate={6} label="him" emoji="🤍">
             <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))" }}>
-              <Image src="/photos/him.jpg" alt="him" fill style={{ objectFit:"cover", objectPosition:"center 25%", transform:"scale(1.4)", transformOrigin:"center 25%" }} />
+              <Image src="/photos/him.jpg" alt="polaroid photo of him" fill style={{ objectFit:"cover", objectPosition:"center 25%", transform:"scale(1.4)", transformOrigin:"center 25%" }} />
             </div>
           </MagneticPolaroid>
         </motion.div>
 
         <motion.div
           initial={{ opacity:0, y:55 }}
-          animate={entered?{opacity:1,y:0}:{}}
+          animate={{ opacity:1, y:0 }}
           transition={{ duration:1.1, delay:0.5, ease:[0.16,1,0.3,1] }}
           style={{ y:titleY, textAlign:"center", marginTop:"3.2rem", zIndex:10 }}
         >
           <motion.div
             style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"0.8rem", marginBottom:"1rem" }}
             initial={{ scaleX:0, opacity:0 }}
-            animate={entered?{scaleX:1,opacity:1}:{}}
+            animate={{ scaleX:1, opacity:1 }}
             transition={{ duration:0.9, delay:0.85 }}
           >
             <div style={{ width:55, height:1, background:"linear-gradient(90deg,transparent,var(--pink))" }} />
@@ -347,13 +291,13 @@ export default function Polaroids() {
           </h1>
           <motion.p
             style={{ fontFamily:"var(--font-caveat)", fontSize:"clamp(1.15rem,3vw,1.65rem)", color:"var(--muted)", marginTop:"0.6rem" }}
-            initial={{ opacity:0 }} animate={entered?{opacity:1}:{}}
+            initial={{ opacity:0 }} animate={{ opacity:1 }}
             transition={{ delay:1.05, duration:0.9 }}
           >
             and somehow every single day gets better than the last haina? 💗
           </motion.p>
 
-          <ScrollIndicator entered={entered} />
+          <ScrollIndicator />
         </motion.div>
       </section>
     </>

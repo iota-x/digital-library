@@ -179,7 +179,7 @@ export default function OnThisDay() {
               style={{ maxWidth:"88vw", maxHeight:"82vh", objectFit:"contain", borderRadius:8 }}
               onClick={e => e.stopPropagation()}
             />
-            <button onClick={() => setLightbox(null)}
+            <button onClick={() => setLightbox(null)} aria-label="close photo"
               style={{ position:"absolute", top:"1.2rem", right:"1.2rem", background:"rgba(255,255,255,.1)", border:"1px solid rgba(255,255,255,.2)", borderRadius:"50%", width:38, height:38, color:"#fff", cursor:"pointer", fontSize:"1rem", display:"flex", alignItems:"center", justifyContent:"center" }}>
               ✕
             </button>

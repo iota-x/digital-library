@@ -14,8 +14,6 @@ import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
 import ErrorBoundary     from "@/components/ErrorBoundary";
 
-if (typeof window !== "undefined") fetchCalendarData();
-
 function JournalPageInner() {
   const params = useSearchParams();
   // ?date=YYYY-MM-DD opens that day's modal on mount (the palette navigates

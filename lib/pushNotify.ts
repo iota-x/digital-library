@@ -1,6 +1,7 @@
 import webpush from "web-push";
 import { getCol } from "@/lib/mongo";
 import { serverEnv, publicEnv } from "@/lib/env";
+import { log } from "@/lib/log";
 
 webpush.setVapidDetails(
   serverEnv.VAPID_SUBJECT,
@@ -18,7 +19,7 @@ export async function sendPushToCouple(coupleId: string, payload: { title: strin
         col.deleteOne({ _id: s._id })
       ))
     );
-  } catch {}
+  } catch (err) { log.error({ msg: "sendPushToCouple failed", err, coupleId }); }
 }
 
 /** Push to everyone in the couple EXCEPT the given userId — for "self
@@ -34,7 +35,7 @@ export async function sendPushToOtherInCouple(coupleId: string, exceptUserId: st
         col.deleteOne({ _id: s._id })
       ))
     );
-  } catch {}
+  } catch (err) { log.error({ msg: "sendPushToOtherInCouple failed", err, coupleId, exceptUserId }); }
 }
 
 export async function sendPushToUser(userId: string, payload: { title: string; body: string; icon?: string }) {
@@ -46,5 +47,5 @@ export async function sendPushToUser(userId: string, payload: { title: string; b
     await webpush.sendNotification(sub.subscription, msg).catch(() =>
       col.deleteOne({ _id: sub._id })
     );
-  } catch {}
+  } catch (err) { log.error({ msg: "sendPushToUser failed", err, userId }); }
 }
