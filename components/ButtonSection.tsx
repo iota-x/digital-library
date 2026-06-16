@@ -100,6 +100,11 @@ export default function ButtonSection() {
       ref={ref}
       style={{
         width: "100%",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         padding: "clamp(4rem,10vh,7rem) clamp(1rem,4vw,2.5rem)",
         background: "linear-gradient(160deg,var(--rose),var(--pink-light))",
         position: "relative",

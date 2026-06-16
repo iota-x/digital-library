@@ -23,14 +23,63 @@ function isAnkitJuhi(name?: string|null, partner?: string|null): boolean {
   return names.includes("ankit") && names.includes("juhi");
 }
 
-// 6 distinct themed shades — auto-adapt to active colour theme + dark mode
-const CARD_SHADES = [
-  { bg: "var(--rose)",                          border: "rgba(var(--pink-mid-rgb),0.6)"  },
-  { bg: "var(--pink-light)",                    border: "rgba(var(--pink-rgb),0.5)"      },
-  { bg: "rgba(var(--pink-mid-rgb),0.5)",        border: "var(--pink)"                   },
-  { bg: "rgba(var(--pink-rgb),0.2)",            border: "var(--pink)"                   },
-  { bg: "rgba(var(--pink-deep-rgb),0.15)",      border: "var(--pink-deep)"              },
-  { bg: "rgba(var(--pink-mid-rgb),0.7)",        border: "var(--pink-mid)"               },
+/* Each card is a different kind of "paper" — sticky note, polaroid, sealed
+   letter, etc. Variants stay readable in light + dark across every theme. */
+interface Decor { emoji: string; pos: "top-center" | "top-left" | "top-right"; rotate: number }
+interface Variant {
+  bg: string;
+  border: string;
+  extraStyle?: React.CSSProperties;
+  decor: Decor;
+  titleColor?: string;
+}
+
+const CARD_VARIANTS: Variant[] = [
+  // 1 — pinned sticky note (lined paper, themed pin)
+  {
+    bg: "var(--cream)",
+    border: "1px solid rgba(var(--pink-rgb),.45)",
+    extraStyle: {
+      backgroundImage: "repeating-linear-gradient(transparent, transparent 26px, rgba(var(--pink-deep-rgb),.12) 27px)",
+      borderTop: "4px solid var(--pink)",
+    },
+    decor: { emoji: "📌", pos: "top-center", rotate: 0 },
+  },
+  // 2 — translucent ribbon card (warm theme glass)
+  {
+    bg: "linear-gradient(135deg, rgba(var(--pink-rgb),.32) 0%, rgba(var(--pink-rgb),.18) 100%)",
+    border: "1px solid rgba(var(--pink-rgb),.5)",
+    decor: { emoji: "🎀", pos: "top-right", rotate: 18 },
+    titleColor: "var(--pink-deep)",
+  },
+  // 3 — polaroid (cream with thick accent edge on left)
+  {
+    bg: "var(--cream)",
+    border: "1px solid rgba(var(--pink-deep-rgb),.35)",
+    extraStyle: { borderLeft: "5px solid var(--pink-deep)" },
+    decor: { emoji: "🌸", pos: "top-left", rotate: -12 },
+  },
+  // 4 — sealed letter (gradient + double border + star)
+  {
+    bg: "linear-gradient(160deg, rgba(var(--pink-mid-rgb),.55) 0%, rgba(var(--pink-rgb),.32) 100%)",
+    border: "1.5px double rgba(var(--pink-deep-rgb),.6)",
+    decor: { emoji: "⭐", pos: "top-right", rotate: -8 },
+    titleColor: "var(--pink-deep)",
+  },
+  // 5 — tape-cornered note (dashed border)
+  {
+    bg: "rgba(var(--pink-rgb),.14)",
+    border: "1.5px dashed rgba(var(--pink-rgb),.6)",
+    decor: { emoji: "🩹", pos: "top-center", rotate: -4 },
+  },
+  // 6 — postcard (deep gradient + stamp corner)
+  {
+    bg: "linear-gradient(135deg, rgba(var(--pink-deep-rgb),.32) 0%, rgba(var(--pink-rgb),.18) 100%)",
+    border: "1px solid rgba(var(--pink-deep-rgb),.5)",
+    extraStyle: { borderTop: "4px solid rgba(var(--pink-deep-rgb),.6)" },
+    decor: { emoji: "💌", pos: "top-right", rotate: 14 },
+    titleColor: "var(--pink-deep)",
+  },
 ];
 
 export default function MemoryCards() {
@@ -45,7 +94,7 @@ export default function MemoryCards() {
     ? ANKIT_JUHI_MEMORIES
     : getMemoryCards(userData?.settings);
 
-  const activeShade = active !== null ? CARD_SHADES[active % CARD_SHADES.length] : null;
+  const activeVariant = active !== null ? CARD_VARIANTS[active % CARD_VARIANTS.length] : null;
 
   return (
     <section
@@ -53,6 +102,11 @@ export default function MemoryCards() {
       ref={ref}
       style={{
         width:"100%",
+        minHeight:"100vh",
+        display:"flex",
+        flexDirection:"column",
+        alignItems:"center",
+        justifyContent:"center",
         padding:"clamp(4rem,10vh,7rem) clamp(1rem,4vw,2.5rem)",
         background:"var(--cream)",
       }}
@@ -91,8 +145,14 @@ export default function MemoryCards() {
         width:"100%",
       }}>
         {MEMORIES.map((m, i) => {
-          const shade = CARD_SHADES[i % CARD_SHADES.length];
+          const variant  = CARD_VARIANTS[i % CARD_VARIANTS.length];
           const rotation = ROTATIONS[i % ROTATIONS.length];
+          const decorStyle: React.CSSProperties =
+            variant.decor.pos === "top-center"
+              ? { top:-14, left:"50%", transform:`translateX(-50%) rotate(${variant.decor.rotate}deg)` }
+              : variant.decor.pos === "top-left"
+                ? { top:-12, left:14, transform:`rotate(${variant.decor.rotate}deg)` }
+                : { top:-12, right:14, transform:`rotate(${variant.decor.rotate}deg)` };
           return (
             <motion.div
               key={i}
@@ -100,11 +160,11 @@ export default function MemoryCards() {
               initial={{ opacity:0, y:50, rotate:rotation }}
               animate={inView ? { opacity:1, y:0, rotate:rotation } : {}}
               transition={{ duration:0.5, delay:i * 0.08 }}
-              whileHover={{ scale:1.04, rotate:0, zIndex:10, boxShadow:`8px 8px 32px rgba(var(--pink-deep-rgb),.18)` }}
+              whileHover={{ scale:1.04, rotate:0, zIndex:10, boxShadow:`8px 8px 32px rgba(var(--pink-deep-rgb),.22)` }}
               className="dk-mem-card"
               style={{
-                background: shade.bg,
-                border: `1.5px solid ${shade.border}`,
+                background: variant.bg,
+                border: variant.border,
                 borderRadius: 6,
                 padding: "clamp(1.3rem,3vw,2rem) clamp(1rem,2.5vw,1.6rem) clamp(1rem,2.5vw,1.4rem)",
                 minHeight: "clamp(170px,20vw,210px)",
@@ -113,15 +173,20 @@ export default function MemoryCards() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
-                boxShadow: `4px 4px 16px rgba(var(--pink-rgb),.1)`,
+                boxShadow: "4px 4px 18px rgba(var(--pink-deep-rgb),.12)",
                 transition: "box-shadow .2s",
+                ...variant.extraStyle,
               }}
             >
-              <span style={{ position:"absolute", top:-14, left:"50%", transform:"translateX(-50%)", fontSize:"1.4rem" }}>📌</span>
+              <span style={{
+                position:"absolute", fontSize:"1.5rem",
+                filter:"drop-shadow(0 2px 4px rgba(0,0,0,.25))",
+                ...decorStyle,
+              }}>{variant.decor.emoji}</span>
               <h3 style={{
                 fontFamily:"var(--font-caveat)", fontWeight:600,
                 fontSize:"clamp(1.05rem,2.5vw,1.25rem)",
-                marginBottom:"0.5rem", color:"var(--text)",
+                marginBottom:"0.5rem", color: variant.titleColor ?? "var(--text)",
               }}>
                 {m.title}
               </h3>
@@ -161,8 +226,8 @@ export default function MemoryCards() {
             <motion.div
               className="dk-mem-modal memory-modal"
               style={{
-                background: activeShade?.bg ?? "var(--cream)",
-                border: `1.5px solid ${activeShade?.border ?? "var(--pink-mid)"}`,
+                background: activeVariant?.bg ?? "var(--cream)",
+                border: activeVariant?.border ?? "1px solid var(--pink-mid)",
                 borderRadius: 24,
                 padding: "clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem)",
                 maxWidth: 500, width:"100%",
