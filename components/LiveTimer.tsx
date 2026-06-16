@@ -182,7 +182,7 @@ export default function LiveTimer() {
             initial={{ opacity:0, scale:0.8 }}
             animate={inView ? { opacity:1, scale:1 } : {}}
             transition={{ delay:0.8+i*0.2, duration:0.6, type:"spring" }}
-            className="side-note"
+            className="side-note lt-chip"
             style={{
               position:"absolute", ...n.pos,
               background:"rgba(255,255,255,0.75)",
@@ -259,6 +259,7 @@ export default function LiveTimer() {
           initial={{ opacity:0, scale:0.9 }}
           animate={inView ? { opacity:1, scale:1 } : {}}
           transition={{ duration:0.7, delay:0.9 }}
+          className="lt-chip"
           style={{
             display:"inline-flex", alignItems:"center", gap:"0.8rem",
             background:"rgba(255,255,255,.9)",
@@ -294,6 +295,7 @@ export default function LiveTimer() {
               initial={{ opacity:0, scale:0.85 }}
               animate={inView ? { opacity:1, scale:1 } : {}}
               transition={{ delay:1.2+i*0.1, type:"spring" }}
+              className="lt-chip"
               style={{
                 fontFamily:"var(--font-caveat)", fontSize:"1rem",
                 color:"var(--pink-deep)",

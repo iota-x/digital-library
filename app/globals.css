@@ -136,10 +136,31 @@ html.dark nav {
    classNames added to the elements in each component file.
    ───────────────────────────────────────────────────────────────── */
 
-/* Journal header banner */
+/* LiveTimer love-note chips — three styles (floating .side-note, the
+   "still counting" centered pill, and the 5 stat pills) all use a
+   white-ish background + accent text. In dark mode that's near-invisible,
+   so swap to a tinted background + light text using themed vars. */
+html.dark .lt-chip {
+  background: rgba(var(--pink-deep-rgb), 0.18) !important;
+  border-color: rgba(var(--pink-rgb), 0.45) !important;
+  color: var(--text) !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45),
+              inset 0 0 0 1px rgba(var(--pink-rgb), 0.12) !important;
+}
+html.dark .lt-chip span {
+  color: var(--text) !important;
+}
+
+/* Journal header banner — derives tint from --pink-rgb so each theme
+   (purple, blue, green, gold) produces a matching dark banner instead of
+   being stuck on the original plum gradient. */
 html.dark .dk-journal-header {
-  background: linear-gradient(180deg, #0c0018 0%, #170030 100%) !important;
-  border-color: rgba(180, 70, 255, 0.15) !important;
+  background:
+    linear-gradient(180deg,
+      rgba(var(--pink-deep-rgb), 0.10) 0%,
+      rgba(var(--pink-deep-rgb), 0.22) 100%),
+    #0a0410 !important;
+  border-color: rgba(var(--pink-rgb), 0.18) !important;
 }
 html.dark .dk-journal-header h1,
 html.dark .dk-journal-header p,
@@ -277,18 +298,19 @@ html.dark .dk-cal-card .occ-day span:first-child {
   color: var(--text) !important;
 }
 
-/* Day names row text */
+/* Day names row text — themed via --pink-rgb so gold/blue/green show the
+   matching accent instead of being stuck on plum. */
 html.dark .dk-cal-card > div:nth-child(2) > div {
-  color: rgba(200, 140, 240, 0.55) !important;
+  color: rgba(var(--pink-rgb), 0.55) !important;
 }
 
 /* Legend row */
 html.dark .dk-cal-legend {
-  color: rgba(200, 160, 240, 0.55) !important;
-  border-color: rgba(180, 70, 255, 0.15) !important;
+  color: rgba(var(--pink-rgb), 0.6) !important;
+  border-color: rgba(var(--pink-rgb), 0.18) !important;
 }
 html.dark .dk-cal-legend span {
-  color: rgba(200, 160, 240, 0.55) !important;
+  color: rgba(var(--pink-rgb), 0.6) !important;
 }
 
 /* Stat chips above the calendar */
@@ -479,12 +501,14 @@ html.dark.theme-gold .dk-journal-header { border-color: rgba(251,191,36,.15) !im
 }
 
 html.dark {
-  /* override component tokens for dark mode */
+  /* override component tokens for dark mode — derive from theme accent
+     (--pink-rgb / --pink-deep-rgb are themed per theme-* class) so the
+     calendar tints with the active theme instead of staying plum. */
   --cal-card-bg:     rgba(18, 3, 34, 0.97);
-  --cal-card-shadow: 0 16px 70px rgba(100,0,180,.22),0 4px 16px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(180,70,255,.18);
-  --cal-dayhdr-bg:   rgba(30, 5, 55, 0.45);
-  --cal-day-text:    #e8d0f8;
-  --cal-legend-col:  rgba(200,160,240,.55);
+  --cal-card-shadow: 0 16px 70px rgba(var(--pink-deep-rgb),.22),0 4px 16px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(var(--pink-rgb),.18);
+  --cal-dayhdr-bg:   rgba(var(--pink-deep-rgb), 0.22);
+  --cal-day-text:    var(--text);
+  --cal-legend-col:  rgba(var(--pink-rgb), 0.55);
   --bucket-paper-bg: #0d001e;
   --bucket-paper-line: rgba(180,80,255,.07);
   --bucket-tabs-bg:  rgba(28, 5, 52, 0.9);
