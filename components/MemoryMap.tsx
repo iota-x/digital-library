@@ -260,7 +260,7 @@ export default function MemoryMap() {
                     <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "0.92rem", color: "#4a1628", lineHeight: 1.75, margin: "0 0 0.8rem" }}>"{active.note}"</p>
                   )}
                 </div>
-                <button onClick={() => setActive(null)}
+                <button onClick={() => setActive(null)} aria-label="close pin details"
                   style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--pink-deep-rgb),.3)", fontSize: "1.1rem", padding: 0, flexShrink: 0 }}>✕</button>
               </div>
               <button onClick={() => deletePin(active.id)}

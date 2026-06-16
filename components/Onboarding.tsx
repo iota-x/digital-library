@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useUserData } from "@/lib/userStore";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -50,6 +51,8 @@ export default function Onboarding() {
   const user = useUserData();
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, { active: visible, onEscape: () => setVisible(false) });
 
   useEffect(() => {
     if (!user) return;
@@ -89,11 +92,12 @@ export default function Onboarding() {
           />
           <motion.div
             key={step}
+            ref={dialogRef}
             initial={{ opacity: 0, scale: 0.92, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 280, damping: 24 }}
-            role="dialog" aria-modal="true"
+            role="dialog" aria-modal="true" aria-labelledby="onboard-title" aria-describedby="onboard-body"
             style={{
               position: "fixed", zIndex: 9971,
               top: "50%", left: "50%", transform: "translate(-50%, -50%)",
@@ -116,10 +120,10 @@ export default function Onboarding() {
             >
               {cur.emoji}
             </motion.div>
-            <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.5rem", color: "var(--pink-deep)", margin: "0 0 0.5rem", fontWeight: 400 }}>
+            <h2 id="onboard-title" style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.5rem", color: "var(--pink-deep)", margin: "0 0 0.5rem", fontWeight: 400 }}>
               {cur.title}
             </h2>
-            <p style={{ fontFamily: SANS, fontSize: "0.92rem", color: "var(--text)", margin: "0 0 1.5rem", lineHeight: 1.55 }}>
+            <p id="onboard-body" style={{ fontFamily: SANS, fontSize: "0.92rem", color: "var(--text)", margin: "0 0 1.5rem", lineHeight: 1.55 }}>
               {cur.body}
             </p>
 

@@ -214,7 +214,7 @@ export default function WatchlistSection() {
                 <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.1rem",color:"var(--pink-deep)",margin:0}}>
                   {editId?"edit entry":"add to the queue"}
                 </p>
-                <button onClick={closeForm} style={{background:"none",border:"none",cursor:"pointer",
+                <button onClick={closeForm} aria-label="close form" style={{background:"none",border:"none",cursor:"pointer",
                   fontSize:"1.1rem",color:"rgba(var(--pink-deep-rgb),.4)",lineHeight:1}}>✕</button>
               </div>
 

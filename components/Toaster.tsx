@@ -105,6 +105,7 @@ function ToastViewport({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: str
   return (
     <div
       aria-live="polite"
+      aria-atomic="false"
       style={{
         position: "fixed",
         bottom: "max(1.2rem, env(safe-area-inset-bottom))",
@@ -124,7 +125,8 @@ function ToastViewport({ toasts, dismiss }: { toasts: Toast[]; dismiss: (id: str
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 320, damping: 28 }}
-            role="status"
+            role={t.variant === "error" ? "alert" : "status"}
+            aria-live={t.variant === "error" ? "assertive" : "polite"}
             style={{
               pointerEvents: "auto",
               background: COLORS[t.variant].bg,

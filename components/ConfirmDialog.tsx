@@ -1,6 +1,7 @@
 "use client";
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -33,11 +34,18 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     setState({ opts, resolve });
   }), []);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   const close = (value: boolean) => {
     if (!state) return;
     state.resolve(value);
     setState(null);
   };
+
+  useFocusTrap(dialogRef, {
+    active: !!state,
+    onEscape: () => close(false),
+  });
 
   return (
     <Ctx.Provider value={confirm}>
@@ -51,11 +59,14 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               style={{ position: "fixed", inset: 0, zIndex: 9990, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)" }}
             />
             <motion.div
+              ref={dialogRef}
               initial={{ opacity: 0, scale: 0.92, y: 18 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 280, damping: 24 }}
               role="dialog" aria-modal="true"
+              aria-labelledby="confirm-title"
+              aria-describedby={state.opts.body ? "confirm-body" : undefined}
               style={{
                 position: "fixed", zIndex: 9991,
                 top: "50%", left: "50%", transform: "translate(-50%, -50%)",
@@ -67,11 +78,11 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 textAlign: "center",
               }}
             >
-              <h3 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.3rem", color: "var(--pink-deep)", margin: "0 0 0.5rem" }}>
+              <h3 id="confirm-title" style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.3rem", color: "var(--pink-deep)", margin: "0 0 0.5rem" }}>
                 {state.opts.title}
               </h3>
               {state.opts.body && (
-                <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 1.3rem", lineHeight: 1.5 }}>
+                <p id="confirm-body" style={{ fontFamily: SANS, fontSize: "0.85rem", color: "var(--muted)", margin: "0 0 1.3rem", lineHeight: 1.5 }}>
                   {state.opts.body}
                 </p>
               )}

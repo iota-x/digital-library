@@ -7,6 +7,7 @@ import SwipeNav        from "@/components/SwipeNav";
 import PwaRegister     from "@/components/PwaRegister";
 import DarkOverlay     from "@/components/DarkOverlay";
 import AppShell        from "@/components/AppShell";
+import MotionRoot     from "@/components/MotionRoot";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { ToasterProvider } from "@/components/Toaster";
 import "./globals.css";
@@ -43,18 +44,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
-        <ToasterProvider>
-          <ConfirmProvider>
-            <DarkOverlay />
-            <AppShell />
-            <ScrollToTop />
-            <Navbar />
-            <CommandPalette />
-            <SwipeNav />
-            <PwaRegister />
-            {children}
-          </ConfirmProvider>
-        </ToasterProvider>
+        <MotionRoot>
+          <ToasterProvider>
+            <ConfirmProvider>
+              <DarkOverlay />
+              <AppShell />
+              <ScrollToTop />
+              <Navbar />
+              <CommandPalette />
+              <SwipeNav />
+              <PwaRegister />
+              {children}
+            </ConfirmProvider>
+          </ToasterProvider>
+        </MotionRoot>
       </body>
     </html>
   );

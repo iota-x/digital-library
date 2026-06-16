@@ -245,6 +245,7 @@ export default function MemoryCards() {
             >
               <button
                 onClick={() => setActive(null)}
+                aria-label="close memory"
                 style={{
                   position:"absolute", top:14, right:16, fontSize:"1.2rem",
                   background:"var(--cream)", border:"1px solid var(--pink-mid)",

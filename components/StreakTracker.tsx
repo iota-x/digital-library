@@ -96,7 +96,11 @@ export default function StreakTracker() {
         </p>
 
         {/* Big number */}
-        <div style={{
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label={`current streak: ${streak} day${streak !== 1 ? "s" : ""} in a row${todayDone ? ", today complete" : ", today still pending"}`}
+          style={{
             display:"inline-flex",flexDirection:"column",alignItems:"center",
             background:"var(--cream)",
             border:"1px solid rgba(var(--pink-rgb),.25)",
@@ -104,8 +108,8 @@ export default function StreakTracker() {
             boxShadow:"0 6px 30px rgba(var(--pink-deep-rgb),.12), inset 0 0 30px rgba(var(--pink-rgb),.04)",
             position:"relative",overflow:"hidden",
           }}>
-          <div style={{position:"absolute",inset:0,background:"radial-gradient(circle at 50% 30%,rgba(var(--pink-rgb),.15) 0%,transparent 65%)",pointerEvents:"none"}}/>
-          <span style={{
+          <div aria-hidden style={{position:"absolute",inset:0,background:"radial-gradient(circle at 50% 30%,rgba(var(--pink-rgb),.15) 0%,transparent 65%)",pointerEvents:"none"}}/>
+          <span aria-hidden style={{
             fontFamily:SERIF,
             fontSize:"clamp(4.5rem,14vw,8rem)",
             color:"var(--pink-deep)",
@@ -115,7 +119,7 @@ export default function StreakTracker() {
           }}>
             {streak}
           </span>
-          <span style={{fontFamily:SANS,fontSize:"0.8rem",color:"var(--muted)",letterSpacing:"0.22em",textTransform:"uppercase",marginTop:"0.5rem",position:"relative",zIndex:1}}>
+          <span aria-hidden style={{fontFamily:SANS,fontSize:"0.8rem",color:"var(--muted)",letterSpacing:"0.22em",textTransform:"uppercase",marginTop:"0.5rem",position:"relative",zIndex:1}}>
             day{streak!==1?"s":""} in a row
           </span>
         </div>

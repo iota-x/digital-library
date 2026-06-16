@@ -123,8 +123,10 @@ export default function SurpriseMe() {
                   {shown.photos.length>1&&(
                     <>
                       <button onClick={()=>setImgIdx(i=>(i-1+shown.photos.length)%shown.photos.length)}
+                        aria-label="previous photo"
                         style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,.5)",border:"none",borderRadius:"50%",width:34,height:34,color:"#fff",cursor:"pointer",fontSize:"1.1rem"}}>‹</button>
                       <button onClick={()=>setImgIdx(i=>(i+1)%shown.photos.length)}
+                        aria-label="next photo"
                         style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,.5)",border:"none",borderRadius:"50%",width:34,height:34,color:"#fff",cursor:"pointer",fontSize:"1.1rem"}}>›</button>
                     </>
                   )}

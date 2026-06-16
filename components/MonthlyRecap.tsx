@@ -98,7 +98,7 @@ export default function MonthlyRecap() {
           background:CARD_BG,border:CARD_BORDER,borderRadius:20,padding:"1rem 1.5rem",
           boxShadow:"0 4px 18px rgba(var(--pink-deep-rgb),.08)",
         }}>
-          <motion.button onClick={prev} whileHover={{scale:1.2,x:-2}} whileTap={{scale:0.9}}
+          <motion.button onClick={prev} aria-label="previous month" whileHover={{scale:1.2,x:-2}} whileTap={{scale:0.9}}
             style={{background:"none",border:"none",cursor:"pointer",fontSize:"1.4rem",color:"var(--pink-deep)",padding:"0.2rem 0.5rem"}}>‹</motion.button>
           <div style={{textAlign:"center"}}>
             <AnimatePresence mode="wait">
@@ -110,7 +110,7 @@ export default function MonthlyRecap() {
             </AnimatePresence>
             <p style={{fontFamily:SANS,fontSize:"0.82rem",color:"var(--muted)",margin:0}}>{viewYear}</p>
           </div>
-          <motion.button onClick={next} whileHover={{scale:1.2,x:2}} whileTap={{scale:0.9}}
+          <motion.button onClick={next} aria-label="next month" whileHover={{scale:1.2,x:2}} whileTap={{scale:0.9}}
             style={{background:"none",border:"none",cursor:"pointer",fontSize:"1.4rem",color:"var(--pink-deep)",padding:"0.2rem 0.5rem"}}>›</motion.button>
         </div>
 

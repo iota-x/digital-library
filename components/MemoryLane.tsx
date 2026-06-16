@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useMemo, useCallback, useEffect, Fragment, memo } from "react";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 import Image from "next/image";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
@@ -54,21 +55,24 @@ type Filter = "all"|"special"|"photos"|"video"|string;
 /* ─── Lightbox ─── */
 function Lightbox({ srcs,start,onClose }:{ srcs:string[]; start:number; onClose:()=>void }) {
   const [i,setI]=useState(start);
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(()=>{ const h=(e:KeyboardEvent)=>{ if(e.key==="Escape")onClose(); if(e.key==="ArrowLeft")setI(x=>(x-1+srcs.length)%srcs.length); if(e.key==="ArrowRight")setI(x=>(x+1)%srcs.length); }; window.addEventListener("keydown",h); return()=>window.removeEventListener("keydown",h); },[srcs.length,onClose]);
+  useFocusTrap(dialogRef, { active: true, onEscape: onClose });
   const src=srcs[i];
   return (
-    <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={onClose}
+    <motion.div ref={dialogRef} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onClick={onClose}
+      role="dialog" aria-modal="true" aria-label="photo viewer"
       style={{position:"fixed",inset:0,zIndex:9500,background:"rgba(0,0,0,.96)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
-      {isVid(src)?<video src={src} controls autoPlay playsInline onClick={e=>e.stopPropagation()} style={{maxWidth:"90vw",maxHeight:"84vh",borderRadius:8,display:"block"}}/>
-        :<motion.img src={src} alt="" initial={{scale:.9}} animate={{scale:1}} onClick={e=>e.stopPropagation()} style={{maxWidth:"90vw",maxHeight:"84vh",objectFit:"contain",borderRadius:8,display:"block"}}/>}
+      {isVid(src)?<video src={src} controls autoPlay playsInline onClick={e=>e.stopPropagation()} style={{maxWidth:"96vw",maxHeight:"90vh",borderRadius:8,display:"block",objectFit:"contain"}}/>
+        :<motion.img src={src} alt={`Photo ${i + 1} of ${srcs.length}`} initial={{scale:.9}} animate={{scale:1}} onClick={e=>e.stopPropagation()} style={{maxWidth:"96vw",maxHeight:"90vh",objectFit:"contain",borderRadius:8,display:"block"}}/>}
       {srcs.length>1&&<>
-        <button onClick={e=>{e.stopPropagation();setI(x=>(x-1+srcs.length)%srcs.length);}} style={{position:"absolute",left:"1rem",top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",borderRadius:"50%",width:44,height:44,color:"#fff",cursor:"pointer",fontSize:"1.3rem",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-        <button onClick={e=>{e.stopPropagation();setI(x=>(x+1)%srcs.length);}} style={{position:"absolute",right:"1rem",top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",borderRadius:"50%",width:44,height:44,color:"#fff",cursor:"pointer",fontSize:"1.3rem",display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+        <button onClick={e=>{e.stopPropagation();setI(x=>(x-1+srcs.length)%srcs.length);}} aria-label="previous photo" style={{position:"absolute",left:"1rem",top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,.12)",border:"1px solid rgba(255,255,255,.25)",borderRadius:"50%",width:44,height:44,color:"#fff",cursor:"pointer",fontSize:"1.3rem",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+        <button onClick={e=>{e.stopPropagation();setI(x=>(x+1)%srcs.length);}} aria-label="next photo" style={{position:"absolute",right:"1rem",top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,.12)",border:"1px solid rgba(255,255,255,.25)",borderRadius:"50%",width:44,height:44,color:"#fff",cursor:"pointer",fontSize:"1.3rem",display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
         <div style={{position:"absolute",bottom:"1.2rem",left:"50%",transform:"translateX(-50%)",display:"flex",gap:6}}>
-          {srcs.map((_,j)=><div key={j} onClick={e=>{e.stopPropagation();setI(j);}} style={{width:j===i?10:6,height:j===i?10:6,borderRadius:"50%",background:j===i?"var(--pink-deep)":"rgba(var(--pink-rgb),.4)",cursor:"pointer",transition:"all .2s"}}/>)}
+          {srcs.map((_,j)=><button key={j} onClick={e=>{e.stopPropagation();setI(j);}} aria-label={`go to photo ${j + 1}`} style={{width:j===i?10:6,height:j===i?10:6,borderRadius:"50%",border:"none",background:j===i?"var(--pink-deep)":"rgba(var(--pink-rgb),.4)",cursor:"pointer",transition:"all .2s",padding:0}}/>)}
         </div>
       </>}
-      <button onClick={onClose} style={{position:"absolute",top:"1rem",right:"1rem",background:"rgba(255,255,255,.08)",border:"1px solid rgba(255,255,255,.15)",borderRadius:"50%",width:36,height:36,color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+      <button onClick={onClose} aria-label="close photo viewer" style={{position:"absolute",top:"1rem",right:"1rem",background:"rgba(255,255,255,.12)",border:"1px solid rgba(255,255,255,.25)",borderRadius:"50%",width:36,height:36,color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
     </motion.div>
   );
 }
@@ -194,23 +198,59 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
           </div>
         </div>
 
-        {/* photo gallery */}
+        {/* photo gallery — respects native portrait/landscape aspect */}
         {photos.length > 0 && (
-          <div style={{background:'#0a0003',position:'relative'}}>
+          <div style={{
+            position: 'relative',
+            background: '#0a0003',
+            // Backdrop: blurred copy of current photo so portraits feel intentional, not "letterboxed"
+            backgroundImage: `url(${cldHero(photos[photoIdx], 80)})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}>
+            {/* Dim overlay over the blurred backdrop so the photo pops */}
+            <div aria-hidden style={{
+              position: 'absolute', inset: 0,
+              backdropFilter: 'blur(28px) brightness(.45)',
+              WebkitBackdropFilter: 'blur(28px) brightness(.45)',
+              pointerEvents: 'none',
+            }}/>
             <AnimatePresence mode='wait'>
               <motion.div key={photoIdx}
                 initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}}
                 transition={{duration:0.2,ease:'easeOut'}}
-                style={{cursor:'pointer',position:'relative',height:300,overflow:'hidden'}} onClick={()=>setLb(photoIdx)}>
-                <Image
-                  src={cldHero(photos[photoIdx],700)} alt=""
-                  fill sizes="660px" unoptimized
-                  style={{objectFit:'cover',objectPosition:'center top'}}
-                  priority={photoIdx===0}
+                onClick={()=>setLb(photoIdx)}
+                style={{
+                  cursor:'pointer', position:'relative',
+                  width: '100%',
+                  // Cap height so portrait shots don't push the modal too tall;
+                  // the photo inside uses object-fit:contain so nothing is cropped
+                  minHeight: 220,
+                  maxHeight: 'min(72vh, 640px)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0.5rem',
+                }}
+                role="img" aria-label={`Photo ${photoIdx + 1} of ${photos.length} — tap to view full size`}>
+                <img
+                  src={cldHero(photos[photoIdx], 1100)}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    width: 'auto', height: 'auto',
+                    objectFit: 'contain' as const,
+                    display: 'block',
+                    borderRadius: 6,
+                    boxShadow: '0 8px 30px rgba(0,0,0,.5)',
+                    background: '#0a0003',
+                  }}
                 />
                 {isVid(photos[photoIdx])&&(
-                  <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,.18)'}}>
-                    <div style={{width:52,height:52,borderRadius:'50%',background:'rgba(255,255,255,.18)',backdropFilter:'blur(4px)',border:'1.5px solid rgba(255,255,255,.38)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.4rem'}}>▶</div>
+                  <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
+                    <div style={{width:60,height:60,borderRadius:'50%',background:'rgba(0,0,0,.55)',backdropFilter:'blur(6px)',border:'2px solid rgba(255,255,255,.45)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>▶</div>
                   </div>
                 )}
               </motion.div>
@@ -218,16 +258,19 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
             {photos.length > 1 && (
               <>
                 <button onClick={()=>setPhotoIdx(i=>(i-1+photos.length)%photos.length)}
-                  style={{position:'absolute',left:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.48)',backdropFilter:'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>‹</button>
+                  aria-label="previous photo"
+                  style={{position:'absolute',left:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.55)',backdropFilter:'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>‹</button>
                 <button onClick={()=>setPhotoIdx(i=>(i+1)%photos.length)}
-                  style={{position:'absolute',right:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.48)',backdropFilter:'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>›</button>
+                  aria-label="next photo"
+                  style={{position:'absolute',right:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.55)',backdropFilter:'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>›</button>
                 <div style={{position:'absolute',bottom:'0.55rem',left:'50%',transform:'translateX(-50%)',display:'flex',gap:5,zIndex:2}}>
                   {photos.map((_,i)=>(
-                    <div key={i} onClick={()=>setPhotoIdx(i)}
-                      style={{width:i===photoIdx?18:6,height:6,borderRadius:3,background:i===photoIdx?'#fff':'rgba(255,255,255,.35)',cursor:'pointer',transition:'all .22s'}}/>
+                    <button key={i} onClick={()=>setPhotoIdx(i)}
+                      aria-label={`go to photo ${i + 1}`}
+                      style={{width:i===photoIdx?18:6,height:6,borderRadius:3,border:'none',background:i===photoIdx?'#fff':'rgba(255,255,255,.45)',cursor:'pointer',transition:'all .22s',padding:0}}/>
                   ))}
                 </div>
-                <div style={{position:'absolute',top:'0.55rem',right:'0.7rem',background:'rgba(0,0,0,.42)',backdropFilter:'blur(4px)',borderRadius:10,padding:'2px 8px',fontFamily:SANS,fontSize:'0.56rem',color:'rgba(255,255,255,.7)',border:'1px solid rgba(255,255,255,.12)',pointerEvents:'none'}}>
+                <div style={{position:'absolute',top:'0.55rem',right:'0.7rem',background:'rgba(0,0,0,.55)',backdropFilter:'blur(4px)',borderRadius:10,padding:'2px 8px',fontFamily:SANS,fontSize:'0.56rem',color:'rgba(255,255,255,.85)',border:'1px solid rgba(255,255,255,.18)',pointerEvents:'none'}}>
                   tap · full screen
                 </div>
               </>

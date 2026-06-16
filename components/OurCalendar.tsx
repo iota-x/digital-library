@@ -87,7 +87,7 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
       style={{ position: "fixed", inset: 0, zIndex: 9500, background: "rgba(4,0,2,.97)", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
       {media.length > 1 && (
-        <motion.button onClick={prev} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+        <motion.button onClick={prev} aria-label="previous photo" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           style={{ position: "absolute", left: "clamp(0.6rem,2.5vw,2rem)", background: "rgba(var(--pink-deep-rgb),.15)", border: "1px solid rgba(var(--pink-deep-rgb),.3)", borderRadius: "50%", width: 48, height: 48, cursor: "pointer", color: "var(--pink)", fontSize: "1.4rem", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>‹</motion.button>
       )}
       <AnimatePresence mode="wait">
@@ -111,10 +111,10 @@ function Lightbox({ media, startIdx, onClose }: { media: string[]; startIdx: num
         </motion.div>
       </AnimatePresence>
       {media.length > 1 && (
-        <motion.button onClick={next} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+        <motion.button onClick={next} aria-label="next photo" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
           style={{ position: "absolute", right: "clamp(0.6rem,2.5vw,2rem)", background: "rgba(var(--pink-deep-rgb),.15)", border: "1px solid rgba(var(--pink-deep-rgb),.3)", borderRadius: "50%", width: 48, height: 48, cursor: "pointer", color: "var(--pink)", fontSize: "1.4rem", zIndex: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>›</motion.button>
       )}
-      <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+      <motion.button onClick={onClose} aria-label="close photo viewer" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
         style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", color: "rgba(255,255,255,.7)", fontSize: "1rem", zIndex: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
     </motion.div>
   );
@@ -169,14 +169,14 @@ function PolaroidStack({ media, dateKey, onMediaClick }: { media: string[]; date
       </div>
       {media.length > 1 && (
         <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <motion.button onClick={() => setTopIdx(i => (i - 1 + media.length) % media.length)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+          <motion.button onClick={() => setTopIdx(i => (i - 1 + media.length) % media.length)} aria-label="previous polaroid" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             style={{ background: "rgba(var(--pink-deep-rgb),.1)", border: "1px solid rgba(var(--pink-deep-rgb),.25)", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", color: "var(--pink)", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</motion.button>
           <div style={{ display: "flex", gap: "0.45rem", alignItems: "center" }}>
             {media.map((_, i) => (
               <div key={i} onClick={() => setTopIdx(i)} style={{ width: i === topIdx ? 9 : 5, height: i === topIdx ? 9 : 5, borderRadius: "50%", cursor: "pointer", background: i === topIdx ? "var(--pink-deep)" : "rgba(var(--pink-rgb),.3)", transition: "all 0.2s" }} />
             ))}
           </div>
-          <motion.button onClick={() => setTopIdx(i => (i + 1) % media.length)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+          <motion.button onClick={() => setTopIdx(i => (i + 1) % media.length)} aria-label="next polaroid" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
             style={{ background: "rgba(var(--pink-deep-rgb),.1)", border: "1px solid rgba(var(--pink-deep-rgb),.25)", borderRadius: "50%", width: 38, height: 38, cursor: "pointer", color: "var(--pink)", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center" }}>›</motion.button>
         </div>
       )}
@@ -501,7 +501,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                 ))}
               </div>
             )}
-            <motion.button onClick={onClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+            <motion.button onClick={onClose} aria-label="close memory editor" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
               style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.4)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "#fff", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</motion.button>
           </div>
         </div>
@@ -575,7 +575,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                       {draft.photos!.map((src, i) => (
                         <div key={i} style={{ position: "relative" }}>
                           <MediaThumb src={src} onClick={() => setLbIdx(i)} />
-                          <button onClick={() => removeMedia(i)}
+                          <button onClick={() => removeMedia(i)} aria-label={`remove photo ${i + 1}`}
                             style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", border: "none", background: "var(--pink-deep)", color: "#fff", fontSize: "0.6rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                         </div>
                       ))}
@@ -803,7 +803,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
           style={{ background: "var(--cal-card-bg)", borderRadius: 28, overflow: "hidden", transformStyle: "preserve-3d", perspective: 1000, boxShadow: "var(--cal-card-shadow)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1.2rem 1.6rem", background: "linear-gradient(135deg,rgba(var(--pink-deep-rgb),0.9),rgba(var(--pink-rgb),0.55))", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", inset: 0, backgroundImage: GRAIN, pointerEvents: "none", opacity: 0.5 }} />
-            <motion.button onClick={() => changeMonth("left")} whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.22)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#fff", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
+            <motion.button onClick={() => changeMonth("left")} aria-label="previous month" whileHover={{ scale: 1.18, x: -2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.22)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#fff", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>‹</motion.button>
             <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
               <AnimatePresence mode="wait">
                 <motion.p key={`${year}-${month}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} transition={{ duration: 0.22 }} style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(1.2rem,3vw,1.6rem)", color: "#fff", margin: 0, fontWeight: 400 }}>{MONTHS[month]}</motion.p>
@@ -816,7 +816,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
                 </motion.button>
               )}
             </div>
-            <motion.button onClick={() => changeMonth("right")} whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.22)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#fff", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
+            <motion.button onClick={() => changeMonth("right")} aria-label="next month" whileHover={{ scale: 1.18, x: 2 }} whileTap={{ scale: 0.9 }} style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.22)", cursor: "pointer", width: 38, height: 38, borderRadius: "50%", color: "#fff", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", zIndex: 1 }}>›</motion.button>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", padding: "1rem 1.4rem 0.4rem", background: "var(--cal-dayhdr-bg)" }}>

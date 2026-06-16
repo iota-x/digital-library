@@ -86,6 +86,7 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
         </div>
         <button
           onClick={() => onDelete(note.id)}
+          aria-label="delete voice note"
           style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "1rem", padding: "2px 4px" }}
           title="delete"
         >×</button>

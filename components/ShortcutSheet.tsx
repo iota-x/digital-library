@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const SERIF = `"Georgia","Times New Roman",serif`;
 const SANS  = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -31,6 +32,8 @@ const SHORTCUTS: { group: string; items: Shortcut[] }[] = [
 
 export default function ShortcutSheet() {
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, { active: open, onEscape: () => setOpen(false) });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -56,11 +59,12 @@ export default function ShortcutSheet() {
             style={{ position: "fixed", inset: 0, zIndex: 9980, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)" }}
           />
           <motion.div
+            ref={dialogRef}
             initial={{ opacity: 0, scale: 0.92, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 300, damping: 24 }}
-            role="dialog" aria-label="keyboard shortcuts"
+            role="dialog" aria-modal="true" aria-label="keyboard shortcuts"
             style={{
               position: "fixed", zIndex: 9981,
               top: "50%", left: "50%", transform: "translate(-50%, -50%)",

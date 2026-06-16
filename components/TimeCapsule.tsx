@@ -5,6 +5,7 @@ import { useUserData } from "@/lib/userStore";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { cldImg, cldThumb } from "@/lib/cldImg";
 import EmptyState from "@/components/EmptyState";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const SERIF  = `"Georgia","Times New Roman",serif`;
 const SANS   = `var(--font-lato),"Inter",system-ui,sans-serif`;
@@ -40,6 +41,8 @@ export default function TimeCapsule() {
   const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
   const fileRef = useRef<HTMLInputElement>(null);
   const choiceTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(confirmRef, { active: !!confirmDelete, onEscape: () => setConfirmDelete(null) });
 
   useEffect(() => {
     if (userData?.name && !from) setFrom(userData.name);
@@ -242,7 +245,7 @@ export default function TimeCapsule() {
                 {photoUrl ? (
                   <div style={{position:"relative",marginBottom:"1rem",borderRadius:12,overflow:"hidden",maxHeight:180}}>
                     <img src={cldImg(photoUrl, { w: 720 })} alt="" style={{width:"100%",height:180,objectFit:"cover",display:"block"}}/>
-                    <button onClick={()=>setPhotoUrl("")}
+                    <button onClick={()=>setPhotoUrl("")} aria-label="remove photo"
                       style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,.55)",border:"none",borderRadius:"50%",width:28,height:28,color:"#fff",cursor:"pointer",fontSize:"0.8rem",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
                   </div>
                 ) : (
@@ -284,9 +287,10 @@ export default function TimeCapsule() {
                       </div>
                     )}
                     <div style={{padding:"0.9rem 1.1rem",display:"flex",alignItems:"center",gap:"0.8rem"}}>
-                      <motion.span style={{fontSize:"1.3rem"}} animate={{rotate:[0,10,-10,0]}} transition={{repeat:Infinity,duration:4,delay:i*0.5}}>🔒</motion.span>
+                      <motion.span aria-hidden style={{fontSize:"1.3rem"}} animate={{rotate:[0,10,-10,0]}} transition={{repeat:Infinity,duration:4,delay:i*0.5}}>🔒</motion.span>
                       <div style={{flex:1,minWidth:0}}>
                         <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.88rem",color:"var(--text)",margin:0,overflow:"hidden",textOverflow:"ellipsis"}}>
+                          <span className="sr-only">Sealed letter. </span>
                           {p.from?`From ${p.from}`:"A letter"} — unlocks {fmt(p.unlockDate)}
                         </p>
                         <p style={{fontFamily:SANS,fontSize:"0.7rem",color:"var(--muted)",margin:"0.1rem 0 0"}}>
@@ -401,7 +405,9 @@ export default function TimeCapsule() {
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
                   onClick={()=>setConfirmDelete(null)}
                   style={{position:"fixed",inset:0,zIndex:9000,background:"rgba(0,0,0,.5)",backdropFilter:"blur(6px)"}}/>
-                <motion.div initial={{opacity:0,scale:0.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:0.95}}
+                <motion.div ref={confirmRef} initial={{opacity:0,scale:0.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:0.95}}
+                  role="dialog" aria-modal="true"
+                  aria-labelledby="release-title" aria-describedby="release-body"
                   style={{
                     position:"fixed",zIndex:9001,
                     top:"50%",left:"50%",transform:"translate(-50%,-50%)",
@@ -410,11 +416,11 @@ export default function TimeCapsule() {
                     padding:"1.8rem",textAlign:"center",
                     boxShadow:"0 32px 80px rgba(var(--pink-deep-rgb),.3)",
                   }}>
-                  <div style={{fontSize:"2.6rem",marginBottom:"0.4rem"}}>🕊</div>
-                  <h3 style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.3rem",color:ACC,margin:"0 0 0.5rem"}}>
+                  <div style={{fontSize:"2.6rem",marginBottom:"0.4rem"}} aria-hidden>🕊</div>
+                  <h3 id="release-title" style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.3rem",color:ACC,margin:"0 0 0.5rem"}}>
                     release this letter?
                   </h3>
-                  <p style={{fontFamily:SANS,fontSize:"0.85rem",color:"var(--muted)",margin:"0 0 1.3rem",lineHeight:1.5}}>
+                  <p id="release-body" style={{fontFamily:SANS,fontSize:"0.85rem",color:"var(--muted)",margin:"0 0 1.3rem",lineHeight:1.5}}>
                     {c?.from ? `${c.from}'s letter` : "This letter"} from {c?fmt(c.unlockDate):"that day"} will be gone for both of you. There&apos;s no undo.
                   </p>
                   <div style={{display:"flex",gap:"0.7rem"}}>
@@ -487,13 +493,16 @@ function LetterCard({
       }}>
       <div onClick={onToggle}
         style={{padding:"1.1rem 1.4rem",display:"flex",alignItems:"center",gap:"0.85rem",cursor:"pointer"}}>
-        <motion.span style={{fontSize:"1.5rem",flexShrink:0}}
+        <motion.span aria-hidden style={{fontSize:"1.5rem",flexShrink:0}}
           animate={isOpen ? { rotate:[0,15,-15,0] } : !alreadyRead && !muted ? { rotate:[-3,3,-3] } : {}}
           transition={isOpen ? { duration:0.5 } : { repeat: Infinity, duration: 2 }}>
           {isOpen ? "📖" : alreadyRead ? "📜" : "💌"}
         </motion.span>
         <div style={{flex:1,minWidth:0}}>
           <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"0.95rem",color:"var(--text)",margin:0,overflow:"hidden",textOverflow:"ellipsis"}}>
+            <span className="sr-only">
+              {muted ? "Archived letter. " : alreadyRead ? "Already read. " : "Ready to open, new letter. "}
+            </span>
             {c.from?`From ${c.from}`:"A letter to us"}
             {!alreadyRead && !muted && (
               <span style={{
