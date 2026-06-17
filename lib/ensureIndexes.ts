@@ -40,6 +40,8 @@ const INDEXES: IndexDef[] = [
   { collection: "doodles", keys: { coupleId: 1 } },
   { collection: "doodleGallery", keys: { coupleId: 1, createdAt: -1 } },
   { collection: "dailyAnswers", keys: { coupleId: 1, date: 1 } },
+  { collection: "memoryPlaces", keys: { coupleId: 1, addedAt: 1 } },
+  { collection: "loveJar", keys: { coupleId: 1, addedAt: -1 } },
   { collection: "watchSessions", keys: { coupleId: 1 } },
   { collection: "pushSubscriptions", keys: { coupleId: 1 } },
   // Auth — lookups by email / invite code / couple membership.

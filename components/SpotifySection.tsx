@@ -133,6 +133,22 @@ export default function SpotifySection() {
           <span style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.12em"}}>
             day {dn} of us · {myTurn ? `${ME} adds a song` : `${HER} adds a song`}
           </span>
+          <a
+            href={`https://open.spotify.com/playlist/${PLAYLIST_ID}`}
+            target="_blank" rel="noopener noreferrer"
+            className="sp-open-btn"
+            style={{
+              marginTop:"0.55rem",
+              display:"inline-flex",alignItems:"center",gap:"0.45rem",
+              textDecoration:"none",
+              background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
+              color:"#fff",fontFamily:SANS,fontSize:"0.82rem",fontWeight:700,
+              borderRadius:50,padding:"0.5rem 1.15rem",
+              boxShadow:"0 6px 20px rgba(var(--pink-deep-rgb),.28)",
+            }}>
+            <span aria-hidden style={{fontSize:"0.95rem"}}>🎧</span>
+            add today&apos;s song →
+          </a>
         </div>
 
         {/* ── Song of the day card ── */}

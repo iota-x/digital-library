@@ -12,6 +12,7 @@ import OurCalendar       from "@/components/OurCalendar";
 import StreakTracker     from "@/components/StreakTracker";
 import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
+import UsByNumbers       from "@/components/UsByNumbers";
 import ErrorBoundary     from "@/components/ErrorBoundary";
 
 function JournalPageInner() {
@@ -48,6 +49,7 @@ function JournalPageInner() {
           <ErrorBoundary><StreakTracker /></ErrorBoundary>
           <ErrorBoundary><SurpriseMe /></ErrorBoundary>
           <ErrorBoundary><MonthlyRecap /></ErrorBoundary>
+          <ErrorBoundary><UsByNumbers /></ErrorBoundary>
         </main>
       </div>
     </PasswordGate>

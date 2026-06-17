@@ -46,3 +46,16 @@ export const WatchlistStore = createResourceStore<WatchItem>({
   endpoint:      "/api/watchlist",
   sseEventTypes: ["watchlist:"],
 });
+
+/* ── Love jar — "reasons I love you" notes ────────────────────── */
+export interface LoveNote {
+  _id: string;
+  text: string;
+  from: string;
+  addedAt: string;
+}
+export const LoveJarStore = createResourceStore<LoveNote>({
+  storageKey:    "lovejar_cache_v1",
+  endpoint:      "/api/lovejar",
+  sseEventTypes: ["lovejar:"],
+});
