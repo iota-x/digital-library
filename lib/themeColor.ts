@@ -37,11 +37,19 @@ const BLACK: RGB = [0, 0, 0];
 const rgbStr = (c: RGB) => `${c[0]}, ${c[1]}, ${c[2]}`;
 const rgbCss = (c: RGB) => `rgb(${rgbStr(c)})`;
 
+// Cached precomputed var map so the anti-FOUC inline script in the layout can
+// re-apply the accent before first paint without re-deriving the shades.
+const ACCENT_CACHE_KEY = "ann_accent_vars";
+
 /** Apply (or clear) a custom accent colour on the document root. */
 export function applyAccent(hex: string | null | undefined): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
-  if (!hex) { VARS.forEach((v) => root.style.removeProperty(v)); return; }
+  if (!hex) {
+    VARS.forEach((v) => root.style.removeProperty(v));
+    try { localStorage.removeItem(ACCENT_CACHE_KEY); } catch {}
+    return;
+  }
   const base = hexToRgb(hex);
   if (!base) return;
 
@@ -50,15 +58,19 @@ export function applyAccent(hex: string | null | undefined): void {
   const light = mix(base, WHITE, 0.86);
   const rose  = mix(base, WHITE, 0.92);
 
-  root.style.setProperty("--pink", rgbCss(base));
-  root.style.setProperty("--pink-deep", rgbCss(deep));
-  root.style.setProperty("--pink-mid", rgbCss(mid));
-  root.style.setProperty("--pink-light", rgbCss(light));
-  root.style.setProperty("--rose", rgbCss(rose));
-  root.style.setProperty("--pink-rgb", rgbStr(base));
-  root.style.setProperty("--pink-deep-rgb", rgbStr(deep));
-  root.style.setProperty("--pink-mid-rgb", rgbStr(mid));
-  root.style.setProperty("--pink-light-rgb", rgbStr(light));
+  const vars: Record<string, string> = {
+    "--pink": rgbCss(base),
+    "--pink-deep": rgbCss(deep),
+    "--pink-mid": rgbCss(mid),
+    "--pink-light": rgbCss(light),
+    "--rose": rgbCss(rose),
+    "--pink-rgb": rgbStr(base),
+    "--pink-deep-rgb": rgbStr(deep),
+    "--pink-mid-rgb": rgbStr(mid),
+    "--pink-light-rgb": rgbStr(light),
+  };
+  for (const [k, val] of Object.entries(vars)) root.style.setProperty(k, val);
+  try { localStorage.setItem(ACCENT_CACHE_KEY, JSON.stringify(vars)); } catch {}
 }
 
 /** A valid 3- or 6-digit hex (with or without leading #). */

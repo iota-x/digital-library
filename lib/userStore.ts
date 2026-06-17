@@ -21,13 +21,38 @@ export interface UserInfo {
 let _user: UserInfo | null = null;
 const _listeners: Set<(u: UserInfo | null) => void> = new Set();
 
+// Cache the last-known user so a returning visitor's themed app paints
+// instantly (optimistic) while /api/auth/me revalidates in the background —
+// instead of a blank, default-themed screen for the duration of that fetch.
+const CACHE_KEY = "ann_user_v1";
+function persist(u: UserInfo | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (u) localStorage.setItem(CACHE_KEY, JSON.stringify(u));
+    else localStorage.removeItem(CACHE_KEY);
+  } catch {}
+}
+
 function notify(u: UserInfo | null) { _listeners.forEach(fn => fn(u)); }
+
+/** Populate `_user` from the localStorage cache (client only). Used by
+ *  PasswordGate to render optimistically before the network check returns.
+ *  No-op once a user is already loaded. */
+export function hydrateUserFromCache(): UserInfo | null {
+  if (typeof window === "undefined" || _user) return _user;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) { _user = JSON.parse(raw) as UserInfo; notify(_user); }
+  } catch {}
+  return _user;
+}
 
 export async function fetchUserData(): Promise<UserInfo | null> {
   try {
     const res  = await fetch("/api/auth/me");
     const data = await res.json();
-    if (!data.ok) { _user = null; notify(null); return null; }
+    // Explicit "not authenticated" — clear cache and log out locally.
+    if (!data.ok) { _user = null; persist(null); notify(null); return null; }
     const u: UserInfo = {
       userId:      data.userId,
       coupleId:    data.coupleId,
@@ -40,14 +65,16 @@ export async function fetchUserData(): Promise<UserInfo | null> {
       startDate:   data.startDate   ?? DEFAULT_START_DATE,
       settings:    data.settings    ?? DEFAULT_SETTINGS,
     };
-    _user = u; notify(u); return u;
+    _user = u; persist(u); notify(u); return u;
   } catch {
-    _user = null; notify(null); return null;
+    // Network/transient error — keep the cached session rather than bouncing
+    // a logged-in user to the landing page on a flaky connection.
+    return _user;
   }
 }
 
-export function setUser(u: UserInfo): void        { _user = u; notify(u); }
-export function clearUserData(): void              { _user = null; notify(null); }
+export function setUser(u: UserInfo): void        { _user = u; persist(u); notify(u); }
+export function clearUserData(): void              { _user = null; persist(null); notify(null); }
 /** Synchronous read of the current user — for non-React modules (SSE filters,
  *  presence store) that need the userId without subscribing to a hook. */
 export function getUser(): UserInfo | null         { return _user; }
@@ -56,13 +83,13 @@ export function getStartDate(): Date               { return startDateFrom(_user?
 export function updateSettings(settings: CoupleSettings): void {
   if (!_user) return;
   _user = { ..._user, settings };
-  notify(_user);
+  persist(_user); notify(_user);
 }
 
 export function updateUserData(updates: Partial<UserInfo>): void {
   if (!_user) return;
   _user = { ..._user, ...updates };
-  notify(_user);
+  persist(_user); notify(_user);
 }
 
 /** Update an avatar locally. `which: "me"` for the current user, `"partner"`
@@ -72,7 +99,7 @@ export function updateAvatar(which: "me" | "partner", url: string | null): void 
   _user = which === "me"
     ? { ..._user, avatarUrl: url }
     : { ..._user, partnerAvatarUrl: url };
-  notify(_user);
+  persist(_user); notify(_user);
 }
 
 export function useUserData(): UserInfo | null {

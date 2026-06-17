@@ -41,9 +41,19 @@ export const viewport = {
   themeColor: "#be185d",
 };
 
+// Runs before first paint to apply the saved theme + custom accent, killing the
+// flash where the page rendered in the default pink theme until /api/auth/me
+// resolved client-side. Reads the same localStorage keys ThemeProvider writes.
+const THEME_BOOTSTRAP = `(function(){try{var t=localStorage.getItem('ann_color_theme');if(t&&t!=='pink')document.documentElement.classList.add('theme-'+t);var a=localStorage.getItem('ann_accent_vars');if(a){var m=JSON.parse(a);for(var k in m)document.documentElement.style.setProperty(k,m[k]);}}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: the bootstrap script mutates <html> class/style
+    // before hydration, which is expected and must not warn.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+      </head>
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
         <MotionRoot>
           <ToasterProvider>

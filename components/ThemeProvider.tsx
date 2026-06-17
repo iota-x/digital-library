@@ -20,6 +20,10 @@ export default function ThemeProvider() {
   const accent  = user?.settings?.customAccent ?? "";
 
   useEffect(() => {
+    // Until we actually know the user, leave the theme the anti-FOUC inline
+    // script (in the layout) applied from cache — don't reset it to pink and
+    // cause a flash, and don't wipe the cached accent.
+    if (!user) return;
     const root = document.documentElement;
     root.classList.remove(...ALL_THEME_CLASSES);
     if (themeId !== "pink") root.classList.add(`theme-${themeId}`);
@@ -30,7 +34,7 @@ export default function ThemeProvider() {
     // Sync browser theme-color meta tag — the custom accent wins when present.
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
-  }, [themeId, accent]);
+  }, [user, themeId, accent]);
 
   // Dynamic browser tab title
   useEffect(() => {
