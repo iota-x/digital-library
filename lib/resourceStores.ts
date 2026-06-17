@@ -44,5 +44,5 @@ export interface WatchItem {
 export const WatchlistStore = createResourceStore<WatchItem>({
   storageKey:    "watchlist_cache_v1",
   endpoint:      "/api/watchlist",
-  // No SSE events for watchlist yet; falls back to focus/visibility/poll
+  sseEventTypes: ["watchlist:"],
 });

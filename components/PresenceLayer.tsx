@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { heartBump, buzz } from "@/lib/haptics";
+import { notePartnerTick } from "@/lib/presenceStore";
 
 /**
  * Lightweight presence + "send-a-heart" layer.
@@ -126,6 +127,8 @@ export default function PresenceLayer() {
       if (detail.type === "presence:tick" && detail.section) {
         lastPartnerSeenAt.current = Date.now();
         setPartner({ section: detail.section, name: detail.name || "them", ts: detail.ts || Date.now() });
+        // Feed the shared presence store that powers "together" mode + doodle.
+        notePartnerTick(detail.name, detail.section);
       } else if (detail.type === "presence:heart") {
         lastPartnerSeenAt.current = Date.now();
         const id = `h-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;

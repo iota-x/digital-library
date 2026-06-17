@@ -8,6 +8,8 @@ import Onboarding            from "@/components/Onboarding";
 import PushPrompt            from "@/components/PushPrompt";
 import BirthdayTakeover      from "@/components/BirthdayTakeover";
 import PresenceLayer         from "@/components/PresenceLayer";
+import NudgeLayer            from "@/components/NudgeLayer";
+import TogetherMode          from "@/components/TogetherMode";
 
 export default function AppShell() {
   const [open, setOpen] = useState(false);
@@ -29,6 +31,8 @@ export default function AppShell() {
       <ShortcutSheet />
       <BirthdayTakeover />
       <PresenceLayer />
+      <NudgeLayer />
+      <TogetherMode />
       <SettingsPanel open={open} onClose={handleClose} />
     </>
   );

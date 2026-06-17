@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
+import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 
 export const GET = withAuth(async (_req, session) => {
@@ -44,6 +45,7 @@ export const POST = withAuth(async (req, session) => {
   const c = await getCol("watchlist");
   const result = await c.insertOne(doc);
 
+  broadcastToCouple(session.coupleId, { type: "watchlist:add", userId: session.userId });
   return NextResponse.json({ ok: true, _id: result.insertedId.toString() }, { status: 201 });
 });
 
@@ -67,6 +69,7 @@ export const PUT = withAuth(async (req, session) => {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
 
+  broadcastToCouple(session.coupleId, { type: "watchlist:update", userId: session.userId });
   return NextResponse.json({ ok: true });
 });
 
@@ -85,5 +88,6 @@ export const DELETE = withAuth(async (req, session) => {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
 
+  broadcastToCouple(session.coupleId, { type: "watchlist:delete", userId: session.userId });
   return NextResponse.json({ ok: true });
 });

@@ -42,6 +42,9 @@ export async function fetchUserData(): Promise<UserInfo | null> {
 
 export function setUser(u: UserInfo): void        { _user = u; notify(u); }
 export function clearUserData(): void              { _user = null; notify(null); }
+/** Synchronous read of the current user — for non-React modules (SSE filters,
+ *  presence store) that need the userId without subscribing to a hook. */
+export function getUser(): UserInfo | null         { return _user; }
 export function getStartDate(): Date               { return startDateFrom(_user?.startDate); }
 
 export function updateSettings(settings: CoupleSettings): void {

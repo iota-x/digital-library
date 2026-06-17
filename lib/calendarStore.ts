@@ -172,6 +172,18 @@ export function deleteFromCalendarCache(date: string) {
   notify([..._cache]);
 }
 
+/** Ensure the shared realtime (SSE) connection is open without forcing a
+ *  calendar refetch. The calendar EventSource is the single relay for ALL
+ *  realtime app events (presence, doodle, daily, watch-together, …) — they
+ *  arrive as `annapp:sse` window events. Pages that don't fetch the calendar
+ *  (e.g. /shared) still need the relay, so this is called from PasswordGate
+ *  on every authenticated load. Safe to call repeatedly (startSSE is guarded). */
+export function ensureRealtime(coupleId: string) {
+  if (typeof window === "undefined") return;
+  if (coupleId) _coupleId = coupleId;
+  startSSE(coupleId || _coupleId);
+}
+
 /** Initialize the calendar store with the couple's ID and start fetching + SSE */
 export function initCalendarStore(coupleId: string) {
   _coupleId = coupleId;

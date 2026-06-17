@@ -154,18 +154,19 @@ export default function BucketListIdeas({ onAdd }: Props) {
                         whileHover={done ? {} : { scale: 1.03, y: -2 }}
                         whileTap={done ? {} : { scale: 0.97 }}
                         style={{
-                          fontFamily: SCRIPT, fontSize: "1rem", textAlign: "left",
-                          padding: "0.75rem 0.9rem", borderRadius: 14,
-                          border: `1.5px solid ${done ? "var(--pink-mid)" : c.color}`,
+                          fontFamily: SANS, fontSize: "0.85rem", fontWeight: 500, textAlign: "left",
+                          padding: "0.7rem 0.85rem", borderRadius: 14,
+                          border: "1px solid var(--pink-mid)",
+                          borderLeft: `4px solid ${done ? "var(--pink-mid)" : c.color}`,
                           background: done ? "var(--pink-light)" : c.bg,
-                          color: done ? "var(--muted)" : c.color,
+                          color: done ? "var(--muted)" : "var(--text)",
                           cursor: done ? "default" : "pointer",
                           opacity: done ? 0.6 : 1,
                           transition: "all .18s",
                           lineHeight: 1.35,
                         }}
                       >
-                        {done ? "✓ " : ""}{idea.text}
+                        {done ? "✓ " : `${c.emoji} `}{idea.text}
                       </motion.button>
                     );
                   })}

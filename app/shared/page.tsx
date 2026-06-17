@@ -2,6 +2,7 @@
 import PasswordGate     from "@/components/PasswordGate";
 import SpotifySection   from "@/components/SpotifySection";
 import WatchlistSection from "@/components/WatchlistSection";
+import WatchTogether    from "@/components/WatchTogether";
 import BucketList       from "@/components/BucketList";
 import { useUserData }  from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
@@ -96,6 +97,7 @@ function SharedContent() {
       <SharedHero />
       {sv("showBucketList") && <BucketList />}
       {sv("showSpotify") && <SpotifySection />}
+      <WatchTogether />
       {sv("showWatchlist") && <WatchlistSection />}
     </main>
   );
