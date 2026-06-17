@@ -201,9 +201,25 @@ export default function SettingsPanel({ open, onClose }: Props) {
             : "Notification permission wasn't granted.");
           return;
         }
+
+        // A valid VAPID public key decodes to exactly 65 bytes (uncompressed
+        // P-256 point). A wrong length almost always means the private key was
+        // pasted into NEXT_PUBLIC_VAPID_PUBLIC_KEY by mistake.
+        const appServerKey = urlBase64ToUint8Array(VAPID_PUBLIC);
+        if (appServerKey.length !== 65) {
+          setPushErr("The VAPID public key looks invalid — check NEXT_PUBLIC_VAPID_PUBLIC_KEY is the long public key (not the private one).");
+          return;
+        }
+
+        // A leftover subscription from a previous/empty VAPID key makes a new
+        // subscribe() with a different key fail ("push service error"). Drop
+        // any existing one first so a key change can't wedge this.
+        const existing = await reg.pushManager.getSubscription();
+        if (existing) { try { await existing.unsubscribe(); } catch {} }
+
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
+          applicationServerKey: appServerKey,
         });
         const res = await fetch("/api/push/subscribe", {
           method: "POST",
