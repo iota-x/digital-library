@@ -7,6 +7,8 @@ import { usePartnerPresence } from "@/lib/presenceStore";
 import { SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
 import { useToast } from "@/components/Toaster";
+import { uploadToCloudinary } from "@/lib/cloudUpload";
+import DoodleGallery from "@/components/DoodleGallery";
 
 /**
  * A shared whiteboard the two of you draw on together.
@@ -33,6 +35,8 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
   const [size, setSize] = useState(6);
   const [loading, setLoading] = useState(true);
   const [nudging, setNudging] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const partner = usePartnerPresence();
   const toaster = useToast();
 
@@ -209,7 +213,56 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
     }
   };
 
+  /** Flatten the current canvas onto a white background and export a PNG blob.
+   *  (The canvas itself is transparent — the white board is a CSS background.) */
+  const snapshotBlob = useCallback((): Promise<Blob | null> => {
+    return new Promise((resolve) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return resolve(null);
+      const out = document.createElement("canvas");
+      out.width = canvas.width;
+      out.height = canvas.height;
+      const ctx = out.getContext("2d");
+      if (!ctx) return resolve(null);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, out.width, out.height);
+      ctx.drawImage(canvas, 0, 0);
+      out.toBlob((b) => resolve(b), "image/png");
+    });
+  }, []);
+
+  /** Upload a snapshot and add it to the gallery. */
+  const saveToGallery = useCallback(async (silent = false): Promise<boolean> => {
+    if (strokesRef.current.length === 0) {
+      if (!silent) toaster.toast({ variant: "info", message: "draw something first 🎨", durationMs: 3000 });
+      return false;
+    }
+    if (!silent) setSaving(true);
+    try {
+      const blob = await snapshotBlob();
+      if (!blob) throw new Error("snapshot failed");
+      const file = new File([blob], "doodle.png", { type: "image/png" });
+      const url = await uploadToCloudinary(file, { folder: "doodles" });
+      const res = await fetch("/api/doodle/gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: url }),
+      });
+      if (!res.ok) throw new Error("save failed");
+      if (!silent) toaster.toast({ variant: "success", title: "saved 🖼", message: "added to your doodle gallery", durationMs: 3500 });
+      return true;
+    } catch {
+      if (!silent) toaster.toast({ variant: "error", message: "couldn't save to gallery — try again", durationMs: 3500 });
+      return false;
+    } finally {
+      if (!silent) setSaving(false);
+    }
+  }, [snapshotBlob, toaster]);
+
   const clearBoard = async () => {
+    // Auto-save the finished canvas to the gallery before wiping it, so a
+    // completed drawing is never lost to a clear. Best-effort + silent.
+    if (strokesRef.current.length > 0) { await saveToGallery(true); }
     strokesRef.current = [];
     currentRef.current = null;
     redraw();
@@ -260,10 +313,17 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
                   {partner.online ? `${partner.name} is here — draw at the same time 💞` : "leave them a doodle to find 🩷"}
                 </p>
               </div>
-              <button onClick={onClose} aria-label="close doodle" style={{
-                background: "none", border: "none", cursor: "pointer",
-                fontSize: "1.1rem", color: "var(--muted)", padding: "0.2rem 0.4rem",
-              }}>✕</button>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <button onClick={() => setGalleryOpen(true)} aria-label="open doodle gallery" style={{
+                  fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700, color: "var(--pink-deep)",
+                  background: "rgba(var(--pink-deep-rgb), .08)", border: "1px solid rgba(var(--pink-deep-rgb), .22)",
+                  borderRadius: 50, padding: "0.35rem 0.8rem", cursor: "pointer",
+                }}>🖼 gallery</button>
+                <button onClick={onClose} aria-label="close doodle" style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  fontSize: "1.1rem", color: "var(--muted)", padding: "0.2rem 0.4rem",
+                }}>✕</button>
+              </div>
             </div>
 
             {/* Canvas */}
@@ -329,6 +389,12 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
                 }}>
                 {nudging ? "sent ✓" : "📨 send"}
               </motion.button>
+              <button onClick={() => saveToGallery(false)} disabled={saving} style={{
+                fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700,
+                color: "var(--pink-deep)", background: "rgba(var(--pink-rgb), .12)",
+                border: "1px solid rgba(var(--pink-deep-rgb), .22)", borderRadius: 50,
+                padding: "0.4rem 0.9rem", cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1,
+              }}>{saving ? "saving…" : "🖼 save"}</button>
               <button onClick={clearBoard} style={{
                 fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700,
                 color: "var(--pink-deep)", background: "rgba(var(--pink-deep-rgb), .08)",
@@ -337,6 +403,8 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
               }}>clear</button>
             </div>
           </motion.div>
+
+          <DoodleGallery open={galleryOpen} onClose={() => setGalleryOpen(false)} />
         </motion.div>
       )}
     </AnimatePresence>

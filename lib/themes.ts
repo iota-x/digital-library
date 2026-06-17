@@ -16,6 +16,9 @@ export interface TimelineEvent {
 
 export interface CoupleSettings {
   theme: string;
+  /** Optional custom accent hex (e.g. "#ff77aa"). When set it overrides the
+   *  `theme` palette via derived CSS variables. Empty/undefined = use `theme`. */
+  customAccent?: string;
   coupleName: string;
   spotifyPlaylistId: string;
   loveNotes: string[];

@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useUserData } from "@/lib/userStore";
 import { THEMES } from "@/lib/themes";
+import { applyAccent } from "@/lib/themeColor";
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
 
@@ -16,17 +17,20 @@ const THEME_COLORS: Record<string, string> = {
 export default function ThemeProvider() {
   const user    = useUserData();
   const themeId = user?.settings?.theme ?? "pink";
+  const accent  = user?.settings?.customAccent ?? "";
 
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove(...ALL_THEME_CLASSES);
     if (themeId !== "pink") root.classList.add(`theme-${themeId}`);
+    // A custom accent (if set) layers on top of the chosen theme class.
+    applyAccent(accent || null);
     try { localStorage.setItem("ann_color_theme", themeId); } catch {}
 
-    // Sync browser theme-color meta tag
+    // Sync browser theme-color meta tag — the custom accent wins when present.
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute("content", THEME_COLORS[themeId] ?? "#ec4899");
-  }, [themeId]);
+    if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
+  }, [themeId, accent]);
 
   // Dynamic browser tab title
   useEffect(() => {

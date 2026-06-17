@@ -1,7 +1,8 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SCRIPT, SANS } from "@/lib/typography";
 import { chime, buzz } from "@/lib/haptics";
 
@@ -46,6 +47,7 @@ export default function BirthdayTakeover() {
   const userData = useUserData();
   const [visible, setVisible] = useState(false);
   const [target, setTarget] = useState<CelebrationTarget | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   // Compute today's celebration target (if any) based on saved settings
   const candidate = useMemo<CelebrationTarget | null>(() => {
@@ -98,6 +100,8 @@ export default function BirthdayTakeover() {
     } catch {}
   };
 
+  useFocusTrap(dialogRef, { active: visible, onEscape: dismiss });
+
   return (
     <AnimatePresence>
       {visible && target && (
@@ -135,6 +139,7 @@ export default function BirthdayTakeover() {
           ))}
 
           <motion.div
+            ref={dialogRef}
             initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
             onClick={e => e.stopPropagation()}

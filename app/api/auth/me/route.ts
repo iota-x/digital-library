@@ -13,6 +13,8 @@ export async function GET(req: NextRequest) {
     let inviteCode:  string | null = null;
     let startDate                  = DEFAULT_START_DATE;
     let partnerName: string | null = null;
+    let avatarUrl:        string | null = null;
+    let partnerAvatarUrl: string | null = null;
     let settings                   = DEFAULT_SETTINGS;
 
     try {
@@ -21,7 +23,10 @@ export async function GET(req: NextRequest) {
       if (couple) {
         inviteCode  = couple.inviteCode ?? null;
         startDate   = couple.startDate  ?? DEFAULT_START_DATE;
-        partnerName = session.role === "creator" ? couple.person2Name ?? null : couple.person1Name ?? null;
+        const isCreator = session.role === "creator";
+        partnerName      = (isCreator ? couple.person2Name   : couple.person1Name)   ?? null;
+        avatarUrl        = (isCreator ? couple.person1Avatar  : couple.person2Avatar) ?? null;
+        partnerAvatarUrl = (isCreator ? couple.person2Avatar  : couple.person1Avatar) ?? null;
         settings    = couple.settings ?? DEFAULT_SETTINGS;
       }
     } catch {}
@@ -33,6 +38,8 @@ export async function GET(req: NextRequest) {
       name:        session.name,
       role:        session.role,
       partnerName,
+      avatarUrl,
+      partnerAvatarUrl,
       inviteCode,
       startDate,
       settings,

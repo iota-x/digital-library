@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SANS } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
 
@@ -29,6 +30,8 @@ export default function PushPrompt() {
   const [reason,  setReason]  = useState<string>("Want notifications when your partner sends you something?");
   const [busy,    setBusy]    = useState(false);
   const cooldownRef = useRef(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, { active: visible, onEscape: () => later() });
 
   useEffect(() => {
     const onSuggest = (e: Event) => {
@@ -92,6 +95,7 @@ export default function PushPrompt() {
     <AnimatePresence>
       {visible && (
         <motion.div
+          ref={dialogRef}
           initial={{ opacity: 0, y: 16, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.97 }}

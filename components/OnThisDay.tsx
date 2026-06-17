@@ -1,10 +1,11 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import { cldThumb } from "@/lib/cldImg";
 import { SERIF, SANS } from "@/lib/typography";
 import BlurImage from "@/components/BlurImage";
+import { useToast } from "@/components/Toaster";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -24,9 +25,12 @@ interface Memory {
   entry: ReturnType<typeof useCalendarData>["data"][0];
 }
 
+const NUDGE_KEY = "ann_onthisday_nudge_v1";
+
 export default function OnThisDay() {
   const { data } = useCalendarData();
   const [lightbox, setLightbox] = useState<string|null>(null);
+  const { toast } = useToast();
 
   const memories = useMemo<Memory[]>(() => {
     const today = new Date();
@@ -37,6 +41,10 @@ export default function OnThisDay() {
       { months: 3,  years: 0, label: "3 months ago", emoji: "💗" },
       { months: 6,  years: 0, label: "6 months ago", emoji: "🌸" },
       { months: 0,  years: 1, label: "1 year ago",   emoji: "⭐" },
+      { months: 0,  years: 2, label: "2 years ago",  emoji: "🌟" },
+      { months: 0,  years: 3, label: "3 years ago",  emoji: "💫" },
+      { months: 0,  years: 4, label: "4 years ago",  emoji: "✨" },
+      { months: 0,  years: 5, label: "5 years ago",  emoji: "👑" },
     ];
     for (const c of candidates) {
       const d = new Date(today);
@@ -50,6 +58,27 @@ export default function OnThisDay() {
     }
     return result;
   }, [data]);
+
+  // Gentle once-a-day nudge so a resurfaced memory doesn't go unnoticed if the
+  // section scrolls past. Keyed by today's date so it fires at most once/day.
+  useEffect(() => {
+    if (!memories.length) return;
+    const today = toKey(new Date());
+    try {
+      if (localStorage.getItem(NUDGE_KEY) === today) return;
+      localStorage.setItem(NUDGE_KEY, today);
+    } catch {}
+    const top = memories[memories.length - 1]; // the most distant (e.g. a year ago)
+    const t = setTimeout(() => {
+      toast({
+        title: `on this day — ${top.label} ${top.emoji}`,
+        message: top.entry.pinnedNote || top.entry.note?.slice(0, 90) || "you made a memory on this day",
+        variant: "info",
+        durationMs: 7000,
+      });
+    }, 1400);
+    return () => clearTimeout(t);
+  }, [memories, toast]);
 
   if (!memories.length) return null;
 

@@ -6,6 +6,10 @@ import { THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { applyAccent, isValidHex } from "@/lib/themeColor";
+import { cldImg } from "@/lib/cldImg";
+import { exportMediaZip, type ExportProgress } from "@/lib/exportMedia";
+import AvatarEditor from "@/components/AvatarEditor";
 
 const VAPID_PUBLIC = publicEnv.VAPID_PUBLIC_KEY;
 
@@ -74,8 +78,13 @@ export default function SettingsPanel({ open, onClose }: Props) {
   const [pushLoading, setPushLoading] = useState(false);
   const [pushErr,     setPushErr]     = useState("");
   const [noteInput,   setNoteInput]   = useState("");
+  const [avatarOpen,  setAvatarOpen]  = useState(false);
+  const [zipBusy,     setZipBusy]     = useState(false);
+  const [zipProgress, setZipProgress] = useState<ExportProgress | null>(null);
+  const [zipErr,      setZipErr]      = useState("");
 
-  const originalThemeRef = useRef("pink");
+  const originalThemeRef  = useRef("pink");
+  const originalAccentRef = useRef("");
   const didSaveRef       = useRef(false);
   const initialDraftRef  = useRef<string>("");
   const initialDateRef   = useRef<string>("");
@@ -117,6 +126,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
       // Only update originalTheme from server data when we haven't saved yet
       if (!didSaveRef.current) {
         originalThemeRef.current = user.settings.theme ?? "pink";
+        originalAccentRef.current = user.settings.customAccent ?? "";
       }
     }
   }, [open, user?.settings, user?.startDate]);
@@ -126,6 +136,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
     if (!open) {
       if (!didSaveRef.current) {
         applyThemeClass(originalThemeRef.current);
+        applyAccent(originalAccentRef.current || null);
       }
     }
   }, [open]);
@@ -136,10 +147,23 @@ export default function SettingsPanel({ open, onClose }: Props) {
   const setSec = (page: keyof CoupleSettings["sections"], key: string, val: boolean) =>
     setDraft(d => ({ ...d, sections: { ...d.sections, [page]: { ...d.sections[page], [key]: val } } }));
 
-  // Live theme preview — applies instantly without saving
+  // Live theme preview — applies instantly without saving. Picking a built-in
+  // swatch also clears any custom accent so the swatch actually shows.
   const handleThemeClick = useCallback((themeId: string) => {
-    set("theme", themeId);
+    setDraft(d => ({ ...d, theme: themeId, customAccent: "" }));
     applyThemeClass(themeId);
+    applyAccent(null);
+  }, []);
+
+  // Live custom-accent preview.
+  const handleAccentChange = useCallback((hex: string) => {
+    setDraft(d => ({ ...d, customAccent: hex }));
+    if (isValidHex(hex)) applyAccent(hex);
+  }, []);
+
+  const clearAccent = useCallback(() => {
+    setDraft(d => ({ ...d, customAccent: "" }));
+    applyAccent(null);
   }, []);
 
   // Close without saving — effect above handles the revert
@@ -239,6 +263,18 @@ export default function SettingsPanel({ open, onClose }: Props) {
     }
   };
 
+  const downloadMediaZip = async () => {
+    if (zipBusy) return;
+    setZipBusy(true); setZipErr(""); setZipProgress(null);
+    try {
+      await exportMediaZip(setZipProgress);
+    } catch (e) {
+      setZipErr(e instanceof Error ? e.message : "couldn't build the zip — try again");
+    } finally {
+      setZipBusy(false); setZipProgress(null);
+    }
+  };
+
   const resetToDefaults = () => {
     const reset: CoupleSettings = {
       ...DEFAULT_SETTINGS,
@@ -249,6 +285,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
     };
     setDraft(reset);
     applyThemeClass(DEFAULT_SETTINGS.theme);
+    applyAccent(null);
   };
 
   const save = async () => {
@@ -340,6 +377,33 @@ export default function SettingsPanel({ open, onClose }: Props) {
             {/* Body */}
             <div style={{ padding: "0 1.6rem 7rem", flex: 1 }}>
 
+              {/* ─── Your photo ─── */}
+              <GroupLabel>📸 your photo</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.6rem", lineHeight: 1.5 }}>
+                The picture on your polaroid on the home screen. Your partner sees it too.
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.9rem" }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                  background: "linear-gradient(135deg,var(--pink-light),var(--pink-mid))",
+                  border: "2px solid var(--pink-mid)", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: SERIF, fontSize: "1.4rem", color: "#fff",
+                }}>
+                  {user?.avatarUrl
+                    // eslint-disable-next-line @next/next/no-img-element
+                    ? <img src={cldImg(user.avatarUrl, { w: 112, h: 112, crop: "fill" })} alt="your photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : (user?.name?.trim()?.charAt(0)?.toUpperCase() || "📷")}
+                </div>
+                <motion.button onClick={() => setAvatarOpen(true)} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  style={{
+                    padding: "0.6rem 1.1rem", borderRadius: 12, border: "1.5px solid var(--pink-mid)",
+                    background: "var(--pink-light)", color: "var(--pink-deep)", fontFamily: SANS,
+                    fontSize: "0.85rem", fontWeight: 600, cursor: "pointer",
+                  }}>
+                  {user?.avatarUrl ? "change photo" : "add a photo"}
+                </motion.button>
+              </div>
+
               {/* ─── Colour theme ─── */}
               <GroupLabel>🎨 colour theme</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.6rem", lineHeight: 1.5 }}>
@@ -370,6 +434,34 @@ export default function SettingsPanel({ open, onClose }: Props) {
                     </motion.button>
                   );
                 })}
+              </div>
+
+              {/* Custom accent — overrides the swatches above with any colour */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", marginTop: "0.9rem" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                  <span style={{
+                    width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+                    background: draft.customAccent && isValidHex(draft.customAccent) ? draft.customAccent : "var(--pink)",
+                    boxShadow: draft.customAccent ? "0 0 0 3px rgba(var(--pink-rgb),.35)" : "0 2px 8px rgba(0,0,0,.15)",
+                    border: "2px solid #fff",
+                  }} />
+                  <input
+                    type="color"
+                    value={draft.customAccent && isValidHex(draft.customAccent) ? draft.customAccent : "#ec4899"}
+                    onChange={e => handleAccentChange(e.target.value)}
+                    aria-label="custom accent colour"
+                    style={{ width: 0, height: 0, opacity: 0, position: "absolute" }}
+                  />
+                  <span style={{ fontFamily: SANS, fontSize: "0.8rem", color: "var(--pink-deep)", fontWeight: 600 }}>
+                    custom colour
+                  </span>
+                </label>
+                {draft.customAccent && (
+                  <button onClick={clearAccent}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontFamily: SANS, fontSize: "0.74rem", textDecoration: "underline" }}>
+                    clear
+                  </button>
+                )}
               </div>
 
               {/* ─── Couple name ─── */}
@@ -522,21 +614,40 @@ export default function SettingsPanel({ open, onClose }: Props) {
               {/* ─── Your data ─── */}
               <GroupLabel>📦 your data</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.5rem", lineHeight: 1.5 }}>
-                Download everything — memories, letters, lists — as a single JSON file. Your photos and voice notes stay hosted, but every link is included so nothing is lost.
+                Download everything — memories, letters, lists — as a single JSON file. The media zip below packs the actual photos &amp; voice notes too.
               </p>
-              <motion.a
-                href="/api/export"
-                download
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: "0.5rem",
-                  padding: "0.6rem 1.1rem", borderRadius: 12,
-                  border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)",
-                  color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
-                  textDecoration: "none", cursor: "pointer",
-                }}>
-                ⬇️ download all our data
-              </motion.a>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <motion.a
+                  href="/api/export"
+                  download
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                    padding: "0.6rem 1.1rem", borderRadius: 12,
+                    border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)",
+                    color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
+                    textDecoration: "none", cursor: "pointer",
+                  }}>
+                  ⬇️ download data (JSON)
+                </motion.a>
+                <motion.button
+                  onClick={downloadMediaZip} disabled={zipBusy}
+                  whileHover={{ scale: zipBusy ? 1 : 1.02 }} whileTap={{ scale: zipBusy ? 1 : 0.98 }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                    padding: "0.6rem 1.1rem", borderRadius: 12,
+                    border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)",
+                    color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
+                    cursor: zipBusy ? "wait" : "pointer", opacity: zipBusy ? 0.7 : 1,
+                  }}>
+                  {zipBusy
+                    ? (zipProgress ? `zipping… ${zipProgress.done}/${zipProgress.total}` : "preparing…")
+                    : "🗂️ download photos & voice (zip)"}
+                </motion.button>
+                {zipErr && (
+                  <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "#ef4444", margin: 0 }}>⚠️ {zipErr}</p>
+                )}
+              </div>
 
               {/* ─── Reset ─── */}
               <GroupLabel>🔄 reset</GroupLabel>
@@ -591,6 +702,8 @@ export default function SettingsPanel({ open, onClose }: Props) {
               </motion.button>
             </div>
           </motion.div>
+
+          <AvatarEditor open={avatarOpen} onClose={() => setAvatarOpen(false)} currentUrl={user?.avatarUrl ?? null} />
         </>
       )}
     </AnimatePresence>

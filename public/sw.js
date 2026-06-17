@@ -1,5 +1,19 @@
-const CACHE = "ann-v4";
+const CACHE = "ann-v5";
 const NAV_ROUTES = ["/", "/journal", "/timeline", "/capsule", "/shared", "/map", "/favicon.svg", "/manifest.json"];
+
+// Read-only API endpoints worth keeping a last-known copy of, so the journal
+// (and friends) are readable on a cold offline load — not just from the
+// client-side localStorage cache, which a fresh tab won't have yet. These are
+// network-first: always fresh when online, last-good copy when offline.
+// NOTE: exact-match only, so /api/calendar/stream (SSE) is never cached here.
+const READ_APIS = [
+  "/api/calendar",
+  "/api/bucketlist",
+  "/api/watchlist",
+  "/api/voicenotes",
+  "/api/doodle/gallery",
+  "/api/auth/me",
+];
 
 self.addEventListener("install", e => {
   e.waitUntil(
@@ -47,9 +61,19 @@ self.addEventListener("fetch", e => {
 
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // API calls — always go to network, never cache.
-  // calendarStore handles its own client-side caching; SSE streams can't be cloned.
-  if (url.pathname.startsWith("/api/")) return;
+  // API calls.
+  if (url.pathname.startsWith("/api/")) {
+    // Read-only endpoints: network-first with a cached fallback so the journal
+    // is readable offline. Everything else (mutations, SSE) is network-only.
+    if (READ_APIS.includes(url.pathname)) {
+      e.respondWith(
+        fetch(request)
+          .then(res => tryCache(CACHE, request, res))
+          .catch(() => caches.match(request).then(hit => hit ?? Response.error()))
+      );
+    }
+    return;
+  }
 
   // Hashed static assets — cache-first forever
   if (url.pathname.startsWith("/_next/static/")) {

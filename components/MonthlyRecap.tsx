@@ -39,6 +39,28 @@ export default function MonthlyRecap() {
     return { topMoods:top, maxMoodCount:top[0]?.[1]??1 };
   },[monthEntries]);
 
+  // "Our month in a sentence" — a gentle natural-language recap, the heart of
+  // the insights card. Also surfaces the day with the most photos.
+  const narrative = useMemo(()=>{
+    if (monthEntries.length === 0) return "";
+    const parts: string[] = [];
+    parts.push(`${monthEntries.length} day${monthEntries.length!==1?"s":""} worth remembering`);
+    const dom = topMoods[0];
+    if (dom) parts.push(`mostly ${MOOD_LABELS[dom[0]] ? `feeling ${MOOD_LABELS[dom[0]]} ${dom[0]}` : `${dom[0]}`}`);
+    if (specialDays.length) parts.push(`${specialDays.length} moment${specialDays.length!==1?"s":""} marked special`);
+    if (withPhotos.length) parts.push(`${withPhotos.length} captured in photos`);
+    return parts.join(" · ");
+  },[monthEntries, topMoods, specialDays, withPhotos]);
+
+  const topPhotoDay = useMemo(()=>{
+    let best: { date: string; count: number } | null = null;
+    for (const e of monthEntries) {
+      const c = e.photos?.length ?? 0;
+      if (c > 0 && (!best || c > best.count)) best = { date: e.date, count: c };
+    }
+    return best;
+  },[monthEntries]);
+
   const prev=()=>{ if(viewMonth===0){setViewMonth(11);setViewYear(y=>y-1);}else setViewMonth(m=>m-1); };
   const next=()=>{ if(viewMonth===11){setViewMonth(0);setViewYear(y=>y+1);}else setViewMonth(m=>m+1); };
 
@@ -122,6 +144,28 @@ export default function MonthlyRecap() {
           />
         ):(
           <>
+            {/* Our month in a sentence — the insights headline */}
+            {narrative && (
+              <motion.div initial={{opacity:0,y:14}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+                style={{
+                  background:"linear-gradient(135deg,rgba(var(--pink-rgb),.14),rgba(var(--pink-deep-rgb),.1))",
+                  border:CARD_BORDER, borderRadius:20, padding:"1.3rem 1.5rem", marginBottom:"1.8rem",
+                  textAlign:"center", boxShadow:"0 4px 18px rgba(var(--pink-deep-rgb),.08)",
+                }}>
+                <p style={{fontFamily:SANS,fontSize:"0.62rem",color:"var(--muted)",letterSpacing:"0.18em",textTransform:"uppercase",margin:"0 0 0.5rem"}}>
+                  our {MONTHS[viewMonth].toLowerCase()} in a sentence
+                </p>
+                <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"clamp(1rem,2.6vw,1.2rem)",color:"var(--pink-deep)",margin:0,lineHeight:1.6}}>
+                  {narrative} 🌸
+                </p>
+                {topPhotoDay && (
+                  <p style={{fontFamily:SANS,fontSize:"0.74rem",color:"var(--muted)",margin:"0.7rem 0 0"}}>
+                    📸 most photographed: {new Date(topPhotoDay.date+"T12:00:00").getDate()} {MONTHS[viewMonth]} ({topPhotoDay.count} photo{topPhotoDay.count!==1?"s":""})
+                  </p>
+                )}
+              </motion.div>
+            )}
+
             {/* Stats */}
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:"0.8rem",marginBottom:"1.8rem"}}>
               {[{e:"📅",v:monthEntries.length,l:"days logged"},{e:"⭐",v:specialDays.length,l:"special"},{e:"📸",v:withPhotos.length,l:"photos"},{e:"📝",v:withNotes.length,l:"notes"}].map((s,i)=>(

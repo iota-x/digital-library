@@ -79,7 +79,7 @@ export const POST = withAuth(async (req, session) => {
     emailSent: false,
   });
   return NextResponse.json({ id: res.insertedId.toString() });
-});
+}, { rateLimit: { scope: "timecapsule:add", max: 30, windowMs: 60_000 } });
 
 // DELETE — remove a capsule by id
 export const DELETE = withAuth(async (req, session) => {
@@ -87,4 +87,4 @@ export const DELETE = withAuth(async (req, session) => {
   const col = await getCol("capsules");
   await col.deleteOne({ _id: new ObjectId(id), coupleId: session.coupleId });
   return NextResponse.json({ ok: true });
-});
+}, { rateLimit: { scope: "timecapsule:delete", max: 30, windowMs: 60_000 } });

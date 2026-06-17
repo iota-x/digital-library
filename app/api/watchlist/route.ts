@@ -47,7 +47,7 @@ export const POST = withAuth(async (req, session) => {
 
   broadcastToCouple(session.coupleId, { type: "watchlist:add", userId: session.userId });
   return NextResponse.json({ ok: true, _id: result.insertedId.toString() }, { status: 201 });
-});
+}, { rateLimit: { scope: "watchlist:add", max: 60, windowMs: 60_000 } });
 
 export const PUT = withAuth(async (req, session) => {
   const body = await req.json();
@@ -71,7 +71,7 @@ export const PUT = withAuth(async (req, session) => {
 
   broadcastToCouple(session.coupleId, { type: "watchlist:update", userId: session.userId });
   return NextResponse.json({ ok: true });
-});
+}, { rateLimit: { scope: "watchlist:update", max: 120, windowMs: 60_000 } });
 
 export const DELETE = withAuth(async (req, session) => {
   const body = await req.json();
@@ -90,4 +90,4 @@ export const DELETE = withAuth(async (req, session) => {
 
   broadcastToCouple(session.coupleId, { type: "watchlist:delete", userId: session.userId });
   return NextResponse.json({ ok: true });
-});
+}, { rateLimit: { scope: "watchlist:delete", max: 60, windowMs: 60_000 } });

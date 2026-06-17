@@ -2,10 +2,13 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import Image from "next/image";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, updateAvatar } from "@/lib/userStore";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { useCanvasParticles } from "@/lib/useCanvasParticles";
 import { startDateFrom } from "@/lib/relationship";
+import { onPartnerSSE } from "@/lib/sseClient";
+import { cldImg } from "@/lib/cldImg";
+import AvatarEditor from "@/components/AvatarEditor";
 
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
 
@@ -57,8 +60,9 @@ function StardustCanvas() {
   return <canvas ref={canvasRef} style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:1 }} />;
 }
 
-function MagneticPolaroid({ children, rotate, label, emoji }: {
+function MagneticPolaroid({ children, rotate, label, emoji, onClick, editable }: {
   children: React.ReactNode; rotate:number; label:string; emoji:string;
+  onClick?: () => void; editable?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0); const y = useMotionValue(0);
@@ -88,6 +92,10 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
       />
       <motion.div
         ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} onHoverStart={()=>setHovered(true)}
+        onClick={onClick}
+        role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined}
+        onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+        aria-label={editable ? `Edit ${label}'s photo` : undefined}
         style={{
           x:sx, y:sy, rotate, background:"#fff",
           padding:"1rem 1rem 0.8rem",
@@ -98,6 +106,14 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
         transition={{ type:"spring", stiffness:180, damping:16 }}
       >
         {children}
+        {editable && (
+          <span aria-hidden style={{
+            position:"absolute", top:14, right:14, width:30, height:30, borderRadius:"50%",
+            background:"rgba(255,255,255,.92)", boxShadow:"0 2px 8px rgba(var(--pink-rgb),.35)",
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:"0.85rem",
+            opacity: hovered ? 1 : 0.75, transition:"opacity .25s",
+          }}>✏️</span>
+        )}
         <p style={{
           fontFamily:"var(--font-caveat)", textAlign:"center",
           paddingTop:"0.7rem", color:"var(--muted)", fontSize:"1.1rem", margin:0,
@@ -105,6 +121,41 @@ function MagneticPolaroid({ children, rotate, label, emoji }: {
           {label} {emoji}
         </p>
       </motion.div>
+    </div>
+  );
+}
+
+/** The square photo area inside a polaroid: the person's cropped avatar, or a
+ *  gradient + initial placeholder (with a gentle "add" hint on your own). */
+function PolaroidPhoto({ avatar, name, mine, fallbackSrc, fallbackStyle }: {
+  avatar: string | null; name: string; mine: boolean;
+  fallbackSrc?: string; fallbackStyle?: React.CSSProperties;
+}) {
+  const box: React.CSSProperties = {
+    width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden",
+    background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))",
+  };
+  if (avatar) {
+    return (
+      <div style={box}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={cldImg(avatar, { w: 570, h: 570, crop: "fill" })} alt={`${name}'s photo`}
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }} />
+      </div>
+    );
+  }
+  if (fallbackSrc) {
+    return (
+      <div style={box}>
+        <Image src={fallbackSrc} alt={`polaroid photo of ${name}`} fill style={{ objectFit:"cover", ...fallbackStyle }} />
+      </div>
+    );
+  }
+  const initial = (name || "").trim().charAt(0).toUpperCase() || "🩷";
+  return (
+    <div style={{ ...box, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:"0.3rem" }}>
+      <span style={{ fontFamily:"var(--font-playfair)", fontSize:"3.2rem", color:"#fff", lineHeight:1, textShadow:"0 2px 12px rgba(var(--pink-deep-rgb),.4)" }}>{initial}</span>
+      {mine && <span style={{ fontFamily:"var(--font-caveat)", fontSize:"0.95rem", color:"#fff", opacity:.95 }}>tap to add your photo</span>}
     </div>
   );
 }
@@ -189,6 +240,16 @@ export default function Polaroids() {
   const [petals, setPetals] = useState<PetalData[]>([]);
   const isMobile = useIsMobile();
   const heroText = computeHeroText(startDate);
+  const [editing, setEditing] = useState(false);
+
+  // Live-update the partner's polaroid when they change their photo.
+  useEffect(() => {
+    return onPartnerSSE((detail) => {
+      if (detail.type === "avatar:update") {
+        updateAvatar("partner", (detail.avatarUrl as string) || null);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     setPetals(Array.from({ length:28 },(_,i) => ({
@@ -236,29 +297,66 @@ export default function Polaroids() {
 }}
       
         >
-          <MagneticPolaroid rotate={-6} label="her" emoji="🩷">
-            <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))" }}>
-              <Image src="/photos/her.jpg" alt="polaroid photo of her" fill style={{ objectFit:"cover", objectPosition:"center 30%" }} />
-            </div>
-          </MagneticPolaroid>
+          {(() => {
+            // Render the couple consistently for both viewers: creator on the
+            // left, partner on the right. Each shows their own cropped avatar
+            // (or a placeholder), and tapping your own opens the editor.
+            const me = userData
+              ? { name: userData.name, avatar: userData.avatarUrl, mine: true }
+              : null;
+            const partner = userData
+              ? { name: userData.partnerName ?? "", avatar: userData.partnerAvatarUrl, mine: false }
+              : null;
+            const isCreator = userData?.role === "creator";
+            const left  = !userData ? null : (isCreator ? me : partner);
+            const right = !userData ? null : (isCreator ? partner : me);
 
-          <motion.div
-            style={{
-              fontSize:"clamp(3rem,6vw,5rem)", flexShrink:0, zIndex:10,
-              filter:"drop-shadow(0 0 18px rgba(var(--pink-rgb),0.55))",
-            }}
-            animate={{
-              scale:[1,1.22,1,1.15,1],
-              filter:["drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))","drop-shadow(0 0 32px rgba(var(--pink-rgb),0.95))","drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))"],
-            }}
-            transition={{ repeat:Infinity, duration:1.5, ease:"easeInOut" }}
-          >💗</motion.div>
+            const slot = (
+              person: { name: string; avatar: string | null; mine: boolean } | null,
+              rotate: number, emoji: string,
+              fallbackSrc: string, fallbackStyle: React.CSSProperties,
+            ) => {
+              // Pre-auth / loading: keep the original seed photos so the hero
+              // never looks empty.
+              if (!person) {
+                return (
+                  <MagneticPolaroid rotate={rotate} label={fallbackSrc.includes("her") ? "her" : "him"} emoji={emoji}>
+                    <PolaroidPhoto avatar={null} name="" mine={false} fallbackSrc={fallbackSrc} fallbackStyle={fallbackStyle} />
+                  </MagneticPolaroid>
+                );
+              }
+              const label = (person.name || "").trim().split(" ")[0].toLowerCase() || (person.mine ? "you" : "them");
+              return (
+                <MagneticPolaroid
+                  rotate={rotate} label={label} emoji={emoji}
+                  editable={person.mine}
+                  onClick={person.mine ? () => setEditing(true) : undefined}
+                >
+                  <PolaroidPhoto avatar={person.avatar} name={person.name} mine={person.mine} />
+                </MagneticPolaroid>
+              );
+            };
 
-          <MagneticPolaroid rotate={6} label="him" emoji="🤍">
-            <div style={{ width:"100%", aspectRatio:"1", position:"relative", overflow:"hidden", background:"linear-gradient(135deg,var(--pink-light),var(--pink-mid))" }}>
-              <Image src="/photos/him.jpg" alt="polaroid photo of him" fill style={{ objectFit:"cover", objectPosition:"center 25%", transform:"scale(1.4)", transformOrigin:"center 25%" }} />
-            </div>
-          </MagneticPolaroid>
+            return (
+              <>
+                {slot(left, -6, "🩷", "/photos/her.jpg", { objectPosition:"center 30%" })}
+
+                <motion.div
+                  style={{
+                    fontSize:"clamp(3rem,6vw,5rem)", flexShrink:0, zIndex:10,
+                    filter:"drop-shadow(0 0 18px rgba(var(--pink-rgb),0.55))",
+                  }}
+                  animate={{
+                    scale:[1,1.22,1,1.15,1],
+                    filter:["drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))","drop-shadow(0 0 32px rgba(var(--pink-rgb),0.95))","drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))"],
+                  }}
+                  transition={{ repeat:Infinity, duration:1.5, ease:"easeInOut" }}
+                >💗</motion.div>
+
+                {slot(right, 6, "🤍", "/photos/him.jpg", { objectPosition:"center 25%", transform:"scale(1.4)", transformOrigin:"center 25%" })}
+              </>
+            );
+          })()}
         </motion.div>
 
         <motion.div
@@ -295,6 +393,8 @@ export default function Polaroids() {
           <ScrollIndicator />
         </motion.div>
       </section>
+
+      <AvatarEditor open={editing} onClose={() => setEditing(false)} currentUrl={userData?.avatarUrl ?? null} />
     </>
   );
 }

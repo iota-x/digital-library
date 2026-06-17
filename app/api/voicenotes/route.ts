@@ -34,11 +34,11 @@ export const POST = withAuth(async (req, session) => {
     body: `${sender} left you a voice note`,
   });
   return NextResponse.json({ id: res.insertedId.toString() });
-});
+}, { rateLimit: { scope: "voicenotes:add", max: 30, windowMs: 60_000 } });
 
 export const DELETE = withAuth(async (req, session) => {
   const { id } = await req.json();
   const col = await getCol("voicenotes");
   await col.deleteOne({ _id: new ObjectId(id), coupleId: session.coupleId });
   return NextResponse.json({ ok: true });
-});
+}, { rateLimit: { scope: "voicenotes:delete", max: 30, windowMs: 60_000 } });

@@ -9,6 +9,10 @@ export interface UserInfo {
   name:        string;
   role:        "creator" | "partner";
   partnerName: string | null;
+  /** The signed-in user's cropped square avatar (Cloudinary URL) — null if unset. */
+  avatarUrl:        string | null;
+  /** The partner's avatar — null if they haven't set one. */
+  partnerAvatarUrl: string | null;
   inviteCode:  string | null;
   startDate:   string;
   settings:    CoupleSettings;
@@ -30,6 +34,8 @@ export async function fetchUserData(): Promise<UserInfo | null> {
       name:        data.name,
       role:        data.role,
       partnerName: data.partnerName ?? null,
+      avatarUrl:        data.avatarUrl        ?? null,
+      partnerAvatarUrl: data.partnerAvatarUrl ?? null,
       inviteCode:  data.inviteCode  ?? null,
       startDate:   data.startDate   ?? DEFAULT_START_DATE,
       settings:    data.settings    ?? DEFAULT_SETTINGS,
@@ -56,6 +62,16 @@ export function updateSettings(settings: CoupleSettings): void {
 export function updateUserData(updates: Partial<UserInfo>): void {
   if (!_user) return;
   _user = { ..._user, ...updates };
+  notify(_user);
+}
+
+/** Update an avatar locally. `which: "me"` for the current user, `"partner"`
+ *  when an `avatar:update` SSE event arrives from the other person. */
+export function updateAvatar(which: "me" | "partner", url: string | null): void {
+  if (!_user) return;
+  _user = which === "me"
+    ? { ..._user, avatarUrl: url }
+    : { ..._user, partnerAvatarUrl: url };
   notify(_user);
 }
 

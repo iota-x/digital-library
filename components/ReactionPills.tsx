@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { buzz } from "@/lib/haptics";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SANS } from "@/lib/typography";
 
 const PALETTE = ["🩷", "🥺", "✨", "🌷", "😘", "🥰", "👀", "💌"] as const;
@@ -31,6 +32,10 @@ export default function ReactionPills({
   const [busy, setBusy] = useState<string | null>(null);
   const data = reactions ?? {};
   const myId = userData?.userId || "";
+
+  // Trap focus inside the emoji picker while it's open; Esc closes it.
+  const pickerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(pickerRef, { active: picking, onEscape: () => setPicking(false) });
 
   const handle = async (emoji: string) => {
     if (busy) return;
@@ -75,56 +80,67 @@ export default function ReactionPills({
       <div style={{ position: "relative" }}>
         <motion.button
           onClick={() => setPicking(p => !p)}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.92 }}
           aria-label="add a reaction"
           aria-expanded={picking}
           style={{
-            padding: "0.22rem 0.6rem",
+            display: "flex", alignItems: "center", gap: "0.28rem",
+            padding: "0.24rem 0.6rem 0.24rem 0.5rem",
             borderRadius: 50,
-            background: "transparent",
-            border: "1px dashed rgba(var(--pink-deep-rgb), .35)",
+            background: picking ? "rgba(var(--pink-deep-rgb), .14)" : "rgba(var(--pink-rgb), .08)",
+            border: `1px solid rgba(var(--pink-rgb), ${picking ? ".5" : ".28"})`,
             cursor: "pointer", color: "var(--pink-deep)",
-            fontFamily: SANS, fontSize: "0.78rem", fontWeight: 700,
+            fontFamily: SANS, fontSize: "0.76rem", fontWeight: 600,
+            transition: "background .18s, border-color .18s",
           }}
         >
-          + react
+          <span aria-hidden style={{ fontSize: "0.95rem", lineHeight: 1 }}>🙂</span>
+          react
         </motion.button>
 
         <AnimatePresence>
           {picking && (
             <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.92 }}
+              ref={pickerRef}
+              initial={{ opacity: 0, y: 6, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.96 }}
-              transition={{ type: "spring", stiffness: 260, damping: 22 }}
-              role="dialog" aria-label="pick a reaction"
+              exit={{ opacity: 0, y: 6, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 320, damping: 26 }}
+              role="dialog" aria-modal="true" aria-label="pick a reaction"
               style={{
-                position: "absolute", top: "calc(100% + 0.4rem)",
+                position: "absolute", top: "calc(100% + 0.5rem)",
                 right: 0, zIndex: 30,
-                background: "var(--cream)",
-                border: "1px solid rgba(var(--pink-rgb), .35)",
-                borderRadius: 14,
-                padding: "0.35rem",
-                boxShadow: "0 16px 40px rgba(var(--pink-deep-rgb), .25)",
-                display: "flex", flexWrap: "wrap", gap: "0.15rem",
-                maxWidth: 220,
+                background: "rgba(var(--pink-light-rgb,253,242,248), .82)",
+                backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+                border: "1px solid rgba(var(--pink-rgb), .3)",
+                borderRadius: 999,
+                padding: "0.3rem 0.4rem",
+                boxShadow: "0 12px 34px rgba(var(--pink-deep-rgb), .22), 0 2px 6px rgba(var(--pink-deep-rgb), .12)",
+                display: "flex", flexWrap: "nowrap", gap: "0.1rem",
+                maxWidth: "92vw",
               }}
             >
-              {PALETTE.map(emoji => (
-                <button
+              {PALETTE.map((emoji, i) => (
+                <motion.button
                   key={emoji}
                   onClick={() => handle(emoji)}
                   aria-label={`react ${emoji}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.02 * i, type: "spring", stiffness: 400, damping: 24 }}
+                  whileHover={{ scale: 1.32, y: -3 }}
+                  whileTap={{ scale: 0.85 }}
                   style={{
                     background: "transparent", border: "none", cursor: "pointer",
-                    width: 36, height: 36, borderRadius: 8,
-                    fontSize: "1.2rem", lineHeight: 1,
+                    width: 38, height: 38, borderRadius: "50%",
+                    fontSize: "1.35rem", lineHeight: 1, flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transformOrigin: "center bottom",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(var(--pink-rgb), .15)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   {emoji}
-                </button>
+                </motion.button>
               ))}
             </motion.div>
           )}

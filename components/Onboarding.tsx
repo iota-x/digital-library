@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUserData } from "@/lib/userStore";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import AvatarEditor from "@/components/AvatarEditor";
 
 
 const STORAGE_KEY = "ann_onboarded_v1";
@@ -18,9 +19,18 @@ interface Step {
   go?: string;
   /** Optional broadcast event the CTA should dispatch (e.g. opens settings panel). */
   dispatch?: string;
+  /** When set, the CTA opens the avatar editor instead of navigating. */
+  avatar?: boolean;
 }
 
 const STEPS: Step[] = [
+  {
+    emoji: "📸",
+    title: "add your photo",
+    body: "Pick a picture for your polaroid on the home screen — your partner sees it too. You can re-crop or change it anytime by tapping your polaroid.",
+    cta: "choose photo",
+    avatar: true,
+  },
   {
     emoji: "💌",
     title: "write your first letter",
@@ -49,8 +59,11 @@ export default function Onboarding() {
   const user = useUserData();
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(dialogRef, { active: visible, onEscape: () => setVisible(false) });
+  // Don't trap focus in the onboarding card while the avatar editor (a nested
+  // dialog) is open — it runs its own trap.
+  useFocusTrap(dialogRef, { active: visible && !avatarOpen, onEscape: () => setVisible(false) });
 
   useEffect(() => {
     if (!user) return;
@@ -75,6 +88,9 @@ export default function Onboarding() {
   };
 
   const act = () => {
+    // Avatar step opens the editor in place and keeps onboarding open so the
+    // user can continue to the next step afterward.
+    if (cur.avatar) { setAvatarOpen(true); return; }
     if (cur.dispatch) window.dispatchEvent(new Event(cur.dispatch));
     if (cur.go) router.push(cur.go);
     done();
@@ -165,6 +181,12 @@ export default function Onboarding() {
               )}
             </div>
           </motion.div>
+
+          <AvatarEditor
+            open={avatarOpen}
+            onClose={() => { setAvatarOpen(false); next(); }}
+            currentUrl={user?.avatarUrl ?? null}
+          />
         </>
       )}
     </AnimatePresence>

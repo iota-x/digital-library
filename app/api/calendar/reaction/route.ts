@@ -68,4 +68,4 @@ export const POST = withAuth(async (req, session) => {
   }
 
   return NextResponse.json({ ok: true, added: !had, reactions: nextReactions });
-});
+}, { rateLimit: { scope: "calendar:reaction", max: 120, windowMs: 60_000 } });
