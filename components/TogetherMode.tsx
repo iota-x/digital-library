@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { usePartnerPresence } from "@/lib/presenceStore";
 import DoodleCanvas from "@/components/DoodleCanvas";
+import CuteTooltip from "@/components/CuteTooltip";
 import { SANS } from "@/lib/typography";
 import { buzz, heartBump } from "@/lib/haptics";
 
@@ -20,7 +21,9 @@ export default function TogetherMode() {
   const partner = usePartnerPresence();
   const [doodleOpen, setDoodleOpen] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
+  const [tip, setTip] = useState(false);
   const celebrated = useRef(false);
+  const partnerFirst = (partner.name || user?.partnerName || "them").trim().split(" ")[0];
 
   // Celebrate the *transition* into togetherness (rising edge), then keep the
   // banner up while both are online; let it dismiss when the partner goes quiet.
@@ -111,7 +114,12 @@ export default function TogetherMode() {
           (bottom-right) and the mobile tab bar. */}
       <motion.button
         onClick={() => setDoodleOpen(true)}
-        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.92 }}
+        whileHover={{ scale: 1.12, rotate: -8 }} whileTap={{ scale: 0.92 }}
+        onHoverStart={() => setTip(true)} onHoverEnd={() => setTip(false)}
+        onFocus={() => setTip(true)} onBlur={() => setTip(false)}
+        // Gentle idle wiggle when your partner is online — "come draw with me".
+        animate={partner.online ? { rotate: [0, -7, 7, -4, 0] } : { rotate: 0 }}
+        transition={partner.online ? { duration: 2.4, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" } : { duration: 0.2 }}
         aria-label="open shared doodle"
         style={{
           position: "fixed",
@@ -127,6 +135,11 @@ export default function TogetherMode() {
         }}
       >
         🎨
+        <CuteTooltip
+          show={tip}
+          placement="right"
+          label={partner.online ? `${partnerFirst} is here — draw together 🎨` : "draw a doodle 🎨"}
+        />
         {partner.online && (
           <span aria-hidden style={{
             position: "absolute", top: 2, right: 2, width: 11, height: 11,

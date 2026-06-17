@@ -9,6 +9,7 @@ import { startDateFrom } from "@/lib/relationship";
 import { onPartnerSSE } from "@/lib/sseClient";
 import { cldImg } from "@/lib/cldImg";
 import AvatarEditor from "@/components/AvatarEditor";
+import CuteTooltip from "@/components/CuteTooltip";
 
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
 
@@ -23,21 +24,29 @@ function Petal({ delay, left, size, dur, symbol }: Omit<PetalData,"id">) {
   );
 }
 
+// Positions/velocities are stored in NORMALISED 0–1 space (not pixels) and
+// scaled to the canvas at draw time. This makes seeding independent of when /
+// at what size the canvas is first measured — so the dots always spread across
+// the whole hero instead of clustering at (0,0) when layout hasn't settled yet.
 interface Dot { x:number; y:number; size:number; color:string; vx:number; vy:number; life:number; maxLife:number }
+
+function seedDot(): Dot {
+  return {
+    x: Math.random(), y: Math.random(),
+    size: Math.random()*2.5+0.5, color: COLORS[Math.floor(Math.random()*COLORS.length)],
+    vx: (Math.random()-0.5)*0.0006, vy: -(Math.random()*0.0007+0.0002),
+    life: Math.random()*300, maxLife: 250+Math.random()*250,
+  };
+}
 
 function StardustCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dotsRef = useRef<Dot[]>([]);
 
   useCanvasParticles(canvasRef, {
-    setup: (w, h) => {
+    setup: () => {
       if (dotsRef.current.length > 0) return;
-      dotsRef.current = Array.from({ length:70 }, () => ({
-        x: Math.random()*w, y: Math.random()*h,
-        size: Math.random()*2.5+0.5, color: COLORS[Math.floor(Math.random()*COLORS.length)],
-        vx: (Math.random()-0.5)*0.35, vy: -Math.random()*0.5-0.15,
-        life: Math.random()*300, maxLife: 250+Math.random()*250,
-      }));
+      dotsRef.current = Array.from({ length:70 }, seedDot);
     },
     draw: (ctx, w, h) => {
       ctx.clearRect(0,0,w,h);
@@ -46,12 +55,9 @@ function StardustCanvas() {
         const alpha = Math.sin((d.life/d.maxLife)*Math.PI)*0.75;
         ctx.save(); ctx.globalAlpha=Math.max(0,alpha); ctx.fillStyle=d.color;
         ctx.shadowBlur=10; ctx.shadowColor=d.color;
-        ctx.beginPath(); ctx.arc(d.x,d.y,d.size,0,Math.PI*2); ctx.fill(); ctx.restore();
-        if (d.life>=d.maxLife||d.y<-10) {
-          d.x=Math.random()*w; d.y=h+10; d.life=0;
-          d.maxLife=250+Math.random()*250; d.vy=-Math.random()*0.5-0.15;
-          d.vx=(Math.random()-0.5)*0.35; d.size=Math.random()*2.5+0.5;
-          d.color=COLORS[Math.floor(Math.random()*COLORS.length)];
+        ctx.beginPath(); ctx.arc(d.x*w, d.y*h, d.size, 0, Math.PI*2); ctx.fill(); ctx.restore();
+        if (d.life>=d.maxLife || d.y<-0.02) {
+          Object.assign(d, seedDot(), { y: 1.02, life: 0, x: Math.random() });
         }
       }
     },
@@ -248,6 +254,10 @@ export default function Polaroids() {
   const isMobile = useIsMobile();
   const heroText = computeHeroText(startDate);
   const [editing, setEditing] = useState(false);
+  const [heartTip, setHeartTip] = useState(false);
+  const meFirst = (userData?.name ?? "").trim().split(" ")[0];
+  const partnerFirst = (userData?.partnerName ?? "").trim().split(" ")[0];
+  const heartLabel = meFirst && partnerFirst ? `${meFirst} & ${partnerFirst} 💗` : "always us 💗";
 
   // Live-update the partner's polaroid when they change their photo.
   useEffect(() => {
@@ -352,8 +362,10 @@ export default function Polaroids() {
                 {slot(left, -6, "🩷", "/photos/her.jpg", { objectPosition:"center 30%" })}
 
                 <motion.div
+                  onHoverStart={() => setHeartTip(true)} onHoverEnd={() => setHeartTip(false)}
                   style={{
-                    fontSize:"clamp(3rem,6vw,5rem)", flexShrink:0, zIndex:10,
+                    position:"relative",
+                    fontSize:"clamp(3rem,6vw,5rem)", flexShrink:0, zIndex:10, cursor:"default",
                     filter:"drop-shadow(0 0 18px rgba(var(--pink-rgb),0.55))",
                   }}
                   animate={{
@@ -361,7 +373,10 @@ export default function Polaroids() {
                     filter:["drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))","drop-shadow(0 0 32px rgba(var(--pink-rgb),0.95))","drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))"],
                   }}
                   transition={{ repeat:Infinity, duration:1.5, ease:"easeInOut" }}
-                >💗</motion.div>
+                >
+                  💗
+                  <CuteTooltip show={heartTip} placement="top" label={heartLabel} />
+                </motion.div>
 
                 {slot(right, 6, "🤍", "/photos/him.jpg", { objectPosition:"center 25%", transform:"scale(1.4)", transformOrigin:"center 25%" })}
               </>

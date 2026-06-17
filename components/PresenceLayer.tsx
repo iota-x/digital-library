@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { heartBump, buzz } from "@/lib/haptics";
 import { notePartnerTick } from "@/lib/presenceStore";
+import CuteTooltip from "@/components/CuteTooltip";
 
 /**
  * Lightweight presence + "send-a-heart" layer.
@@ -43,6 +44,7 @@ export default function PresenceLayer() {
   const [partner, setPartner] = useState<PartnerPresence | null>(null);
   const [hearts,  setHearts]  = useState<FlyingHeart[]>([]);
   const [sending, setSending] = useState(false);
+  const [tip, setTip] = useState(false);
   const currentSection = useRef<string>("");
   const lastTickAt = useRef<number>(0);
   const lastPartnerSeenAt = useRef<number>(0);
@@ -211,7 +213,12 @@ export default function PresenceLayer() {
       {/* Send-a-heart button — bottom-right, above the mobile tab bar */}
       <motion.button
         onClick={sendHeart}
-        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.92 }}
+        whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.86 }}
+        onHoverStart={() => setTip(true)} onHoverEnd={() => setTip(false)}
+        onFocus={() => setTip(true)} onBlur={() => setTip(false)}
+        // Soft idle heartbeat so it feels alive and invites a tap.
+        animate={{ scale: [1, 1.06, 1, 1.06, 1] }}
+        transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.6, ease: "easeInOut" }}
         aria-label={`send a heart to ${userData.partnerName || "your love"}`}
         style={{
           position: "fixed",
@@ -229,6 +236,11 @@ export default function PresenceLayer() {
         }}
       >
         🩷
+        <CuteTooltip
+          show={tip}
+          placement="left"
+          label={`send ${(userData.partnerName || "your love").split(" ")[0]} a heart 💗`}
+        />
       </motion.button>
     </>
   );
