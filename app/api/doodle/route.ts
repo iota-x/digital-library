@@ -76,7 +76,7 @@ export const GET = withAuth(async (_req, session) => {
 });
 
 export const POST = withAuth(async (req, session) => {
-  const rl = rateLimit(req, { scope: "doodle", max: 240, windowMs: 60_000, identifier: session.userId });
+  const rl = await rateLimit(req, { scope: "doodle", max: 240, windowMs: 60_000, identifier: session.userId });
   if (!rl.ok) return tooManyRequests(rl.retryAfter, "slow down those lines ✏️");
 
   const body = await req.json().catch(() => ({}));

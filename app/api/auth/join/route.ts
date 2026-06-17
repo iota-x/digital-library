@@ -10,7 +10,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: NextRequest) {
   try {
     // Rate limit by IP — invite codes are 6-char so brute-force needs heavy throttle
-    const rl = rateLimit(req, { scope: "auth:join", max: 10, windowMs: 60 * 60_000 });
+    const rl = await rateLimit(req, { scope: "auth:join", max: 10, windowMs: 60 * 60_000 });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many attempts. Try again later.");
 
     const body = await req.json();

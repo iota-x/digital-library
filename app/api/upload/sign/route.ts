@@ -16,7 +16,7 @@ import { serverEnv, publicEnv } from "@/lib/env";
  *   - moderation
  */
 export const POST = withAuth(async (req, session) => {
-  const rl = rateLimit(req, { scope: "upload:sign", max: 60, windowMs: 60 * 60_000, identifier: session.userId });
+  const rl = await rateLimit(req, { scope: "upload:sign", max: 60, windowMs: 60 * 60_000, identifier: session.userId });
   if (!rl.ok) return tooManyRequests(rl.retryAfter, "Upload rate limit exceeded.");
 
   const apiKey    = serverEnv.CLOUDINARY_API_KEY;

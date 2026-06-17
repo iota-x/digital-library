@@ -5,6 +5,7 @@ import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
 import { THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const VAPID_PUBLIC = publicEnv.VAPID_PUBLIC_KEY;
 
@@ -143,6 +144,10 @@ export default function SettingsPanel({ open, onClose }: Props) {
   // Close without saving — effect above handles the revert
   const handleClose = useCallback(() => { onClose(); }, [onClose]);
 
+  // Trap keyboard focus inside the panel while open, and close on Esc.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, { active: open, onEscape: handleClose });
+
   const addLoveNote = () => {
     const t = noteInput.trim();
     if (!t) return;
@@ -239,6 +244,10 @@ export default function SettingsPanel({ open, onClose }: Props) {
 
           {/* Panel */}
           <motion.div
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Settings"
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 34 }}
             style={{
@@ -452,6 +461,25 @@ export default function SettingsPanel({ open, onClose }: Props) {
                   </div>
                 </>
               )}
+
+              {/* ─── Your data ─── */}
+              <GroupLabel>📦 your data</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.5rem", lineHeight: 1.5 }}>
+                Download everything — memories, letters, lists — as a single JSON file. Your photos and voice notes stay hosted, but every link is included so nothing is lost.
+              </p>
+              <motion.a
+                href="/api/export"
+                download
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                  padding: "0.6rem 1.1rem", borderRadius: 12,
+                  border: "1.5px solid var(--pink-mid)", background: "rgba(255,255,255,.7)",
+                  color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
+                  textDecoration: "none", cursor: "pointer",
+                }}>
+                ⬇️ download all our data
+              </motion.a>
 
               {/* ─── Reset ─── */}
               <GroupLabel>🔄 reset</GroupLabel>

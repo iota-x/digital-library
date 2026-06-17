@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 
 type Category = "dates" | "travel" | "experiences" | "firsts" | "other";
@@ -62,6 +63,8 @@ export default function BucketListIdeas({ onAdd }: Props) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Category | "all">("all");
   const [added, setAdded] = useState<Set<string>>(new Set());
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, { active: open, onEscape: () => setOpen(false) });
 
   const visible = filter === "all" ? IDEAS : IDEAS.filter(i => i.category === filter);
 
@@ -96,6 +99,10 @@ export default function BucketListIdeas({ onAdd }: Props) {
               style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,.45)", backdropFilter: "blur(4px)" }}
             />
             <motion.div
+              ref={dialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Dream ideas for your bucket list"
               initial={{ opacity: 0, y: 40, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.97 }}

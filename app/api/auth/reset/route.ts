@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     const emailLower = email.trim().toLowerCase();
 
-    const rl = rateLimit(req, { scope: "auth:reset", max: 5, windowMs: 15 * 60_000, identifier: emailLower });
+    const rl = await rateLimit(req, { scope: "auth:reset", max: 5, windowMs: 15 * 60_000, identifier: emailLower });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many attempts.");
 
     const result = await verifyOtp(emailLower, "reset-password", code.trim());

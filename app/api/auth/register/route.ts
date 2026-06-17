@@ -30,7 +30,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: NextRequest) {
   try {
     // Rate limit by IP — 3 register attempts per hour
-    const rl = rateLimit(req, { scope: "auth:register", max: 3, windowMs: 60 * 60_000 });
+    const rl = await rateLimit(req, { scope: "auth:register", max: 3, windowMs: 60 * 60_000 });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many sign-up attempts. Try again later.");
 
     const body = await req.json();

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const emailLower = email.trim().toLowerCase();
 
     // Rate limit by IP+email — 5 attempts per 15 minutes
-    const rl = rateLimit(req, { scope: "auth:login", max: 5, windowMs: 15 * 60_000, identifier: emailLower });
+    const rl = await rateLimit(req, { scope: "auth:login", max: 5, windowMs: 15 * 60_000, identifier: emailLower });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many login attempts. Try again later.");
 
     const users = await getCol("users");

@@ -6,13 +6,26 @@ import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
 import { SERIF, SANS } from "@/lib/typography";
 import { chime, buzz } from "@/lib/haptics";
+import { useToast } from "@/components/Toaster";
 
 
 /* Theme-adaptive: dark accent text on light section in light mode,
    bright accent text on dark section in dark mode (handled by globals). */
 
+/* Named journaling-streak rewards — the "gentle gamification" payoff.
+   Keyed by the milestone day count shared with the badges below. */
+const MILESTONE_REWARDS: Record<number, { title: string; emoji: string }> = {
+  3:   { title: "the habit's forming",      emoji: "🌱" },
+  7:   { title: "one week strong",          emoji: "🔥" },
+  14:  { title: "two weeks together",       emoji: "🌷" },
+  30:  { title: "a whole month of us",      emoji: "🏆" },
+  60:  { title: "two months, no misses",    emoji: "💞" },
+  100: { title: "100 days — incredible",    emoji: "🎊" },
+};
+
 export default function StreakTracker() {
   const { data, loading } = useCalendarData();
+  const toaster = useToast();
 
   const { streak, longest, todayDone, celebrate } = useMemo(() => {
     const dates = new Set(data.filter(e => e.note || (e.photos?.length ?? 0) > 0).map(e => e.date));
@@ -35,7 +48,8 @@ export default function StreakTracker() {
     return { streak: cur, longest: max, todayDone: dates.has(todayKey), celebrate: cur >= 7 };
   }, [data]);
 
-  // Buzz + soft chime exactly once when a milestone is crossed mid-session
+  // Buzz + soft chime + celebratory toast exactly once when a milestone is
+  // crossed mid-session.
   const milestoneRef = useRef<number>(-1);
   useEffect(() => {
     const tiers = [3, 7, 14, 30, 60, 100];
@@ -44,14 +58,25 @@ export default function StreakTracker() {
       milestoneRef.current = hit;
       buzz("double");
       chime(0.22);
+      const reward = MILESTONE_REWARDS[hit];
+      if (reward) {
+        toaster.toast({
+          variant: "success",
+          title: `${reward.emoji} ${hit}-day streak!`,
+          message: reward.title,
+          durationMs: 6000,
+        });
+      }
     }
-  }, [streak]);
+  }, [streak, toaster]);
 
   if (loading) return <SectionSkeleton accent="rgba(var(--pink-rgb),.25)" lines={5}/>;
 
   const milestones    = [3,7,14,30,60,100];
   const nextMilestone = milestones.find(m=>m>streak) ?? streak+10;
   const progress      = Math.min((streak/nextMilestone)*100,100);
+  const reachedTier   = [...milestones].reverse().find(m => streak >= m);
+  const reward        = reachedTier ? MILESTONE_REWARDS[reachedTier] : undefined;
 
   return (
     <section id="streak" style={{
@@ -101,11 +126,19 @@ export default function StreakTracker() {
         }}>
           our streak
         </h2>
-        <p style={{fontFamily:SANS,fontSize:"0.9rem",color:"var(--muted)",margin:"0 0 2.5rem",lineHeight:1.5}}>
+        <p style={{fontFamily:SANS,fontSize:"0.9rem",color:"var(--muted)",margin:"0 0 0.6rem",lineHeight:1.5}}>
           {todayDone
             ? "✓ memory added today — streak's alive 🌸"
             : "add a memory today to keep the streak going 💗"}
         </p>
+        {reward && (
+          <motion.p
+            initial={{opacity:0,y:6}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
+            style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:"var(--pink-deep)",margin:"0 0 2rem"}}>
+            {reward.emoji} {reward.title}
+          </motion.p>
+        )}
+        {!reward && <div style={{marginBottom:"1.9rem"}} />}
 
         {/* Big number */}
         <div

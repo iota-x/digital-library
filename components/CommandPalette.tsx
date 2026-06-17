@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import { useUserData } from "@/lib/userStore";
 import { SERIF, SANS } from "@/lib/typography";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 
 const ROUTES = [
@@ -96,7 +97,7 @@ export default function CommandPalette() {
     if (q.length < 2) return [];
     return calData
       .filter(e => {
-        const text = [e.note, e.pinnedNote, e.mood, e.specialLabel, e.date, fmtEntry(e.date)]
+        const text = [e.note, e.pinnedNote, e.mood, e.specialLabel, e.date, fmtEntry(e.date), e.weather?.label]
           .join(" ").toLowerCase();
         return text.includes(q) && (e.note || (e.photos?.length ?? 0) > 0);
       })
@@ -180,6 +181,11 @@ export default function CommandPalette() {
   }, [open, allResults, sel, totalItems, router]);
 
   useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 60); }, [open]);
+
+  // Trap Tab focus inside the palette. Esc/arrows/Enter are handled by the
+  // existing window-level keydown effects, so we don't pass onEscape here.
+  const boxRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(boxRef, { active: open, initialFocus: inputRef });
   useEffect(() => { setSel(0); }, [query]);
 
   return (
@@ -199,6 +205,10 @@ export default function CommandPalette() {
           }}>
           <motion.div
             key="cp-box"
+            ref={boxRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Command palette — search and navigate"
             className="cmd-palette"
             initial={{opacity:0,y:-18,scale:.96}} animate={{opacity:1,y:0,scale:1}}
             exit={{opacity:0,y:-18,scale:.96}}

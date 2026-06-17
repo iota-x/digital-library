@@ -7,6 +7,7 @@ import { useUserData, clearUserData, updateUserData } from "@/lib/userStore";
 import { invalidateCalendarCache } from "@/lib/calendarStore";
 import { useToast } from "@/components/Toaster";
 import { useConfirm } from "@/components/ConfirmDialog";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const ROUTES = [
   { href: "/",         label: "home",      emoji: "🌸" },
@@ -219,6 +220,9 @@ export default function Navbar() {
 
         {/* Right cluster: dark toggle + user pill + ⌘K + hamburger */}
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
+          {/* Notification bell — "what's new since you last looked" */}
+          {user && <NotificationCenter />}
+
           {/* Dark mode toggle */}
           <motion.button
             onClick={toggleDark}

@@ -23,7 +23,7 @@ async function uniqueCode(couples: Awaited<ReturnType<typeof getCol>>): Promise<
 // POST — rotate the couple's invite code. Only the creator may rotate.
 export const POST = withAuth(async (req, session) => {
   // 3 rotations per hour per user is plenty for typos / leaks
-  const rl = rateLimit(req, { scope: "invite:rotate", max: 3, windowMs: 60 * 60_000, identifier: session.userId });
+  const rl = await rateLimit(req, { scope: "invite:rotate", max: 3, windowMs: 60 * 60_000, identifier: session.userId });
   if (!rl.ok) return tooManyRequests(rl.retryAfter, "Wait a bit before rotating again.");
 
   if (session.role !== "creator") {

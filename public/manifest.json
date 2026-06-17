@@ -14,5 +14,25 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Days together",
+      "short_name": "Our days",
+      "description": "A glanceable count of our days",
+      "url": "/widget"
+    },
+    {
+      "name": "Add a memory",
+      "short_name": "Memory",
+      "description": "Write today's memory",
+      "url": "/journal"
+    },
+    {
+      "name": "Today's question",
+      "short_name": "Daily",
+      "description": "Answer today's question",
+      "url": "/#daily"
+    }
   ]
 }

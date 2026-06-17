@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { isSSEConnected, onSSEStatus } from "@/lib/sseClient";
 
 /**
  * Generic stale-while-revalidate store.
@@ -21,8 +22,11 @@ export interface ResourceStoreOptions<T> {
   endpoint: string;
   /** SSE event types that should trigger a refresh */
   sseEventTypes?: string[];
-  /** Background poll interval in ms (default 60_000). 0 = disabled. */
+  /** Background poll interval in ms when SSE is connected (default 60_000). 0 = disabled. */
   pollMs?: number;
+  /** Faster poll interval used while the SSE relay is disconnected (default 15_000).
+   *  Polling is the only fresh-data channel then, so we tighten it. 0 = same as pollMs. */
+  fallbackPollMs?: number;
 }
 
 export interface ResourceStore<T> {
@@ -41,7 +45,7 @@ export interface ResourceStore<T> {
 }
 
 export function createResourceStore<T>(opts: ResourceStoreOptions<T>): ResourceStore<T> {
-  const { storageKey, endpoint, sseEventTypes = [], pollMs = 60_000 } = opts;
+  const { storageKey, endpoint, sseEventTypes = [], pollMs = 60_000, fallbackPollMs = 15_000 } = opts;
   const listeners = new Set<(data: T[]) => void>();
   let cache: T[] | null = null;
   let inflight: Promise<T[]> | null = null;
@@ -156,7 +160,22 @@ export function createResourceStore<T>(opts: ResourceStoreOptions<T>): ResourceS
       document.addEventListener("visibilitychange", onVisible);
       window.addEventListener("focus", refresh);
       if (sseEventTypes.length) window.addEventListener("annapp:sse", onSse);
-      const poll = pollMs > 0 ? setInterval(refresh, pollMs) : null;
+
+      // Adaptive polling: when the SSE relay is down, polling is the only
+      // fresh-data channel, so tighten the interval; relax it once SSE is back.
+      let poll: ReturnType<typeof setInterval> | null = null;
+      const fast = fallbackPollMs > 0 ? fallbackPollMs : pollMs;
+      const applyInterval = (connected: boolean) => {
+        if (poll) clearInterval(poll);
+        poll = null;
+        const ms = connected ? pollMs : fast;
+        if (ms > 0) poll = setInterval(refresh, ms);
+      };
+      applyInterval(isSSEConnected());
+      const offStatus = onSSEStatus((connected) => {
+        if (!connected) refresh(); // immediate catch-up the moment SSE drops
+        applyInterval(connected);
+      });
 
       return () => {
         cancelled = true;
@@ -165,6 +184,7 @@ export function createResourceStore<T>(opts: ResourceStoreOptions<T>): ResourceS
         window.removeEventListener("focus", refresh);
         if (sseEventTypes.length) window.removeEventListener("annapp:sse", onSse);
         if (poll) clearInterval(poll);
+        offStatus();
       };
     }, []);
 

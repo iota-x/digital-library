@@ -22,3 +22,10 @@ export function startDateFrom(raw: string | null | undefined, withTimePrefix = f
   const s = raw && raw.length > 0 ? raw : DEFAULT_START_DATE;
   return new Date(withTimePrefix ? `${s}T00:00:00` : s);
 }
+
+/** Whole days elapsed since the (couple's) start date. Never negative. */
+export function daysTogether(raw?: string | null): number {
+  const start = startDateFrom(raw, true);
+  const diff = Date.now() - start.getTime();
+  return Math.max(0, Math.floor(diff / 86_400_000));
+}

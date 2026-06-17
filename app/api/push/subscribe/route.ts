@@ -5,7 +5,7 @@ import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 
 export const POST = withAuth(async (req, session) => {
   // Cap subscription churn — 10 subscribes per user per hour
-  const rl = rateLimit(req, { scope: "push:subscribe", max: 10, windowMs: 60 * 60_000, identifier: session.userId });
+  const rl = await rateLimit(req, { scope: "push:subscribe", max: 10, windowMs: 60 * 60_000, identifier: session.userId });
   if (!rl.ok) return tooManyRequests(rl.retryAfter, "Subscription rate limit exceeded.");
 
   const subscription = await req.json();

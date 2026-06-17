@@ -75,7 +75,7 @@ export const GET = withAuth(async (_req, session) => {
 });
 
 export const POST = withAuth(async (req, session) => {
-  const rl = rateLimit(req, { scope: "watch-together", max: 40, windowMs: 60_000, identifier: session.userId });
+  const rl = await rateLimit(req, { scope: "watch-together", max: 40, windowMs: 60_000, identifier: session.userId });
   if (!rl.ok) return tooManyRequests(rl.retryAfter);
 
   const body = (await req.json().catch(() => ({}))) as {

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
     const emailLower = email.trim().toLowerCase();
 
-    const rl = rateLimit(req, { scope: "auth:forgot", max: 3, windowMs: 60 * 60_000, identifier: emailLower });
+    const rl = await rateLimit(req, { scope: "auth:forgot", max: 3, windowMs: 60 * 60_000, identifier: emailLower });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Please wait before requesting another code.");
 
     const users = await getCol("users");

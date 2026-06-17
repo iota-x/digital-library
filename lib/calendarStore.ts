@@ -24,6 +24,16 @@ export interface CalEntry {
   specialLabel: string;
   mood: string;
   pinnedNote: string;
+  /** Per-day weather snapshot, captured once when today's entry is first saved. */
+  weather?: WeatherSnapshot | null;
+}
+
+export interface WeatherSnapshot {
+  code: number;
+  tempMaxC: number;
+  tempMinC: number;
+  emoji: string;
+  label: string;
 }
 
 const SESSION_KEY = "cal_cache_v2";
@@ -46,6 +56,23 @@ let _inflight: Promise<CalEntry[]> | null = null;
 let _sseSource: EventSource | null = null;
 let _refreshing = false;
 let _coupleId = "";
+let _sseRetry = 0;
+let _sseReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let _sseHealthy = false;
+
+/** Whether the realtime (SSE) relay is currently connected. Consumers poll
+ *  faster when this is false so the fallback channel stays responsive. */
+export function isRealtimeConnected(): boolean {
+  return _sseHealthy;
+}
+
+function setSSEStatus(connected: boolean) {
+  if (_sseHealthy === connected) return;
+  _sseHealthy = connected;
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("annapp:sse-status", { detail: { connected } }));
+  }
+}
 
 function notify(data: CalEntry[]) {
   listeners.forEach(fn => fn(data));
@@ -68,14 +95,18 @@ function startSSE(coupleId?: string) {
   if (typeof window === "undefined") return;
   if (_sseSource) return;
   const id = coupleId ?? _coupleId;
+  if (_sseReconnectTimer) { clearTimeout(_sseReconnectTimer); _sseReconnectTimer = null; }
   try {
     const url = `/api/calendar/stream${id ? `?coupleId=${encodeURIComponent(id)}` : ""}`;
     const es = new EventSource(url);
     _sseSource = es;
+    es.onopen = () => { _sseRetry = 0; setSSEStatus(true); };
     es.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        if (data.type === "connected") return;
+        // A "connected" frame confirms the relay is live even if onopen
+        // didn't fire (some proxies buffer until first byte).
+        if (data.type === "connected") { _sseRetry = 0; setSSEStatus(true); return; }
         // Calendar events are applied directly; other event types
         // are forwarded to any listeners registered via onSSEEvent
         if (data.type === "update" || data.type === "delete") {
@@ -88,7 +119,13 @@ function startSSE(coupleId?: string) {
     es.onerror = () => {
       es.close();
       _sseSource = null;
-      setTimeout(() => startSSE(id), 3000);
+      setSSEStatus(false);
+      // Exponential backoff (3s → 30s cap) so a host that refuses to keep
+      // SSE alive doesn't get hammered with a tight reconnect loop. The
+      // focus/visibility/poll backstops keep data fresh meanwhile.
+      const delay = Math.min(30_000, 3_000 * 2 ** _sseRetry);
+      _sseRetry++;
+      _sseReconnectTimer = setTimeout(() => startSSE(id), delay);
     };
   } catch {}
 }
@@ -153,6 +190,9 @@ export function invalidateCalendarCache() {
   _coupleId = "";
   _sseSource?.close();
   _sseSource = null;
+  if (_sseReconnectTimer) { clearTimeout(_sseReconnectTimer); _sseReconnectTimer = null; }
+  _sseRetry = 0;
+  setSSEStatus(false);
   try { localStorage.removeItem(SESSION_KEY); } catch {}
 }
 
@@ -192,6 +232,8 @@ export function initCalendarStore(coupleId: string) {
     _sseSource.close();
     _sseSource = null;
   }
+  if (_sseReconnectTimer) { clearTimeout(_sseReconnectTimer); _sseReconnectTimer = null; }
+  _sseRetry = 0;
   fetchCalendarData(true).then(() => {
     startSSE(coupleId);
   });
@@ -226,16 +268,31 @@ export function useCalendarData(): { data: CalEntry[]; loading: boolean } {
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", refreshCalendarData);
 
-    // Light polling fallback (60s) in case SSE + focus both miss it
-    // (e.g. tab left open and focused on a desktop monitor).
-    const poll = setInterval(refreshCalendarData, 60_000);
+    // Adaptive polling fallback in case SSE + focus both miss it (tab left
+    // open on a desktop monitor, or a host that won't keep SSE alive).
+    // 60s while SSE is healthy; tighten to 15s while it's disconnected since
+    // polling is then the only fresh-data channel.
+    let poll: ReturnType<typeof setInterval> | null = null;
+    const applyInterval = (connected: boolean) => {
+      if (poll) clearInterval(poll);
+      poll = setInterval(refreshCalendarData, connected ? 60_000 : 15_000);
+    };
+    applyInterval(_sseHealthy);
+    const onStatus = (e: Event) => {
+      const connected = (e as CustomEvent).detail?.connected;
+      if (typeof connected !== "boolean") return;
+      if (!connected) refreshCalendarData();
+      applyInterval(connected);
+    };
+    window.addEventListener("annapp:sse-status", onStatus as EventListener);
 
     return () => {
       cancelled = true;
       listeners.delete(handler);
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", refreshCalendarData);
-      clearInterval(poll);
+      window.removeEventListener("annapp:sse-status", onStatus as EventListener);
+      if (poll) clearInterval(poll);
     };
   }, []);
 

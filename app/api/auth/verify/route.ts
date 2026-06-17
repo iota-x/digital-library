@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
-    const rl = rateLimit(req, { scope: "auth:verify", max: 10, windowMs: 15 * 60_000, identifier: session.userId });
+    const rl = await rateLimit(req, { scope: "auth:verify", max: 10, windowMs: 15 * 60_000, identifier: session.userId });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many verification attempts.");
 
     const { code } = await req.json() as { code?: string };
@@ -38,7 +38,7 @@ export async function PUT(req: NextRequest) {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
-    const rl = rateLimit(req, { scope: "auth:verify:resend", max: 3, windowMs: 60 * 60_000, identifier: session.userId });
+    const rl = await rateLimit(req, { scope: "auth:verify:resend", max: 3, windowMs: 60 * 60_000, identifier: session.userId });
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Please wait before requesting another code.");
 
     const users = await getCol("users");

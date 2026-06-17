@@ -12,7 +12,7 @@ import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
  * Rate-limited per user so a stuck button doesn't spam.
  */
 export const POST = withAuth(async (req, session) => {
-  const rl = rateLimit(req, { scope: "presence:heart", max: 30, windowMs: 60_000, identifier: session.userId });
+  const rl = await rateLimit(req, { scope: "presence:heart", max: 30, windowMs: 60_000, identifier: session.userId });
   if (!rl.ok) return tooManyRequests(rl.retryAfter, "easy on the hearts 🩷");
 
   const body = await req.json().catch(() => ({}));

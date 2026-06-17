@@ -1,5 +1,6 @@
 "use client";
 import { getUser } from "@/lib/userStore";
+import { isRealtimeConnected } from "@/lib/calendarStore";
 
 /**
  * Thin client over the app's unified SSE relay.
@@ -37,4 +38,25 @@ export function onPartnerSSE(handler: (detail: SSEDetail) => void): () => void {
     if (detail.userId && me && detail.userId === me) return;
     handler(detail);
   });
+}
+
+/** Is the shared realtime relay currently connected? */
+export function isSSEConnected(): boolean {
+  return isRealtimeConnected();
+}
+
+/**
+ * Subscribe to realtime connection status changes. Fires `true` when the SSE
+ * relay connects and `false` when it drops. Lets features (and the SWR stores)
+ * fall back to faster polling while the long-lived connection is unavailable —
+ * the main resilience story on serverless hosts that kill SSE.
+ */
+export function onSSEStatus(handler: (connected: boolean) => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const fn = (e: Event) => {
+    const connected = (e as CustomEvent).detail?.connected;
+    if (typeof connected === "boolean") handler(connected);
+  };
+  window.addEventListener("annapp:sse-status", fn as EventListener);
+  return () => window.removeEventListener("annapp:sse-status", fn as EventListener);
 }

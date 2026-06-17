@@ -3,6 +3,13 @@ import { getCol } from "@/lib/mongo";
 import { broadcastCalendarUpdate } from "@/lib/sseBroadcast";
 import { withAuth } from "@/lib/apiHandler";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
+import { serverEnv } from "@/lib/env";
+import { fetchWeatherSnapshot } from "@/lib/weather";
+
+/** Server's UTC date in YYYY-MM-DD (matches how entries are keyed). */
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export const GET = withAuth(async (_req, session) => {
   const col = await getCol("calendar");
@@ -20,6 +27,19 @@ export const POST = withAuth(async (req, session) => {
   // copy of — the dedicated /api/calendar/reaction endpoint may have updated
   // them since the client last loaded.
   const existing = await col.findOne({ date, coupleId: session.coupleId });
+
+  // Per-day weather snapshot — captured once, the first time today's entry is
+  // saved, then preserved forever (like reactions). Best-effort: needs home
+  // coords configured and only fires for today's date so we read live weather.
+  let weather = existing?.weather ?? null;
+  if (!weather && date === todayKey()) {
+    const lat = parseFloat(serverEnv.WEATHER_LAT);
+    const lon = parseFloat(serverEnv.WEATHER_LON);
+    if (Number.isFinite(lat) && Number.isFinite(lon)) {
+      weather = await fetchWeatherSnapshot(lat, lon, date);
+    }
+  }
+
   const doc = {
     date,
     coupleId: session.coupleId,
@@ -31,6 +51,7 @@ export const POST = withAuth(async (req, session) => {
     specialLabel: specialLabel || "",
     mood: mood || "",
     pinnedNote: pinnedNote || "",
+    weather,
   };
   await col.updateOne({ date, coupleId: session.coupleId }, { $set: doc }, { upsert: true });
   broadcastCalendarUpdate(session.coupleId, { type: "update", entry: doc });

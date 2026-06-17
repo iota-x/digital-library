@@ -653,6 +653,14 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                 </span>
               )}
               {draft.mood && <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>{draft.mood}</span>}
+              {entry.weather && (
+                <span
+                  title={`${entry.weather.label}, ${entry.weather.tempMinC}°–${entry.weather.tempMaxC}°C`}
+                  style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(255,255,255,.85)", background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.3)", padding: "0.18rem 0.6rem", borderRadius: 20, display: "inline-flex", alignItems: "center", gap: "0.3rem", backdropFilter: "blur(8px)" }}>
+                  <span style={{ fontSize: "0.95rem", lineHeight: 1 }}>{entry.weather.emoji}</span>
+                  {entry.weather.tempMaxC}°
+                </span>
+              )}
               <span style={{ fontFamily: "monospace", fontSize: "0.68rem", color: "rgba(255,255,255,.45)", letterSpacing: "0.1em" }}>{fmtDate(dateKey)}</span>
             </div>
           </div>

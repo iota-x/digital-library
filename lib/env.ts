@@ -38,6 +38,15 @@ export const serverEnv = {
   get NOTIFY_EMAIL_1()       { return optional("NOTIFY_EMAIL_1"); },
   get NOTIFY_EMAIL_2()       { return optional("NOTIFY_EMAIL_2"); },
   get EMAIL_FROM()           { return optional("EMAIL_FROM", "Us <onboarding@resend.dev>"); },
+  // Optional: enables cross-instance rate limiting. Falls back to in-memory when
+  // unset. Accepts UPSTASH_REDIS_URL too — the rediss:// string Upstash exposes —
+  // so the Vercel/Upstash integration works without renaming a var. (Note: this
+  // is NOT the UPSTASH_REDIS_REST_URL — that's an HTTPS endpoint ioredis can't use.)
+  get REDIS_URL()            { return optional("REDIS_URL") || optional("UPSTASH_REDIS_URL"); },
+  // Optional: home coordinates (latitude/longitude) for the per-day weather
+  // snapshot on calendar entries. If unset, the weather feature is a no-op.
+  get WEATHER_LAT()          { return optional("WEATHER_LAT"); },
+  get WEATHER_LON()          { return optional("WEATHER_LON"); },
 };
 
 /** Public env — safe to read from the client. */
