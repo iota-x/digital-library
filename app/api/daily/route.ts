@@ -30,9 +30,42 @@ interface DailyView {
   partnerAnswered: boolean;
   revealed: boolean;
   partner: { name: string; text: string } | null;
+  /** Consecutive days (ending today, with a grace day for today) where BOTH
+   *  partners answered — the shared "answer streak". */
+  streak: number;
 }
 
-function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: string }, userId: string): DailyView {
+const DAY_MS = 86_400_000;
+const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+
+/**
+ * Shared answer-streak: count back from today over days where BOTH partners
+ * answered (the "revealed" state). Today is given a grace day — it doesn't
+ * break the streak just because you haven't both answered yet today.
+ */
+async function computeStreak(coupleId: string, today: string): Promise<number> {
+  const col = await getCol("dailyAnswers");
+  const todayMs = Date.parse(`${today}T00:00:00Z`);
+  const lower = dayKey(todayMs - 400 * DAY_MS); // bound the scan to ~13 months
+  const docs = (await col
+    .find({ coupleId, date: { $gte: lower, $lte: today } }, { projection: { date: 1, answers: 1 } })
+    .toArray()) as unknown as DailyDoc[];
+
+  const done = new Set(
+    docs.filter((d) => Object.keys(d.answers ?? {}).length >= 2).map((d) => d.date),
+  );
+
+  let streak = 0;
+  let cursor = todayMs;
+  if (!done.has(dayKey(cursor))) cursor -= DAY_MS; // grace: today still pending
+  while (done.has(dayKey(cursor))) {
+    streak++;
+    cursor -= DAY_MS;
+  }
+  return streak;
+}
+
+function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: string }, userId: string, streak: number): DailyView {
   const answers = doc?.answers ?? {};
   const mineEntry = answers[userId] ?? null;
   const partnerEntry = Object.entries(answers).find(([uid]) => uid !== userId) ?? null;
@@ -47,6 +80,7 @@ function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: stri
     partnerAnswered,
     revealed,
     partner: revealed && partnerEntry ? { name: partnerEntry[1].name, text: partnerEntry[1].text } : null,
+    streak,
   };
 }
 
@@ -55,7 +89,8 @@ export const GET = withAuth(async (_req, session) => {
   const q = questionForDate(date);
   const col = await getCol("dailyAnswers");
   const doc = (await col.findOne({ coupleId: session.coupleId, date })) as DailyDoc | null;
-  return NextResponse.json(viewFor(doc, date, q, session.userId));
+  const streak = await computeStreak(session.coupleId, date);
+  return NextResponse.json(viewFor(doc, date, q, session.userId, streak));
 });
 
 export const POST = withAuth(async (req, session) => {
@@ -111,5 +146,6 @@ export const POST = withAuth(async (req, session) => {
     broadcastToCouple(session.coupleId, { type: "daily:reveal", date, userId: session.userId, silent: true });
   }
 
-  return NextResponse.json(viewFor(after, date, q, session.userId));
+  const streak = await computeStreak(session.coupleId, date);
+  return NextResponse.json(viewFor(after, date, q, session.userId, streak));
 });

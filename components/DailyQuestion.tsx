@@ -15,6 +15,7 @@ interface DailyView {
   partnerAnswered: boolean;
   revealed: boolean;
   partner: { name: string; text: string } | null;
+  streak: number;
 }
 
 const CARD: React.CSSProperties = {
@@ -48,6 +49,20 @@ export default function DailyQuestion() {
   }, []);
 
   useEffect(() => { if (user?.partnerName) load(); }, [user?.partnerName, load]);
+
+  // Honor a #daily hash (the top "today's question" nudge scrolls here). Fires
+  // once on load if landing on /#daily, and again on later hash changes.
+  const scrolledTo = useRef(false);
+  useEffect(() => {
+    if (!loaded || !view) return;
+    const scroll = () => {
+      if (window.location.hash !== "#daily") return;
+      document.getElementById("daily")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    if (!scrolledTo.current) { scrolledTo.current = true; scroll(); }
+    window.addEventListener("hashchange", scroll);
+    return () => window.removeEventListener("hashchange", scroll);
+  }, [loaded, view]);
 
   // Refresh on any daily event (partner answered / both revealed).
   useEffect(() => {
@@ -99,6 +114,19 @@ export default function DailyQuestion() {
           <p style={{ fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--muted)", margin: 0 }}>
             {view.revealed ? "you both answered 💞" : "answer privately — it unlocks when you both do"}
           </p>
+          {view.streak > 0 && (
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: "0.35rem", marginTop: "0.55rem",
+              background: "rgba(var(--pink-rgb), .14)", border: "1px solid rgba(var(--pink-rgb), .4)",
+              borderRadius: 50, padding: "0.28rem 0.8rem",
+            }}>
+              <span aria-hidden style={{ fontSize: "0.95rem" }}>🔥</span>
+              <span style={{ fontFamily: SANS, fontSize: "0.74rem", fontWeight: 700, letterSpacing: "0.02em",
+                color: "var(--pink-deep)" }}>
+                {view.streak}-day answer streak
+              </span>
+            </div>
+          )}
         </div>
 
         <motion.div initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }}

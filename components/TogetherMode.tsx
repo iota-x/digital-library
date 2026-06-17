@@ -71,13 +71,15 @@ export default function TogetherMode() {
         {showBanner && !doodleOpen && (
           <motion.div
             key="together-banner"
-            initial={{ opacity: 0, y: -24 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
+            exit={{ opacity: 0, y: 24 }}
             transition={{ type: "spring", stiffness: 240, damping: 22 }}
             style={{
+              // Pinned low-center (above the doodle/heart FABs and mobile tab
+              // bar) so it never overlaps the navbar or page content up top.
               position: "fixed",
-              top: "max(0.7rem, env(safe-area-inset-top))",
+              bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + 140px)",
               left: "50%", transform: "translateX(-50%)",
               zIndex: 940,
               display: "flex", alignItems: "center", gap: "0.6rem",

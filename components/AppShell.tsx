@@ -10,6 +10,7 @@ import BirthdayTakeover      from "@/components/BirthdayTakeover";
 import PresenceLayer         from "@/components/PresenceLayer";
 import NudgeLayer            from "@/components/NudgeLayer";
 import TogetherMode          from "@/components/TogetherMode";
+import DailyNudge            from "@/components/DailyNudge";
 import DaysBadge             from "@/components/DaysBadge";
 
 export default function AppShell() {
@@ -34,6 +35,7 @@ export default function AppShell() {
       <PresenceLayer />
       <NudgeLayer />
       <TogetherMode />
+      <DailyNudge />
       <DaysBadge />
       <SettingsPanel open={open} onClose={handleClose} />
     </>
