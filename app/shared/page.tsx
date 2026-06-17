@@ -97,7 +97,6 @@ function SharedContent() {
       <SharedHero />
       {sv("showBucketList") && <BucketList />}
       {sv("showSpotify") && <SpotifySection />}
-      <WatchTogether />
       {sv("showWatchlist") && <WatchlistSection />}
     </main>
   );
