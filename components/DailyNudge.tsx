@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname, useRouter } from "next/navigation";
 import { useUserData } from "@/lib/userStore";
 import { onSSE } from "@/lib/sseClient";
-import { todayKeyUTC } from "@/lib/dailyQuestions";
+import { todayKey } from "@/lib/dailyQuestions";
 import { SANS } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
 
@@ -31,7 +31,7 @@ export default function DailyNudge() {
   const [streak, setStreak] = useState(0);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const today = todayKeyUTC();
+  const today = todayKey();
 
   const seal = useCallback(() => {
     try { localStorage.setItem(DISMISS_KEY, today); } catch {}

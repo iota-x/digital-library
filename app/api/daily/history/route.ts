@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
-import { todayKeyUTC } from "@/lib/dailyQuestions";
+import { todayKey } from "@/lib/dailyQuestions";
 
 /**
  * Archive of past daily questions — only days BOTH partners answered (so the
@@ -17,7 +17,7 @@ interface DailyDoc {
 }
 
 export const GET = withAuth(async (_req, session) => {
-  const today = todayKeyUTC();
+  const today = todayKey();
   const col = await getCol("dailyAnswers");
   const docs = (await col
     .find({ coupleId: session.coupleId, date: { $lt: today } })

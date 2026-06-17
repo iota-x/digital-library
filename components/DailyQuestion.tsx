@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { onSSE } from "@/lib/sseClient";
+import { todayKey } from "@/lib/dailyQuestions";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { heartBump, buzz } from "@/lib/haptics";
 
@@ -49,6 +50,25 @@ export default function DailyQuestion() {
   }, []);
 
   useEffect(() => { if (user?.partnerName) load(); }, [user?.partnerName, load]);
+
+  // Auto-roll: when the app timezone's day changes (IST midnight) while the tab
+  // is open, or when you refocus a tab left open past the boundary, refetch so
+  // today's question/streak appear without a manual reload.
+  const dayRef = useRef(todayKey());
+  useEffect(() => {
+    if (!user?.partnerName) return;
+    const refresh = () => { dayRef.current = todayKey(); load(); };
+    const onFocus = () => { if (document.visibilityState !== "hidden") refresh(); };
+    const tick = () => { if (todayKey() !== dayRef.current) refresh(); };
+    const id = setInterval(tick, 60_000);
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [user?.partnerName, load]);
 
   // Honor a #daily hash (the top "today's question" nudge scrolls here). Fires
   // once on load if landing on /#daily, and again on later hash changes.

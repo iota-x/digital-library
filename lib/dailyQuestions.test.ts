@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   DAILY_QUESTIONS,
-  todayKeyUTC,
+  todayKey,
   questionIndexForDate,
   questionForDate,
 } from "./dailyQuestions";
@@ -12,9 +12,19 @@ describe("dailyQuestions", () => {
     for (const q of DAILY_QUESTIONS) expect(q.trim().length).toBeGreaterThan(0);
   });
 
-  it("todayKeyUTC formats as YYYY-MM-DD", () => {
-    expect(todayKeyUTC(new Date("2026-06-17T23:59:00Z"))).toBe("2026-06-17");
-    expect(todayKeyUTC(new Date("2026-01-02T00:00:00Z"))).toBe("2026-01-02");
+  it("todayKey formats as YYYY-MM-DD in IST", () => {
+    // 18:00 UTC is past IST midnight already (23:30 IST) — still the same day.
+    expect(todayKey(new Date("2026-06-17T18:00:00Z"))).toBe("2026-06-17");
+    expect(todayKey(new Date("2026-01-02T03:00:00Z"))).toBe("2026-01-02");
+  });
+
+  it("todayKey rolls over at IST midnight, not UTC midnight", () => {
+    // 20:00 UTC on the 17th = 01:30 IST on the 18th → already 'the 18th'.
+    expect(todayKey(new Date("2026-06-17T20:00:00Z"))).toBe("2026-06-18");
+    // 23:00 UTC on the 17th = 04:30 IST on the 18th → still the 18th.
+    expect(todayKey(new Date("2026-06-17T23:00:00Z"))).toBe("2026-06-18");
+    // 18:00 UTC on the 17th = 23:30 IST on the 17th → still the 17th.
+    expect(todayKey(new Date("2026-06-17T18:00:00Z"))).toBe("2026-06-17");
   });
 
   it("is deterministic for a given date (both partners get the same Q)", () => {

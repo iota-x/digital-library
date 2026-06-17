@@ -4,7 +4,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
-import { todayKeyUTC, questionForDate } from "@/lib/dailyQuestions";
+import { todayKey, questionForDate } from "@/lib/dailyQuestions";
 
 /**
  * Daily question — both partners answer privately; answers reveal only once
@@ -85,7 +85,7 @@ function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: stri
 }
 
 export const GET = withAuth(async (_req, session) => {
-  const date = todayKeyUTC();
+  const date = todayKey();
   const q = questionForDate(date);
   const col = await getCol("dailyAnswers");
   const doc = (await col.findOne({ coupleId: session.coupleId, date })) as DailyDoc | null;
@@ -101,7 +101,7 @@ export const POST = withAuth(async (req, session) => {
   const text = (answer ?? "").trim().slice(0, 2000);
   if (!text) return NextResponse.json({ error: "answer required" }, { status: 400 });
 
-  const date = todayKeyUTC();
+  const date = todayKey();
   const q = questionForDate(date);
   const col = await getCol("dailyAnswers");
 
