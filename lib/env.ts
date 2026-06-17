@@ -49,9 +49,16 @@ export const serverEnv = {
   get WEATHER_LON()          { return optional("WEATHER_LON"); },
 };
 
-/** Public env — safe to read from the client. */
+/** Public env — safe to read from the client.
+ *
+ * IMPORTANT: these MUST reference `process.env.NEXT_PUBLIC_*` *statically*
+ * (literal property access). Next.js inlines NEXT_PUBLIC_ vars into the client
+ * bundle by find-and-replacing those exact expressions at build time. A
+ * dynamic read — `process.env[name]` via the optional() helper — is NOT
+ * inlined and resolves to undefined in the browser. (That bug previously made
+ * push notifications fail: VAPID_PUBLIC_KEY was always "" on the client.) */
 export const publicEnv = {
-  get CLOUDINARY_CLOUD_NAME() { return optional("NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"); },
-  get VAPID_PUBLIC_KEY()      { return optional("NEXT_PUBLIC_VAPID_PUBLIC_KEY"); },
-  get APP_NAME()              { return optional("NEXT_PUBLIC_APP_NAME", "Us"); },
+  get CLOUDINARY_CLOUD_NAME() { return process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ""; },
+  get VAPID_PUBLIC_KEY()      { return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""; },
+  get APP_NAME()              { return process.env.NEXT_PUBLIC_APP_NAME ?? "Us"; },
 };
