@@ -6,6 +6,7 @@ import { onPartnerSSE } from "@/lib/sseClient";
 import { usePartnerPresence } from "@/lib/presenceStore";
 import { SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
+import { useToast } from "@/components/Toaster";
 
 /**
  * A shared whiteboard the two of you draw on together.
@@ -31,7 +32,9 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
   const [color, setColor] = useState("#be185d");
   const [size, setSize] = useState(6);
   const [loading, setLoading] = useState(true);
+  const [nudging, setNudging] = useState(false);
   const partner = usePartnerPresence();
+  const toaster = useToast();
 
   useEscKey(onClose, open);
 
@@ -182,6 +185,30 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
     }).catch(() => {});
   }, [redraw]);
 
+  /** Poke the partner to come look at the doodle (SSE + push). */
+  const sendNudge = async () => {
+    if (nudging) return;
+    setNudging(true);
+    buzz("double");
+    try {
+      const r = await fetch("/api/doodle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nudge: true }),
+      });
+      toaster.toast(
+        r.ok
+          ? { variant: "success", title: "sent 🎨", message: partner.name ? `${partner.name} got a nudge to come look` : "your partner got a nudge to come look", durationMs: 4000 }
+          : { variant: "error", message: "couldn't send the nudge — try again", durationMs: 4000 },
+      );
+    } catch {
+      toaster.toast({ variant: "error", message: "couldn't send the nudge — try again", durationMs: 4000 });
+    } finally {
+      // brief cooldown so it can't be spammed
+      setTimeout(() => setNudging(false), 4000);
+    }
+  };
+
   const clearBoard = async () => {
     strokesRef.current = [];
     currentRef.current = null;
@@ -289,8 +316,21 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
                   </button>
                 ))}
               </div>
+              <motion.button
+                onClick={sendNudge}
+                disabled={nudging}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                  marginLeft: "auto", fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700,
+                  color: "#fff", background: "linear-gradient(135deg, var(--pink), var(--pink-deep))",
+                  border: "none", borderRadius: 50, padding: "0.4rem 1rem",
+                  cursor: nudging ? "default" : "pointer", opacity: nudging ? 0.6 : 1,
+                  boxShadow: "0 2px 10px rgba(var(--pink-deep-rgb), .35)",
+                }}>
+                {nudging ? "sent ✓" : "📨 send"}
+              </motion.button>
               <button onClick={clearBoard} style={{
-                marginLeft: "auto", fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700,
+                fontFamily: SANS, fontSize: "0.75rem", fontWeight: 700,
                 color: "var(--pink-deep)", background: "rgba(var(--pink-deep-rgb), .08)",
                 border: "1px solid rgba(var(--pink-deep-rgb), .22)", borderRadius: 50,
                 padding: "0.4rem 0.9rem", cursor: "pointer",

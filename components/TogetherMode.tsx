@@ -38,11 +38,25 @@ export default function TogetherMode() {
     }
   }, [partner.online]);
 
-  // Allow other UI to open the doodle via a window event.
+  // Allow other UI to open the doodle via a window event, or via a #doodle
+  // URL hash (used by the doodle-nudge toast + notification, which can't
+  // dispatch an event when they navigate from another page).
   useEffect(() => {
     const open = () => setDoodleOpen(true);
+    const openFromHash = () => {
+      if (window.location.hash === "#doodle") {
+        setDoodleOpen(true);
+        // Clear the hash so re-opening later still fires hashchange.
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    };
     window.addEventListener("annapp:doodle-open", open);
-    return () => window.removeEventListener("annapp:doodle-open", open);
+    window.addEventListener("hashchange", openFromHash);
+    openFromHash(); // handle landing directly on /#doodle
+    return () => {
+      window.removeEventListener("annapp:doodle-open", open);
+      window.removeEventListener("hashchange", openFromHash);
+    };
   }, []);
 
   if (!user?.partnerName) return null;

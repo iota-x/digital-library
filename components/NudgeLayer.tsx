@@ -85,6 +85,19 @@ export default function NudgeLayer() {
           });
           break;
         }
+        case "doodle:nudge": {
+          const name = (d.name as string) || "they";
+          heartBump();
+          buzz("double");
+          push({
+            id: "nudge-doodle", type: d.type, emoji: "🎨",
+            title: `${name} drew you something 🎨`,
+            message: "come see what's on the canvas",
+            href: "/#doodle", actionLabel: "open",
+            durationMs: 8000,
+          });
+          break;
+        }
         case "watch:start": {
           const name = (d.name as string) || "they";
           const title = (d.title as string) || "something";

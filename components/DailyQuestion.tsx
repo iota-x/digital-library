@@ -85,11 +85,11 @@ export default function DailyQuestion() {
 
   return (
     <section id="daily" style={{
-      width: "100%",
+      width: "100%", minHeight: "100dvh",
       padding: "clamp(2.5rem, 6vh, 4rem) clamp(1rem, 4vw, 2rem)",
-      display: "flex", justifyContent: "center",
+      display: "flex", alignItems: "center", justifyContent: "center",
     }}>
-      <div style={{ width: "100%", maxWidth: 600 }}>
+      <div style={{ width: "100%", maxWidth: 640 }}>
         {/* Heading */}
         <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
           <p style={{ fontFamily: SANS, fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.18em",

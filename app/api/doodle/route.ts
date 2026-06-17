@@ -4,6 +4,7 @@ import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 
 /**
  * Shared doodle canvas — a tiny collaborative whiteboard per couple.
@@ -81,6 +82,17 @@ export const POST = withAuth(async (req, session) => {
 
   const body = await req.json().catch(() => ({}));
   const col = await doodleCol();
+
+  // Nudge: ping the partner to come look at the doodle. No DB write — purely
+  // a realtime + push notification ("come see what I drew").
+  if (body?.nudge === true) {
+    broadcastToCouple(session.coupleId, { type: "doodle:nudge", userId: session.userId, name: session.name });
+    sendPushToOtherInCouple(session.coupleId, session.userId, {
+      title: "a new doodle 🎨",
+      body: `${session.name} drew you something — come see`,
+    });
+    return NextResponse.json({ ok: true });
+  }
 
   if (body?.clear === true) {
     await col.updateOne(

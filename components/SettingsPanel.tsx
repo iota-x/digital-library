@@ -72,6 +72,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
   const [startDate,   setStartDate]   = useState("");
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
+  const [pushErr,     setPushErr]     = useState("");
   const [noteInput,   setNoteInput]   = useState("");
 
   const originalThemeRef = useRef("pink");
@@ -160,7 +161,11 @@ export default function SettingsPanel({ open, onClose }: Props) {
   };
 
   const togglePush = async () => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    setPushErr("");
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPushErr("This browser doesn't support push notifications.");
+      return;
+    }
     setPushLoading(true);
     try {
       const reg = await navigator.serviceWorker.ready;
@@ -170,21 +175,52 @@ export default function SettingsPanel({ open, onClose }: Props) {
         await fetch("/api/push/subscribe", { method: "DELETE" });
         setPushEnabled(false);
       } else {
+        // Surface the common silent-failure causes instead of swallowing them.
+        if (!VAPID_PUBLIC) {
+          setPushErr("Push isn't configured on the server (missing VAPID public key).");
+          return;
+        }
+        if (!window.isSecureContext) {
+          setPushErr("Notifications need a secure (https) connection.");
+          return;
+        }
+        // iOS only allows web push from an installed PWA (16.4+). In a normal
+        // Safari tab the permission prompt silently no-ops — guide the user.
+        const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+        const standalone =
+          (navigator as Navigator & { standalone?: boolean }).standalone === true ||
+          window.matchMedia("(display-mode: standalone)").matches;
+        if (isIOS && !standalone) {
+          setPushErr("On iPhone/iPad, add this app to your Home Screen first (Share → Add to Home Screen), then open it from there to enable notifications.");
+          return;
+        }
         const permission = await Notification.requestPermission();
-        if (permission !== "granted") { setPushLoading(false); return; }
+        if (permission !== "granted") {
+          setPushErr(permission === "denied"
+            ? "Notifications are blocked — enable them in your browser/site settings, then try again."
+            : "Notification permission wasn't granted.");
+          return;
+        }
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC),
         });
-        await fetch("/api/push/subscribe", {
+        const res = await fetch("/api/push/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(sub),
         });
+        if (!res.ok) {
+          setPushErr("Couldn't save the subscription on the server — try again.");
+          return;
+        }
         setPushEnabled(true);
       }
-    } catch {}
-    setPushLoading(false);
+    } catch (e) {
+      setPushErr(e instanceof Error ? e.message : "Couldn't change notification settings.");
+    } finally {
+      setPushLoading(false);
+    }
   };
 
   const resetToDefaults = () => {
@@ -330,7 +366,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
                   width: "100%", boxSizing: "border-box",
                   padding: "0.7rem 1rem", borderRadius: 10, marginTop: "0.4rem",
                   border: "1.5px solid var(--pink-mid)", outline: "none",
-                  background: "rgba(255,255,255,.7)", fontFamily: SCRIPT, fontSize: "1rem",
+                  background: "var(--pink-light)", fontFamily: SCRIPT, fontSize: "1rem",
                   color: "var(--text)", caretColor: "var(--pink-deep)",
                 }}
               />
@@ -348,14 +384,14 @@ export default function SettingsPanel({ open, onClose }: Props) {
                   width: "100%", boxSizing: "border-box",
                   padding: "0.7rem 1rem", borderRadius: 10,
                   border: "1.5px solid var(--pink-mid)", outline: "none",
-                  background: "rgba(255,255,255,.7)", fontFamily: SANS, fontSize: "0.92rem",
+                  background: "var(--pink-light)", fontFamily: SANS, fontSize: "0.92rem",
                   color: "var(--text)", caretColor: "var(--pink-deep)",
                 }}
               />
 
               {/* ─── Home page sections ─── */}
               <GroupLabel>🏠 home page</GroupLabel>
-              <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
                 <SectionRow label="⏱ Live timer"       on={s.home.showTimer}         onChange={() => setSec("home","showTimer",!s.home.showTimer)}/>
                 <SectionRow label="💌 Memory cards"    on={s.home.showMemoryCards}   onChange={() => setSec("home","showMemoryCards",!s.home.showMemoryCards)}/>
                 <SectionRow label="🎙 Voice notes"     on={s.home.showVoiceNotes}    onChange={() => setSec("home","showVoiceNotes",!s.home.showVoiceNotes)}/>
@@ -365,7 +401,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
 
               {/* ─── Journal sections ─── */}
               <GroupLabel>📓 journal page</GroupLabel>
-              <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
                 <SectionRow label="📅 Anniversary banner" on={s.journal.showAnniversaryBanner} onChange={() => setSec("journal","showAnniversaryBanner",!s.journal.showAnniversaryBanner)}/>
                 <SectionRow label="🔥 Streak tracker"     on={s.journal.showStreak}             onChange={() => setSec("journal","showStreak",!s.journal.showStreak)}/>
                 <SectionRow label="✨ Surprise me"        on={s.journal.showSurpriseMe}         onChange={() => setSec("journal","showSurpriseMe",!s.journal.showSurpriseMe)}/>
@@ -374,7 +410,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
 
               {/* ─── Shared sections ─── */}
               <GroupLabel>🌍 shared page</GroupLabel>
-              <div style={{ background: "rgba(255,255,255,.6)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
                 <SectionRow label="📝 Bucket list" on={s.shared.showBucketList} onChange={() => setSec("shared","showBucketList",!s.shared.showBucketList)}/>
                 <SectionRow label="🎵 Spotify"     on={s.shared.showSpotify}    onChange={() => setSec("shared","showSpotify",!s.shared.showSpotify)}/>
                 <SectionRow label="🎬 Watchlist"   on={s.shared.showWatchlist}  onChange={() => setSec("shared","showWatchlist",!s.shared.showWatchlist)}/>
@@ -393,7 +429,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
                   width: "100%", boxSizing: "border-box",
                   padding: "0.7rem 1rem", borderRadius: 10,
                   border: "1.5px solid var(--pink-mid)", outline: "none",
-                  background: "rgba(255,255,255,.7)", fontFamily: "monospace", fontSize: "0.82rem",
+                  background: "var(--pink-light)", fontFamily: "monospace", fontSize: "0.82rem",
                   color: "var(--text)",
                 }}
               />
@@ -416,7 +452,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "0.6rem" }}>
                 {(draft.loveNotes ?? []).map((note, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "rgba(255,255,255,.7)", border: "1px solid var(--pink-mid)", borderRadius: 10, padding: "0.45rem 0.8rem" }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--pink-light)", border: "1px solid var(--pink-mid)", borderRadius: 10, padding: "0.45rem 0.8rem" }}>
                     <span style={{ flex: 1, fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--text)" }}>{note}</span>
                     <button onClick={() => removeLoveNote(i)} aria-label="remove love note" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "0.8rem", padding: "0 0.2rem" }}>✕</button>
                   </div>
@@ -431,7 +467,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
                   style={{
                     flex: 1, padding: "0.6rem 0.9rem", borderRadius: 10,
                     border: "1.5px solid var(--pink-mid)", outline: "none",
-                    background: "rgba(255,255,255,.7)", fontFamily: SCRIPT, fontSize: "0.95rem",
+                    background: "var(--pink-light)", fontFamily: SCRIPT, fontSize: "0.95rem",
                     color: "var(--text)",
                   }}
                 />
@@ -459,6 +495,11 @@ export default function SettingsPanel({ open, onClose }: Props) {
                     </div>
                     <Toggle on={pushEnabled} onChange={pushLoading ? () => {} : togglePush} />
                   </div>
+                  {pushErr && (
+                    <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "#ef4444", margin: "0.1rem 0 0", lineHeight: 1.45 }}>
+                      ⚠️ {pushErr}
+                    </p>
+                  )}
                 </>
               )}
 
@@ -474,7 +515,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
                 style={{
                   display: "inline-flex", alignItems: "center", gap: "0.5rem",
                   padding: "0.6rem 1.1rem", borderRadius: 12,
-                  border: "1.5px solid var(--pink-mid)", background: "rgba(255,255,255,.7)",
+                  border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)",
                   color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
                   textDecoration: "none", cursor: "pointer",
                 }}>
@@ -492,7 +533,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
                 style={{
                   width: "100%", padding: "0.7rem", borderRadius: 10,
                   border: "1.5px solid var(--pink-mid)",
-                  background: "rgba(255,255,255,.6)",
+                  background: "var(--pink-light)",
                   color: "var(--muted)", fontFamily: SANS, fontSize: "0.85rem",
                   cursor: "pointer",
                 }}>
