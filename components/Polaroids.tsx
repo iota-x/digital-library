@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, useSpring, useMotionValue } from "fram
 import Image from "next/image";
 import { useUserData } from "@/lib/userStore";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { useCanvasParticles } from "@/lib/useCanvasParticles";
 import { startDateFrom } from "@/lib/relationship";
 
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
@@ -19,46 +20,40 @@ function Petal({ delay, left, size, dur, symbol }: Omit<PetalData,"id">) {
   );
 }
 
+interface Dot { x:number; y:number; size:number; color:string; vx:number; vy:number; life:number; maxLife:number }
+
 function StardustCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d"); if (!ctx) return;
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-    resize(); window.addEventListener("resize", resize);
-    interface Dot { x:number; y:number; size:number; color:string; vx:number; vy:number; life:number; maxLife:number; }
-    const dots: Dot[] = Array.from({ length:70 }, () => ({
-      x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
-      size: Math.random()*2.5+0.5, color: COLORS[Math.floor(Math.random()*COLORS.length)],
-      vx: (Math.random()-0.5)*0.35, vy: -Math.random()*0.5-0.15,
-      life: Math.random()*300, maxLife: 250+Math.random()*250,
-    }));
-    let raf: number;
-    let visible = true;
-    const tick = () => {
-      if (visible) {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        dots.forEach(d => {
-          d.x+=d.vx; d.y+=d.vy; d.life++;
-          const alpha = Math.sin((d.life/d.maxLife)*Math.PI)*0.75;
-          ctx.save(); ctx.globalAlpha=Math.max(0,alpha); ctx.fillStyle=d.color;
-          ctx.shadowBlur=10; ctx.shadowColor=d.color;
-          ctx.beginPath(); ctx.arc(d.x,d.y,d.size,0,Math.PI*2); ctx.fill(); ctx.restore();
-          if (d.life>=d.maxLife||d.y<-10) {
-            d.x=Math.random()*canvas.width; d.y=canvas.height+10; d.life=0;
-            d.maxLife=250+Math.random()*250; d.vy=-Math.random()*0.5-0.15;
-            d.vx=(Math.random()-0.5)*0.35; d.size=Math.random()*2.5+0.5;
-            d.color=COLORS[Math.floor(Math.random()*COLORS.length)];
-          }
-        });
+  const dotsRef = useRef<Dot[]>([]);
+
+  useCanvasParticles(canvasRef, {
+    setup: (w, h) => {
+      if (dotsRef.current.length > 0) return;
+      dotsRef.current = Array.from({ length:70 }, () => ({
+        x: Math.random()*w, y: Math.random()*h,
+        size: Math.random()*2.5+0.5, color: COLORS[Math.floor(Math.random()*COLORS.length)],
+        vx: (Math.random()-0.5)*0.35, vy: -Math.random()*0.5-0.15,
+        life: Math.random()*300, maxLife: 250+Math.random()*250,
+      }));
+    },
+    draw: (ctx, w, h) => {
+      ctx.clearRect(0,0,w,h);
+      for (const d of dotsRef.current) {
+        d.x+=d.vx; d.y+=d.vy; d.life++;
+        const alpha = Math.sin((d.life/d.maxLife)*Math.PI)*0.75;
+        ctx.save(); ctx.globalAlpha=Math.max(0,alpha); ctx.fillStyle=d.color;
+        ctx.shadowBlur=10; ctx.shadowColor=d.color;
+        ctx.beginPath(); ctx.arc(d.x,d.y,d.size,0,Math.PI*2); ctx.fill(); ctx.restore();
+        if (d.life>=d.maxLife||d.y<-10) {
+          d.x=Math.random()*w; d.y=h+10; d.life=0;
+          d.maxLife=250+Math.random()*250; d.vy=-Math.random()*0.5-0.15;
+          d.vx=(Math.random()-0.5)*0.35; d.size=Math.random()*2.5+0.5;
+          d.color=COLORS[Math.floor(Math.random()*COLORS.length)];
+        }
       }
-      raf=requestAnimationFrame(tick);
-    };
-    tick();
-    const obs = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
-    obs.observe(canvas);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize",resize); obs.disconnect(); };
-  },[]);
+    },
+  });
+
   return <canvas ref={canvasRef} style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:1 }} />;
 }
 

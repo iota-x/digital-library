@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useCanvasParticles } from "@/lib/useCanvasParticles";
 
 const PAGES = [
   {
@@ -30,51 +31,49 @@ const PAGES = [
 ];
 
 /* ── starfield ── */
+interface StarPoint { x: number; y: number; r: number; a: number; da: number }
+
 function Stars() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const ptsRef = useRef<StarPoint[]>([]);
+  const varsRef = useRef({ pinkRgb: "", pink: "" });
+
+  // CSS var snapshot — re-read only when the theme changes (cheap event),
+  // not 60 times per second inside the draw loop.
   useEffect(() => {
-    const c = ref.current; if (!c) return;
-    const ctx = c.getContext("2d"); if (!ctx) return;
-    const resize = () => { c.width = c.offsetWidth; c.height = c.offsetHeight; };
-    resize();
-    const ro = new ResizeObserver(resize); ro.observe(c);
-    const pts = Array.from({ length: 55 }, () => ({
-      x: Math.random(), y: Math.random(),
-      r: Math.random() * 1.5 + 0.4, a: Math.random(), da: (Math.random() - 0.5) * 0.013,
-    }));
-    let raf: number;
-    let visible = true;
-    // Resolve CSS vars once; re-read only when the theme changes.
-    let pinkRgb = "", pink = "";
-    const readVars = () => {
+    const read = () => {
       const style = getComputedStyle(document.documentElement);
-      pinkRgb = style.getPropertyValue("--pink-rgb").trim();
-      pink    = style.getPropertyValue("--pink").trim();
+      varsRef.current.pinkRgb = style.getPropertyValue("--pink-rgb").trim();
+      varsRef.current.pink    = style.getPropertyValue("--pink").trim();
     };
-    readVars();
-    window.addEventListener("annapp:theme", readVars);
-    const draw = () => {
-      if (visible) {
-        ctx.clearRect(0, 0, c.width, c.height);
-        pts.forEach(p => {
-          p.a = Math.max(0.1, Math.min(1, p.a + p.da));
-          if (p.a <= 0.1 || p.a >= 1) p.da *= -1;
-          ctx.beginPath();
-          ctx.arc(p.x * c.width, p.y * c.height, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${pinkRgb},${p.a * 0.6})`;
-          ctx.shadowBlur = 5; ctx.shadowColor = pink; ctx.fill();
-        });
-      }
-      raf = requestAnimationFrame(draw);
-    };
-    draw();
-    const obs = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
-    obs.observe(c);
-    return () => {
-      cancelAnimationFrame(raf); ro.disconnect(); obs.disconnect();
-      window.removeEventListener("annapp:theme", readVars);
-    };
+    read();
+    window.addEventListener("annapp:theme", read);
+    return () => window.removeEventListener("annapp:theme", read);
   }, []);
+
+  useCanvasParticles(ref, {
+    setup: () => {
+      // Fractional coords → resize-stable; only seed once.
+      if (ptsRef.current.length > 0) return;
+      ptsRef.current = Array.from({ length: 55 }, () => ({
+        x: Math.random(), y: Math.random(),
+        r: Math.random() * 1.5 + 0.4, a: Math.random(), da: (Math.random() - 0.5) * 0.013,
+      }));
+    },
+    draw: (ctx, w, h) => {
+      const { pinkRgb, pink } = varsRef.current;
+      ctx.clearRect(0, 0, w, h);
+      for (const p of ptsRef.current) {
+        p.a = Math.max(0.1, Math.min(1, p.a + p.da));
+        if (p.a <= 0.1 || p.a >= 1) p.da *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x * w, p.y * h, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${pinkRgb},${p.a * 0.6})`;
+        ctx.shadowBlur = 5; ctx.shadowColor = pink; ctx.fill();
+      }
+    },
+  });
+
   return <canvas ref={ref} style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", zIndex:0 }} />;
 }
 

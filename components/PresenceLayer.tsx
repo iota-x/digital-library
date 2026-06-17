@@ -288,12 +288,6 @@ function PartnerChip({ partner }: { partner: PartnerPresence }) {
         }}
       />
       <span>{partner.name}</span>
-      <style>{`
-        @keyframes ann-presence-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(var(--pink-rgb), .55); }
-          50%      { box-shadow: 0 0 0 6px rgba(var(--pink-rgb), 0); }
-        }
-      `}</style>
     </motion.div>
   );
 }

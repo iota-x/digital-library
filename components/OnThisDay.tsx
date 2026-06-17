@@ -30,6 +30,7 @@ export default function OnThisDay() {
 
   const memories = useMemo<Memory[]>(() => {
     const today = new Date();
+    const byDate = new Map(data.map(e => [e.date, e]));
     const result: Memory[] = [];
     const candidates = [
       { months: 1,  years: 0, label: "1 month ago",  emoji: "🌙" },
@@ -42,7 +43,7 @@ export default function OnThisDay() {
       if (c.months) d.setMonth(d.getMonth() - c.months);
       if (c.years)  d.setFullYear(d.getFullYear() - c.years);
       const key = toKey(d);
-      const entry = data.find(e => e.date === key);
+      const entry = byDate.get(key);
       if (entry && (entry.note || (entry.photos?.length ?? 0) > 0)) {
         result.push({ key, label: c.label, emoji: c.emoji, entry });
       }

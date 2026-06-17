@@ -2,6 +2,7 @@ import webpush from "web-push";
 import { getCol } from "@/lib/mongo";
 import { serverEnv, publicEnv } from "@/lib/env";
 import { log } from "@/lib/log";
+import type { Filter, Document } from "mongodb";
 
 webpush.setVapidDetails(
   serverEnv.VAPID_SUBJECT,
@@ -9,43 +10,35 @@ webpush.setVapidDetails(
   serverEnv.VAPID_PRIVATE_KEY,
 );
 
-export async function sendPushToCouple(coupleId: string, payload: { title: string; body: string; icon?: string }) {
+interface PushPayload { title: string; body: string; icon?: string }
+
+async function sendToFilter(filter: Filter<Document>, payload: PushPayload, ctx: Record<string, unknown>) {
   try {
     const col = await getCol("pushSubscriptions");
-    const subs = await col.find({ coupleId }).toArray();
+    const subs = await col.find(filter).toArray();
+    if (subs.length === 0) return;
     const msg = JSON.stringify({ ...payload, icon: payload.icon ?? "/favicon.svg" });
+    // Failed sends (gone-from-browser, 410, etc.) get pruned so the next
+    // pass isn't wasted re-sending to subscriptions that will never accept.
     await Promise.allSettled(
       subs.map(s => webpush.sendNotification(s.subscription, msg).catch(() =>
         col.deleteOne({ _id: s._id })
       ))
     );
-  } catch (err) { log.error({ msg: "sendPushToCouple failed", err, coupleId }); }
+  } catch (err) { log.error({ msg: "push send failed", err, ...ctx }); }
+}
+
+export function sendPushToCouple(coupleId: string, payload: PushPayload) {
+  return sendToFilter({ coupleId }, payload, { fn: "sendPushToCouple", coupleId });
 }
 
 /** Push to everyone in the couple EXCEPT the given userId — for "self
  *  triggered" events (a reaction, a heart) where notifying the sender is
  *  noise. Sender still gets the in-app SSE update. */
-export async function sendPushToOtherInCouple(coupleId: string, exceptUserId: string, payload: { title: string; body: string; icon?: string }) {
-  try {
-    const col = await getCol("pushSubscriptions");
-    const subs = await col.find({ coupleId, userId: { $ne: exceptUserId } }).toArray();
-    const msg = JSON.stringify({ ...payload, icon: payload.icon ?? "/favicon.svg" });
-    await Promise.allSettled(
-      subs.map(s => webpush.sendNotification(s.subscription, msg).catch(() =>
-        col.deleteOne({ _id: s._id })
-      ))
-    );
-  } catch (err) { log.error({ msg: "sendPushToOtherInCouple failed", err, coupleId, exceptUserId }); }
+export function sendPushToOtherInCouple(coupleId: string, exceptUserId: string, payload: PushPayload) {
+  return sendToFilter({ coupleId, userId: { $ne: exceptUserId } }, payload, { fn: "sendPushToOtherInCouple", coupleId, exceptUserId });
 }
 
-export async function sendPushToUser(userId: string, payload: { title: string; body: string; icon?: string }) {
-  try {
-    const col = await getCol("pushSubscriptions");
-    const sub = await col.findOne({ userId });
-    if (!sub) return;
-    const msg = JSON.stringify({ ...payload, icon: payload.icon ?? "/favicon.svg" });
-    await webpush.sendNotification(sub.subscription, msg).catch(() =>
-      col.deleteOne({ _id: sub._id })
-    );
-  } catch (err) { log.error({ msg: "sendPushToUser failed", err, userId }); }
+export function sendPushToUser(userId: string, payload: PushPayload) {
+  return sendToFilter({ userId }, payload, { fn: "sendPushToUser", userId });
 }

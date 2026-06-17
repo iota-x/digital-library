@@ -556,15 +556,6 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Responsive CSS */}
-      <style>{`
-        @media (max-width: 580px) {
-          .nav-desktop { display: none !important; }
-          .nav-mobile-btn { display: flex !important; }
-          .nav-cmdK { display: none !important; }
-        }
-      `}</style>
-
       {/* Top padding spacer */}
       <div style={{ height: 64 }} />
     </>
