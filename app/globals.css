@@ -614,6 +614,9 @@ html, body {
   min-height: 100vh;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  /* In-page anchor jumps (#daily, #calendar, the daily nudge, etc.) land below
+     the fixed navbar instead of tucked under it. */
+  scroll-padding-top: 80px;
 }
 
 body {

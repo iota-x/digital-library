@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Caveat, Lato } from "next/font/google";
 import Navbar          from "@/components/Navbar";
 import ScrollToTop     from "@/components/ScrollToTop";
+import ScrollProgress  from "@/components/ScrollProgress";
+import PageTransition  from "@/components/PageTransition";
 import CommandPalette  from "@/components/CommandPalette";
 import SwipeNav        from "@/components/SwipeNav";
 import PwaRegister     from "@/components/PwaRegister";
@@ -61,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <DarkOverlay />
               <AppShell />
               <ScrollToTop />
+              <ScrollProgress />
               <Navbar />
               <CommandPalette />
               <SwipeNav />
@@ -68,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <MobileTabBar />
               {/* Keyboard skip link — visually hidden until focused */}
               <a href="#main" className="skip-link">skip to content</a>
-              <div id="main">{children}</div>
+              <div id="main"><PageTransition>{children}</PageTransition></div>
             </ConfirmProvider>
           </ToasterProvider>
         </MotionRoot>

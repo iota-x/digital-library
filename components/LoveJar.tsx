@@ -76,8 +76,9 @@ export default function LoveJar() {
 
   return (
     <section id="love-jar" style={{
-      width: "100%", padding: "clamp(3rem,7vh,5rem) clamp(1rem,4vw,2rem)",
-      display: "flex", justifyContent: "center",
+      width: "100%", minHeight: "100dvh",
+      padding: "clamp(2.5rem,6vh,4rem) clamp(1rem,4vw,2rem)",
+      display: "flex", alignItems: "center", justifyContent: "center",
     }}>
       <div style={{ width: "100%", maxWidth: 560, textAlign: "center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.7rem" }}>
