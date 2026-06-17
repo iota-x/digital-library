@@ -214,6 +214,13 @@ function ScrollIndicator() {
   );
 }
 
+/** The original couple — their polaroids stay the hand-placed her.jpg/him.jpg
+ *  photos. The avatar personalisation is only for everyone else. */
+function isAnkitJuhi(name?: string | null, partner?: string | null): boolean {
+  const ns = [name?.trim().toLowerCase(), partner?.trim().toLowerCase()];
+  return ns.includes("ankit") && ns.includes("juhi");
+}
+
 function computeHeroText(startDate: Date) {
   const now   = new Date();
   const ms    = now.getTime() - startDate.getTime();
@@ -308,8 +315,11 @@ export default function Polaroids() {
               ? { name: userData.partnerName ?? "", avatar: userData.partnerAvatarUrl, mine: false }
               : null;
             const isCreator = userData?.role === "creator";
-            const left  = !userData ? null : (isCreator ? me : partner);
-            const right = !userData ? null : (isCreator ? partner : me);
+            // For Ankit + Juhi, keep the original hand-placed photos (force the
+            // static-fallback path below); avatars are only for other couples.
+            const owners = isAnkitJuhi(userData?.name, userData?.partnerName);
+            const left  = (!userData || owners) ? null : (isCreator ? me : partner);
+            const right = (!userData || owners) ? null : (isCreator ? partner : me);
 
             const slot = (
               person: { name: string; avatar: string | null; mine: boolean } | null,
