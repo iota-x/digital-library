@@ -67,9 +67,11 @@ export default function WatchTogether() {
   if (!user?.partnerName) return null;
 
   const partnerName = user.partnerName;
-  // Items not yet completed make the best "start watching" candidates, but
-  // allow any title.
-  const startable = items;
+  // Items not yet completed make the best "start watching" candidates, so
+  // surface those first — but any title can still be picked.
+  const startable = [...items].sort((a, b) =>
+    (a.status === "completed" ? 1 : 0) - (b.status === "completed" ? 1 : 0));
+  const picked = startable.find((x) => x._id === pick) ?? null;
 
   return (
     <section id="watch-together" style={{
@@ -105,25 +107,48 @@ export default function WatchTogether() {
               /* ── Idle: start a session ── */
               <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 {startable.length === 0 ? (
-                  <p style={{ fontFamily: SCRIPT, fontSize: "1.05rem", color: "var(--muted)", margin: 0 }}>
-                    add something to your watchlist below, then start it here together 🌸
-                  </p>
+                  <div style={{ textAlign: "center", padding: "0.6rem 0 0.2rem" }}>
+                    <div aria-hidden style={{ fontSize: "1.9rem", marginBottom: "0.5rem", letterSpacing: "0.1em" }}>🎬 🍿 💞</div>
+                    <p style={{ fontFamily: SCRIPT, fontSize: "1.05rem", color: "var(--muted)", margin: 0 }}>
+                      add something to your watchlist below, then start it here together 🌸
+                    </p>
+                  </div>
                 ) : (
-                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
-                    <select value={pick} onChange={(e) => setPick(e.target.value)} style={SELECT}>
-                      <option value="">choose a title…</option>
-                      {startable.map((it) => (
-                        <option key={it._id} value={it._id}>{it.title}</option>
-                      ))}
-                    </select>
-                    <motion.button whileTap={{ scale: 0.96 }} disabled={!pick || busy}
+                  <div>
+                    <p style={{ fontFamily: SANS, fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em",
+                      textTransform: "uppercase", color: "rgba(var(--pink-deep-rgb), .5)", margin: "0 0 0.65rem" }}>
+                      pick one to start together
+                    </p>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1.1rem" }}>
+                      {startable.slice(0, 8).map((it) => {
+                        const sel = pick === it._id;
+                        return (
+                          <motion.button key={it._id} whileTap={{ scale: 0.95 }}
+                            onClick={() => { buzz("tap"); setPick(sel ? "" : it._id); }}
+                            style={{
+                              fontFamily: SANS, fontSize: "0.8rem", fontWeight: 600,
+                              color: sel ? "#fff" : "var(--pink-deep)",
+                              background: sel ? "linear-gradient(135deg, var(--pink), var(--pink-deep))" : "rgba(var(--pink-rgb), .1)",
+                              border: sel ? "none" : "1px solid rgba(var(--pink-rgb), .3)",
+                              borderRadius: 50, padding: "0.42rem 0.95rem", cursor: "pointer",
+                              display: "inline-flex", alignItems: "center", gap: "0.4rem",
+                              maxWidth: "100%",
+                            }}>
+                            <span aria-hidden>{sel ? "🍿" : "🎬"}</span>
+                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.title}</span>
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                    <motion.button whileTap={{ scale: 0.97 }} disabled={!picked || busy}
                       onClick={() => {
-                        const it = startable.find((x) => x._id === pick);
-                        if (it) { buzz("double"); act({ action: "start", itemId: it._id, title: it.title }); }
+                        if (picked) { buzz("double"); act({ action: "start", itemId: picked._id, title: picked.title }); }
                       }}
-                      style={{ ...BTN, background: "linear-gradient(135deg, var(--pink), var(--pink-deep))",
-                        color: "#fff", opacity: !pick || busy ? 0.55 : 1 }}>
-                      ▶ start
+                      style={{ ...BTN, width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.45rem",
+                        padding: "0.7rem 1.3rem",
+                        background: "linear-gradient(135deg, var(--pink), var(--pink-deep))",
+                        color: "#fff", opacity: !picked || busy ? 0.55 : 1 }}>
+                      ▶ start watching {picked ? "now" : "together"}
                     </motion.button>
                   </div>
                 )}
@@ -254,11 +279,6 @@ const BTN: React.CSSProperties = {
 const LINK_BTN: React.CSSProperties = {
   fontFamily: SANS, fontSize: "0.74rem", fontWeight: 600, color: "rgba(var(--pink-deep-rgb), .55)",
   background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0", textDecoration: "underline",
-};
-const SELECT: React.CSSProperties = {
-  fontFamily: SANS, fontSize: "0.85rem", color: "var(--text)", flex: "1 1 200px",
-  background: "rgba(var(--pink-rgb), .1)", border: "1px solid rgba(var(--pink-rgb), .3)",
-  borderRadius: 10, padding: "0.55rem 0.8rem", cursor: "pointer",
 };
 const RATING_BTN: React.CSSProperties = {
   fontFamily: SANS, fontSize: "0.85rem", fontWeight: 700, color: "var(--pink-deep)",
