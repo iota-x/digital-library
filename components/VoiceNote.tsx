@@ -6,6 +6,7 @@ import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { VoiceNoteStore } from "@/lib/resourceStores";
 import { useSoftDelete } from "@/lib/softDelete";
 import EmptyState from "@/components/EmptyState";
+import Tip from "@/components/Tip";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
 
@@ -82,12 +83,13 @@ function NotePlayer({ note, onDelete }: { note: VNote; onDelete: (id: string) =>
             {note.from && note.label ? `from ${note.from} · ` : ""}{fmtDate(note.createdAt)}
           </p>
         </div>
-        <button
-          onClick={() => onDelete(note.id)}
-          aria-label="delete voice note"
-          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "1.1rem", padding: 0, minWidth: 38, minHeight: 38, display: "flex", alignItems: "center", justifyContent: "center" }}
-          title="delete"
-        >×</button>
+        <Tip label="delete" placement="left">
+          <button
+            onClick={() => onDelete(note.id)}
+            aria-label="delete voice note"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "1.1rem", padding: 0, minWidth: 38, minHeight: 38, display: "flex", alignItems: "center", justifyContent: "center" }}
+          >×</button>
+        </Tip>
       </div>
 
       {/* Mini waveform */}

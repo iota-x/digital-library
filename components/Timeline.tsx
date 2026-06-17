@@ -5,6 +5,7 @@ import { useUserData, updateSettings } from "@/lib/userStore";
 import { DEFAULT_TIMELINE, type TimelineEvent } from "@/lib/themes";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { useConfirm } from "@/components/ConfirmDialog";
+import Tip from "@/components/Tip";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
 function makeId(): string {
@@ -187,21 +188,25 @@ function MemoryCard({
         }} />
 
         {/* ✕ remove — sits opposite the color blob */}
-        <button
-          type="button"
-          onClick={e => { e.stopPropagation(); onRemove(); }}
-          aria-label="remove this card"
-          style={{
-            position: "absolute", top: 10,
-            [isLeft ? "right" : "left"]: 10,
-            width: 30, height: 30, borderRadius: "50%",
-            background: "rgba(255,255,255,.7)", border: "1px solid rgba(var(--pink-deep-rgb),.25)",
-            color: "var(--pink-deep)", fontSize: "0.85rem",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", zIndex: 3, opacity: 0.7,
-            padding: 0, lineHeight: 1,
-          }}
-        >✕</button>
+        <Tip label="remove" placement={isLeft ? "left" : "right"}
+          style={{ position: "absolute", top: 10, [isLeft ? "right" : "left"]: 10, zIndex: 3 }}>
+          <button
+            type="button"
+            onClick={e => { e.stopPropagation(); onRemove(); }}
+            aria-label="remove this card"
+            style={{
+              width: 30, height: 30, borderRadius: "50%",
+              background: "var(--cream)", border: "1.5px solid var(--pink-mid)",
+              color: "var(--pink-deep)", fontSize: "0.9rem", fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", padding: 0, lineHeight: 1,
+              boxShadow: "0 2px 8px rgba(var(--pink-deep-rgb),.25)",
+              transition: "transform .15s, background .15s, color .15s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = "var(--pink-deep)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.transform = "scale(1.12)"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "var(--cream)"; e.currentTarget.style.color = "var(--pink-deep)"; e.currentTarget.style.transform = "scale(1)"; }}
+          >✕</button>
+        </Tip>
 
         <span style={{
           display: "inline-block",

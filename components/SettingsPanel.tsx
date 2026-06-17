@@ -10,6 +10,7 @@ import { applyAccent, isValidHex } from "@/lib/themeColor";
 import { cldImg } from "@/lib/cldImg";
 import { exportMediaZip, type ExportProgress } from "@/lib/exportMedia";
 import AvatarEditor from "@/components/AvatarEditor";
+import Tip from "@/components/Tip";
 
 const VAPID_PUBLIC = publicEnv.VAPID_PUBLIC_KEY;
 
@@ -562,7 +563,9 @@ export default function SettingsPanel({ open, onClose }: Props) {
                 {(draft.loveNotes ?? []).map((note, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem", background: "var(--pink-light)", border: "1px solid var(--pink-mid)", borderRadius: 10, padding: "0.45rem 0.8rem" }}>
                     <span style={{ flex: 1, fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--text)" }}>{note}</span>
-                    <button onClick={() => removeLoveNote(i)} aria-label="remove love note" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: "0.8rem", padding: "0 0.2rem" }}>✕</button>
+                    <Tip label="remove" placement="left">
+                      <button onClick={() => removeLoveNote(i)} aria-label="remove love note" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--pink-deep)", fontSize: "0.85rem", fontWeight: 700, padding: "0 0.2rem" }}>✕</button>
+                    </Tip>
                   </div>
                 ))}
               </div>

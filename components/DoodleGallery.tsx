@@ -6,6 +6,7 @@ import { useEscKey } from "@/lib/useEscKey";
 import { cldThumb } from "@/lib/cldImg";
 import { SANS, SCRIPT } from "@/lib/typography";
 import BlurImage from "@/components/BlurImage";
+import Tip from "@/components/Tip";
 
 interface GalleryItem { id: string; imageUrl: string; name: string; createdAt: string }
 
@@ -84,7 +85,9 @@ export default function DoodleGallery({ open, onClose }: { open: boolean; onClos
                 <p style={{ fontFamily: SCRIPT, fontSize: "1.3rem", color: "var(--pink-deep)", margin: 0, lineHeight: 1 }}>doodle gallery</p>
                 <p style={{ fontFamily: SANS, fontSize: "0.7rem", color: "var(--muted)", margin: "0.2rem 0 0" }}>everything you&apos;ve drawn together 🎨</p>
               </div>
-              <button onClick={onClose} aria-label="close gallery" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", color: "var(--muted)" }}>✕</button>
+              <Tip label="close" placement="left">
+                <button onClick={onClose} aria-label="close gallery" style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", color: "var(--muted)" }}>✕</button>
+              </Tip>
             </div>
 
             {loading ? (
@@ -110,12 +113,14 @@ export default function DoodleGallery({ open, onClose }: { open: boolean; onClos
                     <span style={{ display: "block", fontFamily: SANS, fontSize: "0.65rem", color: "var(--muted)", marginTop: "0.25rem", textAlign: "center" }}>
                       {it.name ? `${it.name} · ` : ""}{fmt(it.createdAt)}
                     </span>
-                    <button onClick={() => remove(it.id)} aria-label="delete doodle"
-                      style={{
-                        position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%",
-                        background: "rgba(0,0,0,.45)", color: "#fff", border: "none", cursor: "pointer", fontSize: "0.7rem",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}>✕</button>
+                    <Tip label="delete" placement="left" style={{ position: "absolute", top: 6, right: 6, zIndex: 4 }}>
+                      <button onClick={() => remove(it.id)} aria-label="delete doodle"
+                        style={{
+                          width: 24, height: 24, borderRadius: "50%",
+                          background: "rgba(0,0,0,.55)", color: "#fff", border: "none", cursor: "pointer", fontSize: "0.7rem",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>✕</button>
+                    </Tip>
                   </div>
                 ))}
               </div>

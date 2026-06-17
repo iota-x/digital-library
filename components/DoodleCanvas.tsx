@@ -9,6 +9,7 @@ import { buzz } from "@/lib/haptics";
 import { useToast } from "@/components/Toaster";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
 import DoodleGallery from "@/components/DoodleGallery";
+import Tip from "@/components/Tip";
 
 /**
  * A shared whiteboard the two of you draw on together.
@@ -319,10 +320,12 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
                   background: "rgba(var(--pink-deep-rgb), .08)", border: "1px solid rgba(var(--pink-deep-rgb), .22)",
                   borderRadius: 50, padding: "0.35rem 0.8rem", cursor: "pointer",
                 }}>🖼 gallery</button>
-                <button onClick={onClose} aria-label="close doodle" style={{
-                  background: "none", border: "none", cursor: "pointer",
-                  fontSize: "1.1rem", color: "var(--muted)", padding: "0.2rem 0.4rem",
-                }}>✕</button>
+                <Tip label="close" placement="left">
+                  <button onClick={onClose} aria-label="close doodle" style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    fontSize: "1.1rem", color: "var(--muted)", padding: "0.2rem 0.4rem",
+                  }}>✕</button>
+                </Tip>
               </div>
             </div>
 

@@ -9,6 +9,7 @@ import { defaultStartDate } from "@/lib/relationship";
 import { queuedFetch } from "@/lib/offlineQueue";
 import { STICKER_PALETTE, makeSticker } from "@/lib/stickers";
 import StickerOverlay from "@/components/StickerOverlay";
+import Tip from "@/components/Tip";
 import ReactionPills from "@/components/ReactionPills";
 import { buzz } from "@/lib/haptics";
 
@@ -675,8 +676,10 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                 ))}
               </div>
             )}
-            <motion.button onClick={onClose} aria-label="close memory editor" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
-              style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.4)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "#fff", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</motion.button>
+            <Tip label="close" placement="left" style={{ flexShrink: 0 }}>
+              <motion.button onClick={onClose} aria-label="close memory editor" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+                style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.4)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "#fff", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
+            </Tip>
           </div>
         </div>
 
@@ -782,8 +785,10 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                       {draft.photos!.map((src, i) => (
                         <div key={i} style={{ position: "relative" }}>
                           <MediaThumb src={src} onClick={() => setLbIdx(i)} />
-                          <button onClick={() => removeMedia(i)} aria-label={`remove photo ${i + 1}`}
-                            style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: "50%", border: "none", background: "var(--pink-deep)", color: "#fff", fontSize: "0.6rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                          <Tip label="remove" placement="top" style={{ position: "absolute", top: -6, right: -6, zIndex: 4 }}>
+                            <button onClick={() => removeMedia(i)} aria-label={`remove photo ${i + 1}`}
+                              style={{ width: 20, height: 20, borderRadius: "50%", border: "none", background: "var(--pink-deep)", color: "#fff", fontSize: "0.6rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,.3)" }}>✕</button>
+                          </Tip>
                         </div>
                       ))}
                     </div>

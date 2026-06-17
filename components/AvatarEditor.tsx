@@ -5,6 +5,7 @@ import { uploadToCloudinary, UploadError } from "@/lib/cloudUpload";
 import { updateAvatar, getUser } from "@/lib/userStore";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SANS } from "@/lib/typography";
+import Tip from "@/components/Tip";
 
 /**
  * Crop-to-square avatar editor.
@@ -257,10 +258,12 @@ export default function AvatarEditor({ open, onClose, currentUrl }: Props) {
             {error && <p style={{ color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.8rem", marginTop: "0.8rem" }}>{error}</p>}
 
             {!busy && (
-              <button onClick={onClose} aria-label="close"
-                style={{ position: "absolute", top: 10, right: 14, border: "none", background: "none", fontSize: "1.3rem", color: "var(--muted)", cursor: "pointer" }}>
-                ✕
-              </button>
+              <Tip label="close" placement="left" style={{ position: "absolute", top: 10, right: 14, zIndex: 5 }}>
+                <button onClick={onClose} aria-label="close"
+                  style={{ border: "none", background: "none", fontSize: "1.3rem", color: "var(--muted)", cursor: "pointer" }}>
+                  ✕
+                </button>
+              </Tip>
             )}
           </motion.div>
         </>

@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
+import Tip from "@/components/Tip";
 import { WatchlistStore } from "@/lib/resourceStores";
 import { cldImg, cldSrcSet } from "@/lib/cldImg";
 import { useSoftDelete } from "@/lib/softDelete";
@@ -212,8 +213,10 @@ export default function WatchlistSection() {
                 <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.1rem",color:"var(--pink-deep)",margin:0}}>
                   {editId?"edit entry":"add to the queue"}
                 </p>
-                <button onClick={closeForm} aria-label="close form" style={{background:"none",border:"none",cursor:"pointer",
-                  fontSize:"1.1rem",color:"rgba(var(--pink-deep-rgb),.4)",lineHeight:1}}>✕</button>
+                <Tip label="close" placement="left">
+                  <button onClick={closeForm} aria-label="close form" style={{background:"none",border:"none",cursor:"pointer",
+                    fontSize:"1.1rem",color:"var(--pink-deep)",lineHeight:1}}>✕</button>
+                </Tip>
               </div>
 
               <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:"0.7rem"}}>
