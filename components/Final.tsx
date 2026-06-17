@@ -1,9 +1,22 @@
 "use client";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useCanvasParticles } from "@/lib/useCanvasParticles";
+import { useUserData, updateSettings } from "@/lib/userStore";
+import { useFocusTrap } from "@/lib/useFocusTrap";
+import { useConfirm } from "@/components/ConfirmDialog";
+import Tip from "@/components/Tip";
+import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
-const PAGES = [
+interface Page { icon: string; accent: string; bg: string; text: string }
+
+function isAnkitJuhi(name?: string | null, partner?: string | null): boolean {
+  const n = [name?.trim().toLowerCase(), partner?.trim().toLowerCase()];
+  return n.includes("ankit") && n.includes("juhi");
+}
+
+// Ankit & Juhi's hardcoded letter — kept exactly, never editable.
+const AJ_PAGES: Page[] = [
   {
     icon: "🌷",
     accent: "#ffb3c6",
@@ -29,6 +42,33 @@ const PAGES = [
     text: `You truly make me the happiest. Having you feels very very veryyyy warm and comfy and I have this sense of calm whenever I'm with you — which is otherwise just chaos. Thank you for being mine. 🌷`,
   },
 ];
+
+// Per-page look, cycled by index so editable pages always look nice.
+const ACCENTS = ["#ffb3c6", "var(--pink)", "var(--pink-deep)", "var(--pink)"];
+const BGS = [
+  "linear-gradient(160deg,var(--rose),var(--pink-light))",
+  "linear-gradient(160deg,var(--rose),var(--pink-light))",
+  "linear-gradient(160deg,var(--pink-light),var(--pink-mid))",
+  "linear-gradient(160deg,var(--rose),var(--pink-mid))",
+];
+const DEFAULT_ICONS = ["🌷", "🌸", "💗", "✨"];
+
+// Filler prompts for every other couple — empty, inviting them to write.
+const DEFAULT_FINAL: { icon?: string; text: string }[] = [
+  { icon: "🌷", text: "always remember… (the first thing you never want them to forget)" },
+  { icon: "🌸", text: "a promise you want to make to them…" },
+  { icon: "💗", text: "something you're completely certain about, the two of you…" },
+  { icon: "✨", text: "why you're so grateful they're yours…" },
+];
+
+function toPage(item: { icon?: string; text: string }, i: number): Page {
+  return {
+    icon: item.icon || DEFAULT_ICONS[i % DEFAULT_ICONS.length],
+    accent: ACCENTS[i % ACCENTS.length],
+    bg: BGS[i % BGS.length],
+    text: item.text,
+  };
+}
 
 /* ── starfield ── */
 interface StarPoint { x: number; y: number; r: number; a: number; da: number }
@@ -373,8 +413,11 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
 }
 
 
-function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
-  const p = PAGES[active];
+function Book({ page, active, total, dir, isPrompt, editable, onEdit, onRemove }: {
+  page: Page; active: number; total: number; dir: "next"|"prev";
+  isPrompt: boolean; editable: boolean; onEdit: () => void; onRemove: () => void;
+}) {
+  const p = page;
 
   return (
     <div style={{ position:"relative", width:"100%", height:"100%", perspective: 1400 }}>
@@ -404,7 +447,10 @@ function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
           }}
         >
           {/* Page face */}
-          <div className="dk-book-page" style={{
+          <div className="dk-book-page"
+            onClick={editable ? onEdit : undefined}
+            role={editable ? "button" : undefined}
+            style={{
             position: "absolute", inset: 0,
             background: p.bg,
             borderRadius: 24,
@@ -414,6 +460,7 @@ function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
             padding: "2.8rem 2.8rem 2rem",
             overflow: "hidden",
             backfaceVisibility: "hidden",
+            cursor: editable ? "pointer" : "default",
           }}>
             {/* shimmer */}
             <motion.div style={{
@@ -424,6 +471,14 @@ function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
               transition={{ duration:2.4, repeat:Infinity, repeatDelay:3.5 }}
             />
 
+            {/* remove (editable couples only) */}
+            {editable && total > 1 && (
+              <Tip label="remove" placement="left" style={{ position:"absolute", top:12, right:12, zIndex:4 }}>
+                <button onClick={e => { e.stopPropagation(); onRemove(); }} aria-label="remove this page"
+                  style={{ width:28, height:28, borderRadius:"50%", background:"var(--cream)", border:"1.5px solid var(--pink-mid)", color:"var(--pink-deep)", fontSize:"0.8rem", fontWeight:700, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(var(--pink-deep-rgb),.25)" }}>✕</button>
+              </Tip>
+            )}
+
             {/* top bar */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"2rem" }}>
               <span style={{
@@ -431,7 +486,7 @@ function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
                 textTransform:"uppercase", color:p.accent, fontWeight:700,
                 background:`${p.accent}22`, borderRadius:50, padding:"0.2rem 0.8rem",
               }}>
-                {active + 1} / {PAGES.length}
+                {active + 1} / {total}
               </span>
               <motion.span
                 style={{ fontSize:"2rem" }}
@@ -444,14 +499,26 @@ function Book({ active, dir }: { active: number; dir: "next"|"prev" }) {
             <p style={{
               fontFamily:"var(--font-caveat)",
               fontSize:"clamp(1.18rem,2.8vw,1.48rem)",
-              color:"var(--text)", lineHeight:2.1,
-              flex:1, margin:0,
+              color: isPrompt ? "var(--muted)" : "var(--text)",
+              fontStyle: isPrompt ? "italic" : "normal",
+              opacity: isPrompt ? 0.85 : 1,
+              lineHeight:2.1, flex:1, margin:0,
             }}>
               {p.text}
             </p>
 
+            {/* edit hint (editable couples only) */}
+            {editable && (
+              <span style={{
+                fontFamily:"var(--font-lato)", fontSize:"0.72rem", color:p.accent,
+                fontWeight:700, marginTop:"0.6rem", opacity:0.9,
+              }}>
+                {isPrompt ? "tap to write yours ✨" : "tap to edit ✉️"}
+              </span>
+            )}
+
             {/* last page signature + seal */}
-            {active === PAGES.length - 1 && (
+            {active === total - 1 && (
               <motion.div
                 initial={{ opacity:0, y:12 }}
                 animate={{ opacity:1, y:0 }}
@@ -555,19 +622,93 @@ function Dots({ active, total, onGoTo }: { active:number; total:number; onGoTo:(
   );
 }
 
+interface FinalEditor { index: number | "new"; text: string; icon: string }
+
 export default function Final() {
+  const userData = useUserData();
+  const confirm = useConfirm();
+  const isAJ = isAnkitJuhi(userData?.name, userData?.partnerName);
+  const editable = !isAJ;
+  const saved = userData?.settings?.finalPages;
+  const hasSaved = !!(saved && saved.length > 0);
+  const isPrompt = editable && !hasSaved;
+
+  // Ankit & Juhi keep their hardcoded letter; everyone else gets editable
+  // filler prompts (or their saved pages).
+  const pages = useMemo<Page[]>(() => {
+    if (isAJ) return AJ_PAGES;
+    return (hasSaved ? saved! : DEFAULT_FINAL).map(toPage);
+  }, [isAJ, hasSaved, saved]);
+  const total = pages.length;
+
   const [active, setActive] = useState(0);
   const [dir,    setDir]    = useState<"next"|"prev">("next");
   const [done,   setDone]   = useState(false);
+  const [editor, setEditor] = useState<FinalEditor | null>(null);
+  const [saving, setSaving] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(editorRef, { active: editor !== null, onEscape: () => setEditor(null) });
+
+  // Keep `active` in range if pages are removed.
+  useEffect(() => { if (active > total - 1) setActive(Math.max(0, total - 1)); }, [total, active]);
 
   function goTo(i: number) {
     if (i === active) return;
     setDir(i > active ? "next" : "prev");
     setActive(i);
-    if (i < PAGES.length - 1) setDone(false);
+    if (i < total - 1) setDone(false);
   }
-  function next() { if (active < PAGES.length - 1) goTo(active + 1); else setDone(true); }
+  function next() { if (active < total - 1) goTo(active + 1); else setDone(true); }
   function back() { if (active > 0) goTo(active - 1); }
+
+  const persist = (nextPages: Page[]) => {
+    if (!userData?.settings) return;
+    const finalPages = nextPages.map(p => ({ icon: p.icon, text: p.text }));
+    const settings = { ...userData.settings, finalPages };
+    updateSettings(settings); // optimistic — pages recompute from this instantly
+    setSaving(true);
+    fetch("/api/couples/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings }),
+    }).catch(() => {}).finally(() => setSaving(false));
+  };
+
+  const openEdit = () => {
+    const p = pages[active];
+    setEditor({ index: active, text: isPrompt ? "" : p.text, icon: p.icon });
+  };
+  const openNew = () => setEditor({ index: "new", text: "", icon: DEFAULT_ICONS[total % DEFAULT_ICONS.length] });
+
+  const saveEditor = () => {
+    if (!editor) return;
+    const text = editor.text.trim();
+    const icon = editor.icon.trim() || "🌷";
+    const goNew = editor.index === "new";
+    const nextPages: Page[] = goNew
+      ? [...pages, toPage({ icon, text }, total)]
+      : pages.map((p, i) => i === editor.index ? { ...p, icon, text } : p);
+    setEditor(null);
+    persist(nextPages);
+    if (goNew) { setDir("next"); setActive(total); }
+  };
+
+  const removePage = async () => {
+    if (total <= 1) return;
+    const ok = await confirm({
+      title: "remove this page?",
+      body: "you can always add a new one later.",
+      confirmLabel: "remove", cancelLabel: "keep it", destructive: true,
+    });
+    if (!ok) return;
+    const nextPages = pages.filter((_, i) => i !== active);
+    setActive(a => Math.max(0, Math.min(a, nextPages.length - 1)));
+    persist(nextPages);
+  };
+
+  const subtitle = isAJ
+    ? "four things i need you to always remember 🌷"
+    : "little notes you always want them to remember 🌷";
 
   return (
     <>
@@ -615,7 +756,7 @@ export default function Final() {
             fontSize:"clamp(1.6rem,4vw,2.4rem)", color:"var(--pink-deep)", margin:0,
           }}>just so you know…</h2>
           <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1rem", color:"var(--muted)", marginTop:"0.4rem" }}>
-            four things i need you to always remember 🌷
+            {subtitle}
           </p>
         </motion.div>
 
@@ -634,16 +775,37 @@ export default function Final() {
             height:"clamp(320px,52vw,430px)",
             position:"relative",
           }}>
-            <Book active={active} dir={dir} />
+            <Book
+              page={pages[active] ?? pages[0]}
+              active={active} total={total} dir={dir}
+              isPrompt={isPrompt} editable={editable}
+              onEdit={openEdit} onRemove={removePage}
+            />
           </div>
 
-          <Arrow dir="right" onClick={next} disabled={active === PAGES.length - 1 && done} />
+          <Arrow dir="right" onClick={next} disabled={active === total - 1 && done} />
         </motion.div>
 
         {/* dots */}
         <div style={{ marginTop:"1.6rem", zIndex:2, position:"relative" }}>
-          <Dots active={active} total={PAGES.length} onGoTo={goTo} />
+          <Dots active={active} total={total} onGoTo={goTo} />
         </div>
+
+        {/* add a page (editable couples only) */}
+        {editable && (
+          <motion.button
+            onClick={openNew}
+            whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.96 }}
+            style={{
+              marginTop: "1.2rem", zIndex: 2, position: "relative",
+              fontFamily: SCRIPT, fontSize: "1rem", color: "var(--pink-deep)",
+              background: "var(--cream)", border: "1.5px dashed var(--pink)",
+              borderRadius: 50, padding: "0.5rem 1.4rem", cursor: "pointer",
+            }}
+          >
+            ＋ add a page
+          </motion.button>
+        )}
 
         {/* done quote */}
         <AnimatePresence>
@@ -672,7 +834,7 @@ export default function Final() {
       </section>
 
       {/* ── I LOVE YOU GAME ── */}
-      <ILoveYouGame globalStep={active} totalSteps={PAGES.length} />
+      <ILoveYouGame globalStep={active} totalSteps={total} />
 
       <footer style={{
         width:"100%",
@@ -692,13 +854,88 @@ export default function Final() {
             💗
           </motion.div>
           <p style={{ fontFamily:"var(--font-caveat)", fontSize:"1.2rem", color:"var(--pink-deep)", margin:"0 0 0.4rem" }}>
-            made with way too much love by yours truly, for the one whom I love the most in this universe 🌸
+            {isAJ
+              ? "made with way too much love by yours truly, for the one whom I love the most in this universe 🌸"
+              : "made with way too much love, just for you 🌸"}
           </p>
           <p style={{ fontFamily:"var(--font-playfair)", fontStyle:"italic", fontSize:"1.05rem", color:"var(--pink-deep)", margin:0 }}>
-            march 11, 2026 → forever 💗
+            {isAJ ? "march 11, 2026 → forever 💗" : "always & forever 💗"}
           </p>
         </motion.div>
       </footer>
+
+      {/* ── page editor (editable couples only) ── */}
+      <AnimatePresence>
+        {editor !== null && (
+          <motion.div
+            initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+            onClick={() => setEditor(null)}
+            style={{
+              position:"fixed", inset:0, zIndex:9999,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              padding:"clamp(0.8rem,3vw,1.5rem)",
+              background:"rgba(var(--pink-deep-rgb),.35)",
+              backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
+            }}
+          >
+            <motion.div
+              ref={editorRef}
+              role="dialog" aria-modal="true" aria-label="edit page"
+              initial={{ scale:0.92, y:30 }} animate={{ scale:1, y:0 }} exit={{ scale:0.92, y:30 }}
+              transition={{ type:"spring", stiffness:240, damping:24 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background:"var(--cream)", border:"1px solid var(--pink-mid)",
+                borderRadius:24, padding:"clamp(1.6rem,4vw,2.2rem)",
+                maxWidth:520, width:"100%", maxHeight:"85dvh", overflowY:"auto",
+                display:"flex", flexDirection:"column", gap:"1rem",
+                boxShadow:"0 24px 60px rgba(var(--pink-deep-rgb),.28)",
+              }}
+            >
+              <h2 style={{ fontFamily:SERIF, fontStyle:"italic", fontSize:"clamp(1.3rem,3.5vw,1.6rem)", color:"var(--pink-deep)", margin:0 }}>
+                {editor.index === "new" ? "a new little note" : "edit this note"}
+              </h2>
+
+              <label style={{ display:"flex", flexDirection:"column", gap:"0.35rem" }}>
+                <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"var(--muted)", letterSpacing:"0.14em", textTransform:"uppercase" }}>emoji</span>
+                <input
+                  value={editor.icon}
+                  onChange={e => setEditor(s => s ? { ...s, icon: e.target.value.slice(0, 4) } : s)}
+                  placeholder="🌷"
+                  style={{ width:64, textAlign:"center", padding:"0.5rem", borderRadius:10, border:"1px solid var(--pink-mid)", outline:"none", background:"rgba(255,255,255,.7)", fontSize:"1.4rem" }}
+                />
+              </label>
+
+              <label style={{ display:"flex", flexDirection:"column", gap:"0.35rem" }}>
+                <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"var(--muted)", letterSpacing:"0.14em", textTransform:"uppercase" }}>your note</span>
+                <textarea
+                  autoFocus
+                  value={editor.text}
+                  onChange={e => setEditor(s => s ? { ...s, text: e.target.value } : s)}
+                  placeholder="write something you always want them to remember…"
+                  rows={7}
+                  style={{
+                    padding:"0.8rem 0.9rem", borderRadius:12, border:"1px solid var(--pink-mid)", outline:"none",
+                    background:"rgba(255,255,255,.7)", fontFamily:SCRIPT, fontSize:"1.1rem",
+                    color:"var(--text)", lineHeight:1.7, resize:"vertical", minHeight:150,
+                  }}
+                />
+              </label>
+
+              <div style={{ display:"flex", gap:"0.6rem", justifyContent:"flex-end" }}>
+                <button onClick={() => setEditor(null)}
+                  style={{ padding:"0.55rem 1.1rem", borderRadius:50, background:"transparent", border:"1px solid var(--pink-mid)", color:"var(--muted)", fontFamily:SANS, fontSize:"0.85rem", cursor:"pointer" }}>
+                  cancel
+                </button>
+                <button onClick={saveEditor} disabled={saving}
+                  style={{ padding:"0.55rem 1.3rem", borderRadius:50, background:"linear-gradient(135deg,var(--pink),var(--pink-deep))", border:"none", color:"#fff", fontFamily:SANS, fontSize:"0.85rem", fontWeight:700, cursor: saving ? "wait" : "pointer", boxShadow:"0 4px 14px rgba(var(--pink-deep-rgb),.35)" }}>
+                  {saving ? "saving…" : "save 🌸"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

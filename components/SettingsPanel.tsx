@@ -23,6 +23,16 @@ function urlBase64ToUint8Array(base64: string) {
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
 
+/** Accept a full Spotify link, a spotify: URI, or a bare ID and return just the
+ *  playlist ID. e.g. https://open.spotify.com/playlist/41Lu…?si=abc → 41Lu… */
+function parseSpotifyPlaylistId(input: string): string {
+  let v = input.trim();
+  if (v.includes("playlist:")) v = v.split("playlist:").pop() ?? v;   // spotify:playlist:ID
+  else if (v.includes("/playlist/")) v = v.split("/playlist/").pop() ?? v; // open.spotify.com/playlist/ID
+  // Drop any ?si=… query, #fragment, or trailing path.
+  return v.split("?")[0].split("#")[0].split("/")[0].trim();
+}
+
 function applyThemeClass(themeId: string) {
   const root = document.documentElement;
   root.classList.remove(...ALL_THEME_CLASSES);
@@ -528,12 +538,12 @@ export default function SettingsPanel({ open, onClose }: Props) {
               {/* ─── Spotify playlist ─── */}
               <GroupLabel>🎵 spotify playlist</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.3rem 0 0.5rem", lineHeight: 1.5 }}>
-                Paste the playlist ID from the Spotify URL (after /playlist/).
+                Paste the whole Spotify playlist link — we&apos;ll pull out the ID for you.
               </p>
               <input
                 value={draft.spotifyPlaylistId}
-                onChange={e => set("spotifyPlaylistId", e.target.value.trim())}
-                placeholder="41LuF5qeH9u3erSTc5LkPw"
+                onChange={e => set("spotifyPlaylistId", parseSpotifyPlaylistId(e.target.value))}
+                placeholder="https://open.spotify.com/playlist/…"
                 style={{
                   width: "100%", boxSizing: "border-box",
                   padding: "0.7rem 1rem", borderRadius: 10,

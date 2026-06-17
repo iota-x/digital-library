@@ -25,6 +25,9 @@ export interface CoupleSettings {
   memoryCards: MemoryCardEntry[];
   /** Optional — when present overrides the seed timeline shown on /timeline. */
   timelineEvents?: TimelineEvent[];
+  /** Optional — the "just so you know…" letter pages on the home page. When
+   *  present, overrides the filler prompts. (Ankit & Juhi keep a hardcoded set.) */
+  finalPages?: { icon?: string; text: string }[];
   sections: {
     home:    { showTimer: boolean; showMemoryCards: boolean; showVoiceNotes: boolean; showCapsuleTeaser: boolean; showFinal: boolean };
     journal: { showStreak: boolean; showSurpriseMe: boolean; showMonthlyRecap: boolean; showAnniversaryBanner: boolean };
