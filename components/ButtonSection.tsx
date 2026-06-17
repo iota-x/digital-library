@@ -2,13 +2,14 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
-// Generic, universal messages that work for any couple
+// Spoken in the partner's first-person voice — whoever is logged in, the "me"
+// is the person who loves them, so it reads right for both partners.
 const BUTTONS = [
   {
     emoji: "🤗",
-    sub: "when you miss them",
-    msg: "they're always with you 🩷",
-    sub2: "distance is just distance — your love is not. close your eyes, they're right there 💗",
+    sub: "when you miss me",
+    msg: "i'm always with you 🩷",
+    sub2: "distance is just distance — our love is not. close your eyes, i'm right there 💗",
     emojis: "🫂 💗 🤍",
     gif: "holding.gif",
   },
@@ -16,7 +17,7 @@ const BUTTONS = [
     emoji: "🫠",
     sub: "when you overthink",
     msg: "breathe. you're doing better than you think",
-    sub2: "your brain lies sometimes. the love is real, the worry is not. 💫",
+    sub2: "your brain lies sometimes. my love is real, the worry is not. 💫",
     emojis: "🌀 💗 ✨ 🩷 🫶",
     gif: "hugging.gif",
   },
@@ -24,15 +25,15 @@ const BUTTONS = [
     emoji: "🥺",
     sub: "when you feel sad",
     msg: "it's okay to not be okay",
-    sub2: "you don't have to hold it all in. someone loves you and wants to hear about it 🌷",
+    sub2: "you don't have to hold it all in — i love you and i want to hear about it 🌷",
     emojis: "🥺 💗 🫂",
     gif: "hold.gif",
   },
   {
     emoji: "😭",
     sub: "when you can't sleep",
-    msg: "3am thoughts are loudest, love is louder",
-    sub2: "send them a message. they probably want to hear from you more than you know 🌙",
+    msg: "3am thoughts are loudest, but my love is louder",
+    sub2: "send me a message. i want to hear from you more than you know 🌙",
     emojis: "🌙 🩷 📞 ✨",
     gif: "peeking.gif",
   },

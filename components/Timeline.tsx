@@ -111,6 +111,14 @@ function isAnkitJuhi(name?: string|null, partner?: string|null): boolean {
   return names.includes("ankit") && names.includes("juhi");
 }
 
+// Signatures of the generic "remember when?" prompt cards. Used to tell a
+// genuinely-written timeline apart from one that's just the untouched defaults,
+// so a saved copy of the prompts can't bury Ankit & Juhi's real letters.
+const DEFAULT_SIGNATURES = new Set(DEFAULT_TIMELINE.map(e => `${e.q} ${e.letter}`));
+function isAllFiller(list: TimelineEvent[] | undefined): boolean {
+  return !!list && list.length > 0 && list.every(e => DEFAULT_SIGNATURES.has(`${e.q} ${e.letter}`));
+}
+
 /* Decorative icon + tint cycle so each card gets a distinct look regardless
    of what the user actually writes. Index modulo length picks the look. */
 const ICONS = ["🌸","💗","🌷","🩷","💌","🫂","🌙","🎀","✨","🩰","💫","🥺","🎮","💖","🤗"];
@@ -284,25 +292,27 @@ export default function Timeline() {
   const editorRef    = useRef<HTMLDivElement>(null);
   useFocusTrap(editorRef, { active: editor !== null, onEscape: () => setEditor(null) });
 
+  const isAJ = isAnkitJuhi(userData?.name, userData?.partnerName);
+
   // Seed source — Ankit & Juhi get their personal history as starter, others
   // get the generic "remember when?" prompts.
-  const seed = useMemo<TimelineEvent[]>(() =>
-    isAnkitJuhi(userData?.name, userData?.partnerName)
-      ? ANKIT_JUHI_EVENTS
-      : DEFAULT_TIMELINE,
-    [userData?.name, userData?.partnerName]
-  );
+  const seed = useMemo<TimelineEvent[]>(() => isAJ ? ANKIT_JUHI_EVENTS : DEFAULT_TIMELINE, [isAJ]);
 
-  const [events, setEvents] = useState<TimelineEvent[]>(() => {
-    const saved = userData?.settings?.timelineEvents;
-    return withIds(saved && saved.length > 0 ? saved : seed);
-  });
+  // Resolve which events to show. For Ankit & Juhi, an empty or
+  // defaults-only saved list shouldn't bury their personal letters — fall back
+  // to the personal seed unless they've genuinely written their own.
+  const resolve = (saved: TimelineEvent[] | undefined): TimelineEvent[] => {
+    const hasReal = saved && saved.length > 0 && !(isAJ && isAllFiller(saved));
+    return withIds(hasReal ? saved! : seed);
+  };
+
+  const [events, setEvents] = useState<TimelineEvent[]>(() => resolve(userData?.settings?.timelineEvents));
 
   // If a saved list lands from elsewhere (e.g. partner edit), mirror it
   useEffect(() => {
-    const saved = userData?.settings?.timelineEvents;
-    if (saved && saved.length > 0) setEvents(withIds(saved));
-  }, [userData?.settings?.timelineEvents]);
+    setEvents(resolve(userData?.settings?.timelineEvents));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData?.settings?.timelineEvents, isAJ]);
 
   // Lock body scroll while a drawer is open; auto-restore on unmount or nav.
   useEffect(() => {
@@ -311,9 +321,10 @@ export default function Timeline() {
     return () => { document.body.style.overflow = ""; };
   }, [active]);
 
-  // No saved list yet → these cards are still showing seed content;
-  // tapping a card should clear the placeholder body for the editor
-  const isPromptMode = !userData?.settings?.timelineEvents || userData.settings.timelineEvents.length === 0;
+  // "Prompt mode" = generic placeholder cards the user should fill in. Only for
+  // non-Ankit/Juhi couples who haven't written anything; AJ's seed is real
+  // letters, so their cards open the read drawer, not an empty editor.
+  const isPromptMode = !isAJ && !((userData?.settings?.timelineEvents?.length ?? 0) > 0);
 
   function open(i: number)  { setActive(i);   }
   function close()          { setActive(null); }
