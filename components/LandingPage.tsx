@@ -17,6 +17,15 @@ interface LandingPageProps {
 
 const FLOATERS = ["🌸","💗","🩷","✨","🌷","💕","💫","🌙","⭐","🌸","💗","🩷"];
 
+const FEATURES = [
+  { e: "📔", t: "Shared journal",       d: "every memory, note & photo on one timeline" },
+  { e: "💌", t: "Question of the day",  d: "answer privately — unlocks when you both do" },
+  { e: "🫙", t: "Love jar",             d: "drop little notes to open later" },
+  { e: "🎵", t: "Your playlist",        d: "a song a day, always thinking of you" },
+  { e: "📸", t: "Polaroids",            d: "your favourite moments, pinned up" },
+  { e: "🔥", t: "Streaks & milestones", d: "celebrate every day of us" },
+];
+
 function inputStyle(hasError = false): React.CSSProperties {
   return {
     width: "100%",
@@ -137,6 +146,63 @@ function InviteCodeDisplay({ code, onDone }: { code: string; onDone: () => void 
       >
         {"let's go 🌸"}
       </motion.button>
+    </motion.div>
+  );
+}
+
+/** Left-hand showcase shown beside the auth card on the create/join/sign-in
+ *  screens — gives newcomers a feel for the app and its features before they
+ *  commit to making an account. Hidden once a flow (verify/forgot) is underway. */
+function Showcase() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+      style={{ flex: "1 1 360px", maxWidth: 480, color: "#9d174d" }}
+    >
+      <p style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(190,24,93,0.5)", margin: "0 0 0.6rem" }}>
+        a private space for two
+      </p>
+      <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.8rem,4.5vw,2.6rem)", color: "#be185d", lineHeight: 1.15, margin: "0 0 0.7rem" }}>
+        every little moment,<br />kept together 🌸
+      </h2>
+      <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(157,23,77,0.72)", lineHeight: 1.55, margin: "0 0 1.5rem", maxWidth: 420 }}>
+        a cosy app just for you and your person — journal your days, answer a daily
+        question, save songs, photos &amp; voice notes, and watch your streak of
+        &ldquo;us&rdquo; grow.
+      </p>
+
+      {/* Feature grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "0.6rem", marginBottom: "1.4rem" }}>
+        {FEATURES.map(f => (
+          <div key={f.t} style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start", background: "rgba(255,255,255,0.6)", border: "1px solid rgba(249,168,212,0.4)", borderRadius: 14, padding: "0.7rem 0.8rem" }}>
+            <span aria-hidden style={{ fontSize: "1.15rem", lineHeight: 1 }}>{f.e}</span>
+            <div>
+              <p style={{ fontFamily: SANS, fontSize: "0.8rem", fontWeight: 700, color: "#be185d", margin: "0 0 0.1rem" }}>{f.t}</p>
+              <p style={{ fontFamily: SANS, fontSize: "0.7rem", color: "rgba(157,23,77,0.6)", margin: 0, lineHeight: 1.35 }}>{f.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tiny live-feel preview of a real card */}
+      <div style={{ background: "#fff", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 18, padding: "1rem 1.1rem", boxShadow: "0 12px 32px rgba(244,114,182,0.16)", maxWidth: 360 }}>
+        <p style={{ fontFamily: SANS, fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(190,24,93,0.45)", margin: "0 0 0.4rem" }}>
+          question of the day
+        </p>
+        <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.05rem", color: "#be185d", margin: "0 0 0.75rem", lineHeight: 1.3 }}>
+          what made you smile today?
+        </p>
+        <div style={{ display: "flex", gap: "0.45rem", alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: "rgba(249,168,212,0.2)", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 50, padding: "0.2rem 0.6rem", fontFamily: SANS, fontSize: "0.68rem", fontWeight: 700, color: "#be185d" }}>
+            🔥 7-day streak
+          </span>
+          <span style={{ fontFamily: SCRIPT, fontSize: "0.9rem", color: "rgba(190,24,93,0.5)" }}>
+            you both answered 💞
+          </span>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -439,16 +505,21 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
     transition: "all 0.25s",
   });
 
+  // The feature showcase only makes sense on the pre-account screens — not once
+  // someone is mid-verification, resetting a password, or viewing their invite.
+  const showShowcase = !initialVerify && !inviteCode &&
+    (mode === "create" || mode === "join" || mode === "signin");
+
   return (
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 99999,
-        display: "flex", alignItems: "center", justifyContent: "center",
+        overflowX: "hidden", overflowY: "auto",
         background: "linear-gradient(135deg,#fff1f2 0%,#fce7f3 50%,#fdf2f8 100%)",
-        overflow: "hidden",
-        padding: "1.5rem",
       }}
     >
+      {/* Decorative layer — fixed so floaters/orbs never add page scroll */}
+      <div style={{ position: "fixed", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }}>
       {/* Falling floaters */}
       {FLOATERS.map((sym, i) => (
         <motion.span key={i} style={{
@@ -480,6 +551,19 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           transition={{ repeat:Infinity, duration:5+i, delay:i*1.2, ease:"easeInOut" }}
         />
       ))}
+      </div>
+
+      {/* Centering stage — min-height lets the page scroll when content is tall */}
+      <div style={{
+        position: "relative", zIndex: 2, minHeight: "100dvh", boxSizing: "border-box",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "clamp(1.5rem,4vw,2.5rem)",
+      }}>
+        <div style={{
+          display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center",
+          gap: "clamp(1.5rem,4vw,2.8rem)", width: "100%", maxWidth: showShowcase ? 980 : 460,
+        }}>
+          {showShowcase && <Showcase />}
 
       {/* Main card */}
       <motion.div
@@ -494,9 +578,9 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           border: "1px solid rgba(249,168,212,0.4)",
           borderRadius: 24,
           padding: "clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem)",
-          width: "100%", maxWidth: 440,
+          width: "100%", maxWidth: 440, flex: "0 1 440px",
           boxShadow: "0 20px 60px rgba(244,114,182,0.18), 0 2px 8px rgba(0,0,0,0.06)",
-          maxHeight: "90vh",
+          maxHeight: "90dvh",
           overflowY: "auto",
         }}
         onKeyDown={handleKeyDown}
@@ -706,6 +790,9 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                       style={{ background: "none", border: "none", cursor: "pointer", fontFamily: SANS, fontSize: "0.8rem", color: "rgba(190,24,93,0.6)", marginTop: "0.8rem", textDecoration: "underline", display: "block", marginLeft: "auto", marginRight: "auto" }}>
                       resend code
                     </button>
+                    <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.45)", textAlign: "center", margin: "0.9rem 0 0", lineHeight: 1.5 }}>
+                      📬 Didn&apos;t get it? Give it a minute, then check your <strong>spam / promotions</strong> folder — the email comes from a personal Gmail, so it sometimes lands there.
+                    </p>
                   </motion.div>
                 )}
 
@@ -787,6 +874,8 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           made with 💗 for you
         </p>
       </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
