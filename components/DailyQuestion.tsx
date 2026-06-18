@@ -120,9 +120,9 @@ export default function DailyQuestion() {
 
   return (
     <section id="daily" style={{
-      width: "100%", minHeight: "100dvh",
-      padding: "clamp(2.5rem, 6vh, 4rem) clamp(1rem, 4vw, 2rem)",
-      display: "flex", alignItems: "center", justifyContent: "center",
+      width: "100%",
+      padding: "clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2rem) clamp(1.2rem, 2.5vh, 1.8rem)",
+      display: "flex", justifyContent: "center",
     }}>
       <div style={{ width: "100%", maxWidth: 640 }}>
         {/* Heading */}
