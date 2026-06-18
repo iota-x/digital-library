@@ -6,6 +6,7 @@ import { onSSE } from "@/lib/sseClient";
 import { todayKey } from "@/lib/dailyQuestions";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { heartBump, buzz } from "@/lib/haptics";
+import SectionGlow from "@/components/SectionGlow";
 
 interface DailyView {
   date: string;
@@ -120,11 +121,13 @@ export default function DailyQuestion() {
 
   return (
     <section id="daily" style={{
+      position: "relative", overflow: "hidden",
       width: "100%",
       padding: "clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2rem) clamp(1.2rem, 2.5vh, 1.8rem)",
       display: "flex", justifyContent: "center",
     }}>
-      <div style={{ width: "100%", maxWidth: 640 }}>
+      <SectionGlow variant="a" />
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
         {/* Heading */}
         <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
           <p style={{ fontFamily: SANS, fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.18em",

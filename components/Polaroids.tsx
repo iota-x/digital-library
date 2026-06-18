@@ -4,7 +4,6 @@ import { motion, useScroll, useTransform, useSpring, useMotionValue } from "fram
 import Image from "next/image";
 import { useUserData, updateAvatar } from "@/lib/userStore";
 import { useIsMobile } from "@/lib/useIsMobile";
-import { useCanvasParticles } from "@/lib/useCanvasParticles";
 import { startDateFrom } from "@/lib/relationship";
 import { onPartnerSSE } from "@/lib/sseClient";
 import { cldImg } from "@/lib/cldImg";
@@ -14,7 +13,6 @@ import CuteTooltip from "@/components/CuteTooltip";
 interface PetalData { id:number; delay:number; left:string; size:number; dur:number; symbol:string; }
 
 const PETAL_SYMBOLS = ["🌸","🌷","💗","🌹","💕","🩷","✨","⭐"];
-const COLORS = ["var(--pink)","var(--pink-mid)","var(--pink-light)","var(--pink)","var(--pink-deep)","var(--pink)","var(--rose)"];
 
 function Petal({ delay, left, size, dur, symbol }: Omit<PetalData,"id">) {
   return (
@@ -22,48 +20,6 @@ function Petal({ delay, left, size, dur, symbol }: Omit<PetalData,"id">) {
       {symbol}
     </div>
   );
-}
-
-// Positions/velocities are stored in NORMALISED 0–1 space (not pixels) and
-// scaled to the canvas at draw time. This makes seeding independent of when /
-// at what size the canvas is first measured — so the dots always spread across
-// the whole hero instead of clustering at (0,0) when layout hasn't settled yet.
-interface Dot { x:number; y:number; size:number; color:string; vx:number; vy:number; life:number; maxLife:number }
-
-function seedDot(): Dot {
-  return {
-    x: Math.random(), y: Math.random(),
-    size: Math.random()*2.5+0.5, color: COLORS[Math.floor(Math.random()*COLORS.length)],
-    vx: (Math.random()-0.5)*0.0006, vy: -(Math.random()*0.0007+0.0002),
-    life: Math.random()*300, maxLife: 250+Math.random()*250,
-  };
-}
-
-function StardustCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dotsRef = useRef<Dot[]>([]);
-
-  useCanvasParticles(canvasRef, {
-    setup: () => {
-      if (dotsRef.current.length > 0) return;
-      dotsRef.current = Array.from({ length:70 }, seedDot);
-    },
-    draw: (ctx, w, h) => {
-      ctx.clearRect(0,0,w,h);
-      for (const d of dotsRef.current) {
-        d.x+=d.vx; d.y+=d.vy; d.life++;
-        const alpha = Math.sin((d.life/d.maxLife)*Math.PI)*0.75;
-        ctx.save(); ctx.globalAlpha=Math.max(0,alpha); ctx.fillStyle=d.color;
-        ctx.shadowBlur=10; ctx.shadowColor=d.color;
-        ctx.beginPath(); ctx.arc(d.x*w, d.y*h, d.size, 0, Math.PI*2); ctx.fill(); ctx.restore();
-        if (d.life>=d.maxLife || d.y<-0.02) {
-          Object.assign(d, seedDot(), { y: 1.02, life: 0, x: Math.random() });
-        }
-      }
-    },
-  });
-
-  return <canvas ref={canvasRef} style={{ position:"absolute", inset:0, pointerEvents:"none", zIndex:1 }} />;
 }
 
 function MagneticPolaroid({ children, rotate, label, emoji, onClick, editable }: {
@@ -284,7 +240,6 @@ export default function Polaroids() {
         padding:"5rem 2rem", overflow:"hidden",
         background:"linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 45%,var(--rose) 100%)",
       }}>
-        <StardustCanvas />
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none", zIndex:0,
           background:[

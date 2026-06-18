@@ -7,6 +7,7 @@ import { VoiceNoteStore } from "@/lib/resourceStores";
 import { useSoftDelete } from "@/lib/softDelete";
 import EmptyState from "@/components/EmptyState";
 import Tip from "@/components/Tip";
+import SectionGlow from "@/components/SectionGlow";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
 
@@ -248,13 +249,15 @@ export default function VoiceNote() {
         justifyContent: "center",
         padding: "clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
         background: "linear-gradient(160deg,var(--rose),var(--pink-light))",
+        position: "relative", overflow: "hidden",
       }}
     >
+      <SectionGlow variant="c" />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={inView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.7 }}
-        style={{ maxWidth: 540, width: "100%" }}
+        style={{ position: "relative", zIndex: 1, maxWidth: 540, width: "100%" }}
       >
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
