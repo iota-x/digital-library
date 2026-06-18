@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserInfo } from "@/lib/userStore";
 import { DEFAULT_SETTINGS } from "@/lib/themes";
@@ -24,6 +24,21 @@ const FEATURES = [
   { e: "🎵", t: "Your playlist",        d: "a song a day, always thinking of you" },
   { e: "📸", t: "Polaroids",            d: "your favourite moments, pinned up" },
   { e: "🔥", t: "Streaks & milestones", d: "celebrate every day of us" },
+];
+
+// Rotating "feel" snapshots — real-looking moments from inside the app.
+const PREVIEWS = [
+  { tag: "question of the day", title: "what made you smile today?",       foot: "🔥 7-day streak · you both answered 💞" },
+  { tag: "from your love jar",  title: "“found this & thought of you” 🥹", foot: "💌 12 little notes waiting inside" },
+  { tag: "song of the day",     title: "the one that's stuck in my head 🎧", foot: "🎵 added with love 💗" },
+  { tag: "a milestone today",   title: "Day 100 of us 🎉",                  foot: "✨ unlocked together" },
+];
+
+// Honest reassurances that lower the bar to signing up.
+const TRUST = [
+  { e: "🔒", t: "private, just for two" },
+  { e: "🆓", t: "free to start" },
+  { e: "⚡", t: "ready in a minute" },
 ];
 
 function inputStyle(hasError = false): React.CSSProperties {
@@ -154,6 +169,13 @@ function InviteCodeDisplay({ code, onDone }: { code: string; onDone: () => void 
  *  screens — gives newcomers a feel for the app and its features before they
  *  commit to making an account. Hidden once a flow (verify/forgot) is underway. */
 function Showcase() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI(n => (n + 1) % PREVIEWS.length), 3200);
+    return () => clearInterval(id);
+  }, []);
+  const p = PREVIEWS[i];
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -24 }}
@@ -162,19 +184,27 @@ function Showcase() {
       style={{ flex: "1 1 360px", maxWidth: 480, color: "#9d174d" }}
     >
       <p style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(190,24,93,0.5)", margin: "0 0 0.6rem" }}>
-        a private space for two
+        your own little world, together
       </p>
-      <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.8rem,4.5vw,2.6rem)", color: "#be185d", lineHeight: 1.15, margin: "0 0 0.7rem" }}>
-        every little moment,<br />kept together 🌸
+      <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.9rem,4.7vw,2.7rem)", color: "#be185d", lineHeight: 1.12, margin: "0 0 0.7rem" }}>
+        every little moment,<br />kept just for the two of you 🌸
       </h2>
-      <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(157,23,77,0.72)", lineHeight: 1.55, margin: "0 0 1.5rem", maxWidth: 420 }}>
-        a cosy app just for you and your person — journal your days, answer a daily
-        question, save songs, photos &amp; voice notes, and watch your streak of
-        &ldquo;us&rdquo; grow.
+      <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(157,23,77,0.72)", lineHeight: 1.55, margin: "0 0 1.1rem", maxWidth: 430 }}>
+        journal your days, trade a daily question, save your songs, photos &amp;
+        voice notes — and watch your streak of &ldquo;us&rdquo; grow, one day at a time.
       </p>
 
+      {/* Trust row — low-friction reassurance */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1.3rem" }}>
+        {TRUST.map(tr => (
+          <span key={tr.t} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: "rgba(255,255,255,0.65)", border: "1px solid rgba(249,168,212,0.45)", borderRadius: 50, padding: "0.28rem 0.7rem", fontFamily: SANS, fontSize: "0.7rem", fontWeight: 600, color: "rgba(157,23,77,0.8)" }}>
+            <span aria-hidden>{tr.e}</span>{tr.t}
+          </span>
+        ))}
+      </div>
+
       {/* Feature grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "0.6rem", marginBottom: "1.4rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "0.6rem", marginBottom: "1.3rem" }}>
         {FEATURES.map(f => (
           <div key={f.t} style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start", background: "rgba(255,255,255,0.6)", border: "1px solid rgba(249,168,212,0.4)", borderRadius: 14, padding: "0.7rem 0.8rem" }}>
             <span aria-hidden style={{ fontSize: "1.15rem", lineHeight: 1 }}>{f.e}</span>
@@ -186,23 +216,33 @@ function Showcase() {
         ))}
       </div>
 
-      {/* Tiny live-feel preview of a real card */}
-      <div style={{ background: "#fff", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 18, padding: "1rem 1.1rem", boxShadow: "0 12px 32px rgba(244,114,182,0.16)", maxWidth: 360 }}>
-        <p style={{ fontFamily: SANS, fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(190,24,93,0.45)", margin: "0 0 0.4rem" }}>
-          question of the day
-        </p>
-        <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.05rem", color: "#be185d", margin: "0 0 0.75rem", lineHeight: 1.3 }}>
-          what made you smile today?
-        </p>
-        <div style={{ display: "flex", gap: "0.45rem", alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: "rgba(249,168,212,0.2)", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 50, padding: "0.2rem 0.6rem", fontFamily: SANS, fontSize: "0.68rem", fontWeight: 700, color: "#be185d" }}>
-            🔥 7-day streak
-          </span>
-          <span style={{ fontFamily: SCRIPT, fontSize: "0.9rem", color: "rgba(190,24,93,0.5)" }}>
-            you both answered 💞
-          </span>
-        </div>
+      {/* Rotating live-feel preview — cycles through real moments in the app */}
+      <div style={{ position: "relative", minHeight: 116, marginBottom: "1rem" }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.4 }}
+            style={{ background: "#fff", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 18, padding: "1rem 1.1rem", boxShadow: "0 12px 32px rgba(244,114,182,0.16)", maxWidth: 360 }}
+          >
+            <p style={{ fontFamily: SANS, fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(190,24,93,0.45)", margin: "0 0 0.4rem" }}>
+              {p.tag}
+            </p>
+            <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.08rem", color: "#be185d", margin: "0 0 0.7rem", lineHeight: 1.3 }}>
+              {p.title}
+            </p>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: "rgba(249,168,212,0.18)", border: "1px solid rgba(249,168,212,0.45)", borderRadius: 50, padding: "0.22rem 0.65rem", fontFamily: SANS, fontSize: "0.68rem", fontWeight: 600, color: "rgba(190,24,93,0.75)" }}>
+              {p.foot}
+            </span>
+          </motion.div>
+        </AnimatePresence>
       </div>
+
+      <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "rgba(190,24,93,0.55)", margin: 0 }}>
+        your story starts the moment you both sign in 🌸
+      </p>
     </motion.div>
   );
 }
@@ -640,7 +680,8 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                     transition={{ duration: 0.25 }}
                   >
                     <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
-                      Create your private space. Share the invite code with your partner to join.
+                      Make your private little space in under a minute — then share the
+                      invite code with your person so it&apos;s just the two of you. 🌸
                     </p>
                     <label style={labelStyle()}>your name</label>
                     <input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="your name" style={inputStyle()} autoComplete="name" />
@@ -668,6 +709,9 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                       }}>
                       {loading ? "creating…" : "create our space 🌸"}
                     </motion.button>
+                    <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.45)", textAlign: "center", margin: "0.8rem 0 0", lineHeight: 1.4 }}>
+                      free to start · private · no ads — just the two of you 💗
+                    </p>
                   </motion.div>
                 )}
 
