@@ -16,6 +16,9 @@ export interface UserInfo {
   inviteCode:  string | null;
   startDate:   string;
   settings:    CoupleSettings;
+  /** False only when the account has an unconfirmed email. Optional/undefined
+   *  is treated as verified (legacy accounts, locally-built objects). */
+  emailVerified?: boolean;
 }
 
 let _user: UserInfo | null = null;
@@ -64,6 +67,7 @@ export async function fetchUserData(): Promise<UserInfo | null> {
       inviteCode:  data.inviteCode  ?? null,
       startDate:   data.startDate   ?? DEFAULT_START_DATE,
       settings:    data.settings    ?? DEFAULT_SETTINGS,
+      emailVerified: data.emailVerified !== false,
     };
     _user = u; persist(u); notify(u); return u;
   } catch {

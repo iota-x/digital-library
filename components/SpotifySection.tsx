@@ -3,11 +3,11 @@ import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { defaultStartDate } from "@/lib/relationship";
+import { useUserData } from "@/lib/userStore";
 
 const START  = defaultStartDate();
 const ME     = "ankit";
 const HER    = "juhi";
-const PLAYLIST_ID = "41LuF5qeH9u3erSTc5LkPw";
 
 interface SpotifyTrack {
   added_at: string;
@@ -39,16 +39,27 @@ const EQ = [
 ];
 
 export default function SpotifySection() {
+  const user = useUserData();
+  const playlistId = user?.settings?.spotifyPlaylistId ?? "";
+  // Turn-taking and the ankit/juhi attribution are personal to the original
+  // couple. Every other couple just gets their playlist, no name framing.
+  const isUs = useMemo(() => {
+    const names = [user?.name, user?.partnerName].filter(Boolean).map(n => n!.toLowerCase());
+    return names.includes(ME) && names.includes(HER);
+  }, [user?.name, user?.partnerName]);
+
   const [tracks, setTracks]   = useState<SpotifyTrack[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!playlistId) { setTracks([]); setLoading(false); return; }
+    setLoading(true);
     fetch("/api/spotify")
       .then(r => r.json())
       .then(d => setTracks(d.tracks || []))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [playlistId]);
 
   const dn     = useMemo(() => dayNum(new Date()), []);
   const myTurn = useMemo(() => isMyTurn(dn), [dn]);
@@ -116,25 +127,60 @@ export default function SpotifySection() {
           </p>
         </div>
 
-        {/* ── Whose turn ── */}
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"0.45rem",marginBottom:"2rem"}}>
+        {!playlistId ? (
+          /* ── No playlist set yet — invite the couple to add one ── */
           <div style={{
-            display:"inline-flex",alignItems:"center",gap:"0.55rem",
-            background:"linear-gradient(135deg,rgba(var(--pink-rgb),.28),rgba(var(--pink-deep-rgb),.16))",
-            border:"1.5px solid rgba(var(--pink-deep-rgb),.28)",
-            borderRadius:50,padding:"0.55rem 1.5rem",
-            boxShadow:"0 4px 20px rgba(var(--pink-deep-rgb),.12)",
+            textAlign:"center",padding:"2.4rem 1.4rem",
+            background:"rgba(255,255,255,.72)",
+            border:"1.5px solid rgba(var(--pink-deep-rgb),.16)",
+            borderRadius:24,boxShadow:"0 8px 36px rgba(var(--pink-deep-rgb),.08)",
           }}>
-            <span style={{fontSize:"1.1rem"}}>🎵</span>
-            <span style={{fontFamily:SANS,fontSize:"0.88rem",fontWeight:700,color:"var(--pink-deep)"}}>
-              {myTurn ? ME : HER}&apos;s turn today
-            </span>
+            <div style={{fontSize:"2.4rem",marginBottom:"0.5rem"}}>🎶</div>
+            <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.25rem",color:"var(--pink-deep)",margin:"0 0 0.4rem"}}>
+              no playlist yet
+            </p>
+            <p style={{fontFamily:SANS,fontSize:"0.85rem",color:"rgba(var(--pink-deep-rgb),.55)",margin:"0 auto 1.4rem",maxWidth:340,lineHeight:1.5}}>
+              link a shared Spotify playlist and your songs will live here together.
+            </p>
+            <button
+              onClick={() => window.dispatchEvent(new Event("annapp:settings"))}
+              className="sp-open-btn"
+              style={{
+                display:"inline-flex",alignItems:"center",gap:"0.45rem",border:"none",cursor:"pointer",
+                background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
+                color:"#fff",fontFamily:SANS,fontSize:"0.85rem",fontWeight:700,
+                borderRadius:50,padding:"0.6rem 1.4rem",
+                boxShadow:"0 6px 20px rgba(var(--pink-deep-rgb),.28)",
+              }}>
+              <span aria-hidden style={{fontSize:"0.95rem"}}>🎧</span>
+              add a playlist
+            </button>
           </div>
-          <span style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.12em"}}>
-            day {dn} of us · {myTurn ? `${ME} adds a song` : `${HER} adds a song`}
-          </span>
+        ) : (
+        <>
+        {/* ── Whose turn (original couple only) + add-song ── */}
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:"0.45rem",marginBottom:"2rem"}}>
+          {isUs && (
+            <>
+              <div style={{
+                display:"inline-flex",alignItems:"center",gap:"0.55rem",
+                background:"linear-gradient(135deg,rgba(var(--pink-rgb),.28),rgba(var(--pink-deep-rgb),.16))",
+                border:"1.5px solid rgba(var(--pink-deep-rgb),.28)",
+                borderRadius:50,padding:"0.55rem 1.5rem",
+                boxShadow:"0 4px 20px rgba(var(--pink-deep-rgb),.12)",
+              }}>
+                <span style={{fontSize:"1.1rem"}}>🎵</span>
+                <span style={{fontFamily:SANS,fontSize:"0.88rem",fontWeight:700,color:"var(--pink-deep)"}}>
+                  {myTurn ? ME : HER}&apos;s turn today
+                </span>
+              </div>
+              <span style={{fontFamily:SANS,fontSize:"0.7rem",color:"rgba(var(--pink-deep-rgb),.38)",letterSpacing:"0.12em"}}>
+                day {dn} of us · {myTurn ? `${ME} adds a song` : `${HER} adds a song`}
+              </span>
+            </>
+          )}
           <a
-            href={`https://open.spotify.com/playlist/${PLAYLIST_ID}`}
+            href={`https://open.spotify.com/playlist/${playlistId}`}
             target="_blank" rel="noopener noreferrer"
             className="sp-open-btn"
             style={{
@@ -193,9 +239,11 @@ export default function SpotifySection() {
                   background:"rgba(var(--pink-deep-rgb),.1)",borderRadius:6,padding:"0.1rem 0.5rem"}}>
                   ✨ song of the day
                 </span>
-                <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(var(--pink-deep-rgb),.4)"}}>
-                  added by {sodAdder} 💗
-                </span>
+                {isUs && (
+                  <span style={{fontFamily:SANS,fontSize:"0.6rem",color:"rgba(var(--pink-deep-rgb),.4)"}}>
+                    added by {sodAdder} 💗
+                  </span>
+                )}
               </div>
               <p style={{fontFamily:SERIF,fontStyle:"italic",
                 fontSize:"clamp(1rem,2.8vw,1.2rem)",color:"#7c3f58",
@@ -248,7 +296,7 @@ export default function SpotifySection() {
             boxShadow:"0 16px 52px rgba(var(--pink-deep-rgb),.14),0 0 0 1.5px rgba(var(--pink-rgb),.28)",
           }}>
           <iframe
-            src={`https://open.spotify.com/embed/playlist/${PLAYLIST_ID}?utm_source=generator&theme=0`}
+            src={`https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`}
             width="100%" height="420"
             allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
             loading="lazy" style={{display:"block",border:"none"}}
@@ -300,9 +348,11 @@ export default function SpotifySection() {
                       </p>
                     </div>
                     <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2,flexShrink:0}}>
-                      <span style={{fontFamily:SANS,fontSize:"0.64rem",color:"rgba(var(--pink-deep-rgb),.42)"}}>
-                        {isMe?ME:HER}
-                      </span>
+                      {isUs && (
+                        <span style={{fontFamily:SANS,fontSize:"0.64rem",color:"rgba(var(--pink-deep-rgb),.42)"}}>
+                          {isMe?ME:HER}
+                        </span>
+                      )}
                       {isSod && <span style={{fontSize:"0.7rem"}}>💗</span>}
                     </div>
                   </a>
@@ -310,6 +360,8 @@ export default function SpotifySection() {
               })}
             </div>
           </motion.div>
+        )}
+        </>
         )}
       </motion.div>
     </section>

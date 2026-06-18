@@ -1,8 +1,12 @@
 /**
  * Centralized transactional email + OTP helpers.
  *
- * - Uses Resend if RESEND_API_KEY is set
- * - In dev (or when key missing) logs the message instead so flows work offline
+ * Provider priority:
+ *  1. Gmail SMTP — when GMAIL_USER + GMAIL_APP_PASSWORD are set. Delivers to any
+ *     recipient with no domain to verify, so it's the easy path for a personal app.
+ *  2. Resend — when RESEND_API_KEY is set (needs a verified domain to reach
+ *     arbitrary recipients).
+ *  3. Neither set → log the message instead so flows still work offline in dev.
  */
 import crypto from "crypto";
 import { getCol } from "@/lib/mongo";
@@ -13,6 +17,28 @@ const FROM = serverEnv.EMAIL_FROM;
 const APP_NAME = publicEnv.APP_NAME;
 
 export async function sendMail(to: string, subject: string, html: string): Promise<{ ok: boolean; error?: string }> {
+  // 1) Gmail SMTP (preferred when configured) — no domain needed.
+  const gmailUser = serverEnv.GMAIL_USER;
+  const gmailPass = serverEnv.GMAIL_APP_PASSWORD;
+  if (gmailUser && gmailPass) {
+    try {
+      const nodemailer = (await import("nodemailer")).default;
+      const transport = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: gmailUser, pass: gmailPass },
+      });
+      // Gmail authenticates as gmailUser, so the From address must be that
+      // account; keep the friendly display name from EMAIL_FROM (or APP_NAME).
+      const displayName = FROM.split("<")[0].trim() || APP_NAME;
+      await transport.sendMail({ from: `${displayName} <${gmailUser}>`, to, subject, html });
+      return { ok: true };
+    } catch (err) {
+      log.error({ msg: "gmail send failed", err, to, subject });
+      return { ok: false, error: String(err) };
+    }
+  }
+
+  // 2) Resend (needs a verified domain to reach non-account recipients).
   const apiKey = serverEnv.RESEND_API_KEY;
   if (!apiKey || apiKey.startsWith("re_placeholder")) {
     log.info({ msg: "email:dev — skipped send", to, subject });
@@ -21,7 +47,15 @@ export async function sendMail(to: string, subject: string, html: string): Promi
   try {
     const { Resend } = await import("resend");
     const resend = new Resend(apiKey);
-    await resend.emails.send({ from: FROM, to, subject, html });
+    const { error } = await resend.emails.send({ from: FROM, to, subject, html });
+    // Resend reports recipient/domain problems in the response body without
+    // throwing — e.g. the onboarding@resend.dev sandbox sender only delivers to
+    // your own account email until a domain is verified. Surface that instead of
+    // pretending the send succeeded.
+    if (error) {
+      log.error({ msg: "mail send rejected", error, to, subject, from: FROM });
+      return { ok: false, error: String((error as { message?: string }).message ?? error) };
+    }
     return { ok: true };
   } catch (err) {
     log.error({ msg: "mail send failed", err, to, subject });

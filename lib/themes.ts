@@ -82,7 +82,7 @@ export const DEFAULT_MEMORY_CARDS: MemoryCardEntry[] = [
 export const DEFAULT_SETTINGS: CoupleSettings = {
   theme: "pink",
   coupleName: "",
-  spotifyPlaylistId: "41LuF5qeH9u3erSTc5LkPw",
+  spotifyPlaylistId: "",
   loveNotes: [
     "my favourite person 💗",
     "you make everything better 🌸",

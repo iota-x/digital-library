@@ -1,10 +1,9 @@
 "use client";
 import { useMemo } from "react";
 import { useCalendarData } from "@/lib/calendarStore";
+import { useUserData } from "@/lib/userStore";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
-import { defaultStartDate } from "@/lib/relationship";
-
-const START = defaultStartDate();
+import { daysTogether } from "@/lib/relationship";
 
 const SECTIONS = [
   { label: "calendar", emoji: "📅", href: "#calendar" },
@@ -15,10 +14,12 @@ const SECTIONS = [
 
 export default function JournalHeader() {
   const { data } = useCalendarData();
+  const user = useUserData();
 
   const stats = useMemo(() => {
     const today = new Date();
-    const dayNum = Math.floor((today.getTime() - START.getTime()) / 86400000) + 1;
+    // Day 1 = the couple's own start date (not the global default).
+    const dayNum = daysTogether(user?.startDate) + 1;
     const entries = data.filter(e => e.note || (e.photos?.length ?? 0) > 0);
     const total   = entries.length;
     const special = data.filter(e => e.special).length;
@@ -32,7 +33,7 @@ export default function JournalHeader() {
       else if (i > 0) break;
     }
     return { dayNum, total, special, streak };
-  }, [data]);
+  }, [data, user?.startDate]);
 
   return (
     <div className="dk-journal-header" style={{

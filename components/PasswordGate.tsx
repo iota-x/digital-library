@@ -40,6 +40,14 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
     });
   }, []);
 
+  const enter = (u: UserInfo) => { setUser(u); initCalendarStore(u.coupleId); };
+
+  // Signed in but email not confirmed — keep them on the verification screen
+  // (it survives refreshes now, instead of silently dropping into the app).
+  if (user && user.emailVerified === false) {
+    return <LandingPage initialVerify={user} onSuccess={enter} />;
+  }
+
   // Returning visitor: render their themed app immediately (optimistic). If the
   // background check later finds the session is gone, `user` flips to null and
   // we fall through to the landing page.
@@ -49,12 +57,5 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
   // themed loader instead of a blank screen.
   if (!checked) return <GateLoading />;
 
-  return (
-    <LandingPage
-      onSuccess={(u: UserInfo) => {
-        setUser(u);
-        initCalendarStore(u.coupleId);
-      }}
-    />
-  );
+  return <LandingPage onSuccess={enter} />;
 }

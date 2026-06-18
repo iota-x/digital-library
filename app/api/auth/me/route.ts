@@ -16,6 +16,15 @@ export async function GET(req: NextRequest) {
     let avatarUrl:        string | null = null;
     let partnerAvatarUrl: string | null = null;
     let settings                   = DEFAULT_SETTINGS;
+    let emailVerified              = true;
+
+    try {
+      const users = await getCol("users");
+      const me    = await users.findOne({ _id: new ObjectId(session.userId) });
+      // Legacy accounts predate the flag — treat a missing value as verified
+      // so only explicitly-unverified users are gated.
+      emailVerified = me?.emailVerified !== false;
+    } catch {}
 
     try {
       const couples = await getCol("couples");
@@ -43,6 +52,7 @@ export async function GET(req: NextRequest) {
       inviteCode,
       startDate,
       settings,
+      emailVerified,
     });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });

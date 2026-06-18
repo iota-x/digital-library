@@ -10,6 +10,9 @@ type Mode = "create" | "join" | "signin" | "forgot" | "verify";
 
 interface LandingPageProps {
   onSuccess: (user: UserInfo) => void;
+  /** When set, open straight to the verify-email step for this signed-in but
+   *  unconfirmed user (e.g. after a refresh mid-verification). */
+  initialVerify?: UserInfo;
 }
 
 const FLOATERS = ["🌸","💗","🩷","✨","🌷","💕","💫","🌙","⭐","🌸","💗","🩷"];
@@ -138,8 +141,8 @@ function InviteCodeDisplay({ code, onDone }: { code: string; onDone: () => void 
   );
 }
 
-export default function LandingPage({ onSuccess }: LandingPageProps) {
-  const [mode, setMode] = useState<Mode>("create");
+export default function LandingPage({ onSuccess, initialVerify }: LandingPageProps) {
+  const [mode, setMode] = useState<Mode>(initialVerify ? "verify" : "create");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -171,7 +174,7 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
 
   // Email verification flow (after register / join)
   const [verifyCode,      setVerifyCode]    = useState("");
-  const [verifyPending,   setVerifyPending] = useState<UserInfo | null>(null);
+  const [verifyPending,   setVerifyPending] = useState<UserInfo | null>(initialVerify ?? null);
   const [verifyInvite,    setVerifyInvite]  = useState<string | null>(null);
 
   const switchMode = (m: Mode) => {
@@ -345,12 +348,14 @@ export default function LandingPage({ onSuccess }: LandingPageProps) {
       const data = await res.json();
       if (!res.ok || !data.ok) { setError(data.error || "Invalid code"); return; }
       if (verifyPending) {
+        // Carry the now-confirmed flag forward so the gate lets them in.
+        const verified: UserInfo = { ...verifyPending, emailVerified: true };
         // Mark this as a fresh account so the Onboarding component shows after entry
         try { localStorage.removeItem("ann_onboarded_v1"); } catch {}
-        if (verifyInvite && verifyPending.role === "creator") {
-          setInviteCode(verifyInvite); setPendingUser(verifyPending);
+        if (verifyInvite && verified.role === "creator") {
+          setInviteCode(verifyInvite); setPendingUser(verified);
         } else {
-          onSuccess(verifyPending);
+          onSuccess(verified);
         }
       }
     } catch {

@@ -33,6 +33,11 @@ export const serverEnv = {
   get VAPID_PRIVATE_KEY()    { return required("VAPID_PRIVATE_KEY"); },
   // Optional with sensible runtime fallbacks
   get RESEND_API_KEY()       { return optional("RESEND_API_KEY"); },
+  // Gmail SMTP fallback (no domain needed). When both are set, transactional
+  // mail goes out through Gmail instead of Resend. The password is a Google
+  // "App Password" (16 chars), not the account password.
+  get GMAIL_USER()           { return optional("GMAIL_USER"); },
+  get GMAIL_APP_PASSWORD()   { return optional("GMAIL_APP_PASSWORD").replace(/\s+/g, ""); },
   get SPOTIFY_CLIENT_ID()    { return optional("SPOTIFY_CLIENT_ID"); },
   get SPOTIFY_CLIENT_SECRET(){ return optional("SPOTIFY_CLIENT_SECRET"); },
   get NOTIFY_EMAIL_1()       { return optional("NOTIFY_EMAIL_1"); },
