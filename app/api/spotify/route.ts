@@ -16,6 +16,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ tracks: [], noCredentials: true });
   }
 
+  // The original couple's playlist shipped as the old default and leaked into
+  // other couples' saved settings — never serve it to anyone but that couple.
+  const LEGACY_DEFAULT_PLAYLIST = "41LuF5qeH9u3erSTc5LkPw";
+
   // Use couple's playlist if authenticated
   let playlistId = DEFAULT_SETTINGS.spotifyPlaylistId;
   try {
@@ -26,8 +30,14 @@ export async function GET(req: NextRequest) {
       if (couple?.settings?.spotifyPlaylistId) {
         playlistId = couple.settings.spotifyPlaylistId;
       }
+      const names = [couple?.person1Name, couple?.person2Name]
+        .filter(Boolean).map((n) => String(n).toLowerCase());
+      const isOriginal = names.includes("ankit") && names.includes("juhi");
+      if (!isOriginal && playlistId === LEGACY_DEFAULT_PLAYLIST) playlistId = "";
     }
   } catch {}
+
+  if (!playlistId) return NextResponse.json({ tracks: [] });
 
   try {
     const tokenRes = await fetch("https://accounts.spotify.com/api/token", {
