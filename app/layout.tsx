@@ -13,6 +13,8 @@ import MotionRoot     from "@/components/MotionRoot";
 import MobileTabBar   from "@/components/MobileTabBar";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { ToasterProvider } from "@/components/Toaster";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -72,6 +74,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {/* Keyboard skip link — visually hidden until focused */}
               <a href="#main" className="skip-link">skip to content</a>
               <div id="main"><PageTransition>{children}</PageTransition></div>
+              <Analytics />
+              <SpeedInsights />
             </ConfirmProvider>
           </ToasterProvider>
         </MotionRoot>
