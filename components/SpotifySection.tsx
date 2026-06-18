@@ -145,7 +145,7 @@ export default function SpotifySection() {
               link a shared Spotify playlist and your songs will live here together.
             </p>
             <button
-              onClick={() => window.dispatchEvent(new Event("annapp:settings"))}
+              onClick={() => window.dispatchEvent(new CustomEvent("annapp:settings", { detail: { focus: "spotify" } }))}
               className="sp-open-btn"
               style={{
                 display:"inline-flex",alignItems:"center",gap:"0.45rem",border:"none",cursor:"pointer",

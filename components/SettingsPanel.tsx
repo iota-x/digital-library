@@ -77,10 +77,11 @@ function GroupLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-interface Props { open: boolean; onClose: () => void; }
+interface Props { open: boolean; onClose: () => void; focusField?: string | null }
 
-export default function SettingsPanel({ open, onClose }: Props) {
+export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const user = useUserData();
+  const spotifyInputRef = useRef<HTMLInputElement>(null);
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
   const [saveErr, setSaveErr] = useState("");
@@ -102,6 +103,19 @@ export default function SettingsPanel({ open, onClose }: Props) {
   const initialDateRef   = useRef<string>("");
   // True when the draft differs from what was last loaded — drives the save-button glow
   const dirty = JSON.stringify(draft) !== initialDraftRef.current || startDate !== initialDateRef.current;
+
+  // When opened with a focus target (e.g. the "add a playlist" prompt), scroll
+  // that field into view and focus it once the open animation has settled.
+  useEffect(() => {
+    if (!open || focusField !== "spotify") return;
+    const t = setTimeout(() => {
+      const el = spotifyInputRef.current;
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.focus({ preventScroll: true });
+    }, 360);
+    return () => clearTimeout(t);
+  }, [open, focusField]);
 
   // Reset save-tracking + check push status when panel opens
   useEffect(() => {
@@ -545,6 +559,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
                 Paste the whole Spotify playlist link — we&apos;ll pull out the ID for you.
               </p>
               <input
+                ref={spotifyInputRef}
                 value={draft.spotifyPlaylistId}
                 onChange={e => set("spotifyPlaylistId", parseSpotifyPlaylistId(e.target.value))}
                 placeholder="https://open.spotify.com/playlist/…"

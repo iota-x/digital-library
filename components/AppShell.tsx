@@ -15,14 +15,18 @@ import DaysBadge             from "@/components/DaysBadge";
 
 export default function AppShell() {
   const [open, setOpen] = useState(false);
+  const [focusField, setFocusField] = useState<string | null>(null);
 
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = (e: Event) => {
+      setFocusField((e as CustomEvent).detail?.focus ?? null);
+      setOpen(true);
+    };
     window.addEventListener("annapp:settings", handler);
     return () => window.removeEventListener("annapp:settings", handler);
   }, []);
 
-  const handleClose = useCallback(() => setOpen(false), []);
+  const handleClose = useCallback(() => { setOpen(false); setFocusField(null); }, []);
 
   return (
     <>
@@ -37,7 +41,7 @@ export default function AppShell() {
       <TogetherMode />
       <DailyNudge />
       <DaysBadge />
-      <SettingsPanel open={open} onClose={handleClose} />
+      <SettingsPanel open={open} onClose={handleClose} focusField={focusField} />
     </>
   );
 }
