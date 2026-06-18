@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
 import { THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
+import { resolvePlaylistId } from "@/lib/spotify";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
 import { useFocusTrap } from "@/lib/useFocusTrap";
@@ -121,6 +122,9 @@ export default function SettingsPanel({ open, onClose }: Props) {
     if (open && user?.settings) {
       const merged: CoupleSettings = {
         ...DEFAULT_SETTINGS, ...user.settings,
+        // Don't pre-fill (and risk re-saving) the original couple's leaked
+        // playlist for anyone else — leave it blank so they paste their own.
+        spotifyPlaylistId: resolvePlaylistId(user.settings.spotifyPlaylistId, user.name, user.partnerName),
         loveNotes:   user.settings.loveNotes?.length   ? user.settings.loveNotes   : DEFAULT_SETTINGS.loveNotes,
         memoryCards: user.settings.memoryCards?.length ? user.settings.memoryCards : DEFAULT_SETTINGS.memoryCards,
         sections: {

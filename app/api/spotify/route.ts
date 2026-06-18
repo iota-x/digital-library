@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import { getSession } from "@/lib/auth";
 import { getCol } from "@/lib/mongo";
 import { DEFAULT_SETTINGS } from "@/lib/themes";
+import { resolvePlaylistId } from "@/lib/spotify";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/log";
 
@@ -16,11 +17,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ tracks: [], noCredentials: true });
   }
 
-  // The original couple's playlist shipped as the old default and leaked into
-  // other couples' saved settings — never serve it to anyone but that couple.
-  const LEGACY_DEFAULT_PLAYLIST = "41LuF5qeH9u3erSTc5LkPw";
-
-  // Use couple's playlist if authenticated
+  // Use couple's playlist if authenticated, but never serve the original
+  // couple's leaked default to anyone else (see lib/spotify).
   let playlistId = DEFAULT_SETTINGS.spotifyPlaylistId;
   try {
     const session = await getSession(req);
@@ -28,12 +26,8 @@ export async function GET(req: NextRequest) {
       const couples = await getCol("couples");
       const couple  = await couples.findOne({ _id: new ObjectId(session.coupleId) });
       if (couple?.settings?.spotifyPlaylistId) {
-        playlistId = couple.settings.spotifyPlaylistId;
+        playlistId = resolvePlaylistId(couple.settings.spotifyPlaylistId, couple.person1Name, couple.person2Name);
       }
-      const names = [couple?.person1Name, couple?.person2Name]
-        .filter(Boolean).map((n) => String(n).toLowerCase());
-      const isOriginal = names.includes("ankit") && names.includes("juhi");
-      if (!isOriginal && playlistId === LEGACY_DEFAULT_PLAYLIST) playlistId = "";
     }
   } catch {}
 

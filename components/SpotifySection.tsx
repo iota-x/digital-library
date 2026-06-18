@@ -4,14 +4,11 @@ import { motion } from "framer-motion";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { defaultStartDate } from "@/lib/relationship";
 import { useUserData } from "@/lib/userStore";
+import { isOriginalCouple, resolvePlaylistId } from "@/lib/spotify";
 
 const START  = defaultStartDate();
 const ME     = "ankit";
 const HER    = "juhi";
-// The original couple's playlist. Earlier builds shipped this as the default and
-// it got persisted into other couples' saved settings — so we treat it as "unset"
-// for anyone who isn't the original couple, rather than leaking it onto their page.
-const LEGACY_DEFAULT_PLAYLIST = "41LuF5qeH9u3erSTc5LkPw";
 
 interface SpotifyTrack {
   added_at: string;
@@ -45,15 +42,13 @@ const EQ = [
 export default function SpotifySection() {
   const user = useUserData();
   // Turn-taking, the add-song button, and the ankit/juhi attribution are personal
-  // to the original couple. Every other couple just gets their own playlist.
-  const isUs = useMemo(() => {
-    const names = [user?.name, user?.partnerName].filter(Boolean).map(n => n!.toLowerCase());
-    return names.includes(ME) && names.includes(HER);
-  }, [user?.name, user?.partnerName]);
-  const rawPlaylistId = user?.settings?.spotifyPlaylistId ?? "";
-  // Never serve the original couple's playlist to anyone else, even if it's
-  // lingering in their persisted settings — show the "add a playlist" prompt.
-  const playlistId = !isUs && rawPlaylistId === LEGACY_DEFAULT_PLAYLIST ? "" : rawPlaylistId;
+  // to the original couple. Every other couple just gets their own playlist —
+  // and never the original couple's leaked default (→ "add a playlist" prompt).
+  const isUs = useMemo(() => isOriginalCouple(user?.name, user?.partnerName), [user?.name, user?.partnerName]);
+  const playlistId = useMemo(
+    () => resolvePlaylistId(user?.settings?.spotifyPlaylistId, user?.name, user?.partnerName),
+    [user?.settings?.spotifyPlaylistId, user?.name, user?.partnerName],
+  );
 
   const [tracks, setTracks]   = useState<SpotifyTrack[]>([]);
   const [loading, setLoading] = useState(true);
