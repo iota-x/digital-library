@@ -2,7 +2,8 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SERIF, SANS, MONO } from "@/lib/typography";
-import { defaultStartDate } from "@/lib/relationship";
+import { dayNumber } from "@/lib/relationship";
+import { getUser } from "@/lib/userStore";
 
 /* ── Unique aesthetic: dark observatory / star chart ── */
 
@@ -27,7 +28,6 @@ const MOOD_LABEL: Record<string,string> = {
   "🌙":"moonlit","💗":"love","✨":"sparkling","🎮":"gaming",
   "🌷":"peaceful","😴":"sleepy","🤭":"giggly","💫":"dreamy",
 };
-const START = defaultStartDate();
 
 interface Entry { date:string; mood:string; note:string; photos:string[]; }
 interface DataPoint { date:Date; mood:string; dayNum:number; }
@@ -44,7 +44,7 @@ export default function MoodGraph() {
     fetch("/api/calendar").then(r=>r.json()).then((arr:Entry[])=>{
       const pts = arr
         .filter(e=>e.mood)
-        .map(e=>({ date:new Date(e.date+"T12:00:00"), mood:e.mood, dayNum:Math.floor((new Date(e.date+"T12:00:00").getTime()-START.getTime())/86400000)+1 }))
+        .map(e=>({ date:new Date(e.date+"T12:00:00"), mood:e.mood, dayNum:dayNumber(e.date, getUser()?.startDate) }))
         .sort((a,b)=>a.date.getTime()-b.date.getTime());
       setData(pts);
       setLoaded(true);

@@ -15,7 +15,7 @@ function PlayHero() {
   return (
     <div style={{
       position: "relative", textAlign: "center", overflow: "hidden",
-      padding: "clamp(3.5rem,8vh,5.5rem) clamp(1rem,4vw,2rem) clamp(1.5rem,4vh,2.5rem)",
+      padding: "clamp(3.5rem,8vh,5.5rem) clamp(1rem,4vw,2rem) clamp(1rem,3vh,1.5rem)",
       background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 60%,rgba(var(--pink-light-rgb),0) 100%)",
     }}>
       <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,2.5vw,1.2rem)", color: "var(--muted)", margin: "0 0 0.5rem" }}>
@@ -35,19 +35,12 @@ function PlayHero() {
   );
 }
 
-function Band({ children, label }: { children: React.ReactNode; label?: string }) {
+/** One consistent, divider-free band so the sections read as a continuous flow
+ *  instead of a stack of boxed-off heroes. */
+function Band({ children }: { children: React.ReactNode }) {
   return (
-    <section style={{ width: "100%", padding: "clamp(1.6rem,4vh,2.6rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
-      <div style={{ width: "100%", maxWidth: 760 }}>
-        {label && (
-          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem", justifyContent: "center", marginBottom: "1.2rem", opacity: 0.7 }}>
-            <div style={{ height: 1, flex: "0 1 60px", background: "linear-gradient(90deg,transparent,rgba(var(--pink-deep-rgb),.3))" }} />
-            <span style={{ fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--muted)" }}>{label}</span>
-            <div style={{ height: 1, flex: "0 1 60px", background: "linear-gradient(90deg,rgba(var(--pink-deep-rgb),.3),transparent)" }} />
-          </div>
-        )}
-        {children}
-      </div>
+    <section style={{ width: "100%", padding: "clamp(1.4rem,3.5vh,2.2rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: 760 }}>{children}</div>
     </section>
   );
 }
@@ -57,12 +50,10 @@ function PlayContent() {
     <main>
       <PlayHero />
       <Band><ErrorBoundary><CoupleQuiz /></ErrorBoundary></Band>
-      <Band label="🎲 quick games"><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>
+      <Band><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>
       <Band><ErrorBoundary><WouldYouRather /></ErrorBoundary></Band>
-      <Band label="🤍 just for us"><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
-      <ErrorBoundary>
-        <Ideas mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" />
-      </ErrorBoundary>
+      <Band><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
+      <ErrorBoundary><Ideas mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
     </main>
   );
 }

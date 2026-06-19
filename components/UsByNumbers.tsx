@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import { useUserData } from "@/lib/userStore";
-import { daysTogether } from "@/lib/relationship";
+import { todayDayNumber } from "@/lib/relationship";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import { SERIF, SANS } from "@/lib/typography";
 
@@ -60,7 +60,7 @@ export default function UsByNumbers() {
 
   if (loading) return <SectionSkeleton accent="rgba(var(--pink-rgb),.22)" lines={4} />;
 
-  const days = daysTogether(user?.startDate);
+  const days = todayDayNumber(user?.startDate);
   const cards: { emoji: string; value: string; label: string }[] = [
     { emoji: "💞", value: days.toLocaleString(), label: "days together" },
     { emoji: "📖", value: String(stats.memories), label: "memories kept" },

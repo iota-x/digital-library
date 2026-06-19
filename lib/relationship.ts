@@ -29,3 +29,20 @@ export function daysTogether(raw?: string | null): number {
   const diff = Date.now() - start.getTime();
   return Math.max(0, Math.floor(diff / 86_400_000));
 }
+
+/**
+ * Canonical "which day of us is `dateKey`" — day 1 is the start date. Uses the
+ * couple's start (falling back to default) at LOCAL midnight, the same basis as
+ * `daysTogether`, so every surface agrees instead of drifting by a day across
+ * timezones / UTC-vs-local starts. `dateKey` is a YYYY-MM-DD string.
+ */
+export function dayNumber(dateKey: string, raw?: string | null): number {
+  const start = startDateFrom(raw, true).getTime();
+  const d = new Date(`${dateKey}T00:00:00`).getTime();
+  return Math.max(0, Math.floor((d - start) / 86_400_000)) + 1;
+}
+
+/** Today's ordinal day number (day 1 = the start date). */
+export function todayDayNumber(raw?: string | null): number {
+  return daysTogether(raw) + 1;
+}

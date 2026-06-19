@@ -6,11 +6,11 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useCalendarData } from "@/lib/calendarStore";
 import SectionSkeleton from "@/components/SectionSkeleton";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
-import { defaultStartDate } from "@/lib/relationship";
+import { dayNumber } from "@/lib/relationship";
+import { getUser } from "@/lib/userStore";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const START  = defaultStartDate();
 const PINK   = "var(--pink-deep)";
 const CARD_W = 264;
 
@@ -28,7 +28,7 @@ const PETALS = Array.from({length:30},(_,i)=>({
 }));
 
 /* ─── helpers ─── */
-function dayNum(k:string){ return Math.floor((new Date(k+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
+function dayNum(k:string){ return dayNumber(k, getUser()?.startDate); }
 function fmtDate(k:string){ const d=new Date(k+"T12:00:00"); return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
 function mLabel(k:string){ const d=new Date(k+"T12:00:00"); return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
 function yLabel(k:string){ return new Date(k+"T12:00:00").getFullYear().toString(); }

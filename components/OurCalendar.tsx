@@ -2,10 +2,10 @@
 import React, { useRef, useState, useCallback, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCalendarData, updateCalendarCache, deleteFromCalendarCache, type CalEntry, type Sticker } from "@/lib/calendarStore";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, getUser } from "@/lib/userStore";
 import { useEscKey } from "@/lib/useEscKey";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
-import { defaultStartDate } from "@/lib/relationship";
+import { startDateFrom, dayNumber, todayDayNumber } from "@/lib/relationship";
 import { queuedFetch } from "@/lib/offlineQueue";
 import { STICKER_PALETTE, makeSticker } from "@/lib/stickers";
 import StickerOverlay from "@/components/StickerOverlay";
@@ -23,7 +23,9 @@ const DAYS_FULL  = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
 const SPECIAL_LABELS = ["🌹 First date","💗 Special moment","🌙 Late night talk","✈️ Adventure","🎂 Birthday","💌 Important","⭐ Favourite memory","🎶 Our song","🌸 Just us","🎮 Gaming night","🍜 Food date","🌃 Night out"];
 const BIRTHDAYS: Record<string, string> = { "12-20": "🎂 Ankit's Birthday", "07-06": "🎂 Juhi's Birthday" };
 const MOODS = ["🥰","😊","🥺","😂","🌙","💗","✨","🎮","🌷","😴","🤭","💫"];
-const START = defaultStartDate();
+// The couple's own start date (local midnight), read at call time so it tracks
+// the logged-in couple rather than a hardcoded default.
+const coupleStart = () => startDateFrom(getUser()?.startDate, true);
 
 /* ─── stable per-decoration values — computed once, never on render ─── */
 const DECO_SYMS   = ["💗","🌸","💕","🩷","✨"] as const;
@@ -36,7 +38,7 @@ const ORBS = [
 ] as const;
 
 function toKey(y: number, m: number, d: number) { return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`; }
-function dayNum(key: string) { return Math.floor((new Date(key + "T12:00:00").getTime() - START.getTime()) / 86400000) + 1; }
+function dayNum(key: string) { return dayNumber(key, getUser()?.startDate); }
 function fmtDate(key: string) { const d = new Date(key + "T12:00:00"); return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`; }
 function isVideoSrc(src: string) { return src.startsWith("data:video") || /\.(mp4|mov|webm)$/i.test(src); }
 
@@ -504,7 +506,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   const [uploadErr, setUploadErr] = useState<string | null>(null);
 
   const displayDate = new Date(dateKey + "T12:00:00");
-  const isOurs      = displayDate >= START;
+  const isOurs      = displayDate >= coupleStart();
   const dn          = isOurs ? dayNum(dateKey) : null;
   const hasContent  = !!(draft.note || (draft.photos?.length ?? 0) > 0);
   const hasMedia    = (draft.photos?.length ?? 0) > 0;
@@ -1018,7 +1020,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
         <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--pink-deep)", margin: "0 0 0.5rem", fontWeight: 400, textShadow: "0 2px 16px rgba(var(--pink-deep-rgb),.15)" }}>our days together</h2>
         <p style={{ fontFamily: SANS, fontSize: "clamp(0.88rem,2vw,1rem)", color: "rgba(var(--pink-deep-rgb),.55)", margin: "0 0 1.2rem", lineHeight: 1.6 }}>every day logged, every moment saved 🌸</p>
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "center", flexWrap: "wrap" }}>
-          {[{ label: `${totalMem} memories`, e: "📖" }, { label: `${specialCnt} special days`, e: "⭐" }, { label: `Day ${Math.floor((today.getTime() - START.getTime()) / 86400000) + 1} of us`, e: "🌸" }].map((s, i) => (
+          {[{ label: `${totalMem} memories`, e: "📖" }, { label: `${specialCnt} special days`, e: "⭐" }, { label: `Day ${todayDayNumber(getUser()?.startDate)} of us`, e: "🌸" }].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               className="dk-cal-chip"
               style={{ background: "rgba(255,255,255,.6)", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 30, padding: "0.35rem 1rem", fontFamily: SANS, fontSize: "0.82rem", color: "var(--pink-deep)", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.08)" }}>
@@ -1066,7 +1068,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
                 const hasMedia   = (entry?.photos?.length ?? 0) > 0;
                 const hasNote    = !!entry?.note;
                 const hasVideo   = hasMedia && entry.photos!.some(isVideoSrc);
-                const inOurTime  = new Date(key + "T12:00:00") >= START;
+                const inOurTime  = new Date(key + "T12:00:00") >= coupleStart();
                 const bdayLabel  = BIRTHDAYS[`${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`] ?? null;
                 const isBirthday = !!bdayLabel;
                 return (

@@ -6,12 +6,12 @@ import SectionSkeleton from "@/components/SectionSkeleton";
 import BgAccents from "@/components/BgAccents";
 import { cldImg } from "@/lib/cldImg";
 import { SERIF, SANS } from "@/lib/typography";
-import { defaultStartDate } from "@/lib/relationship";
+import { dayNumber } from "@/lib/relationship";
+import { getUser } from "@/lib/userStore";
 
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const START  = defaultStartDate();
-function dayNum(key:string){ return Math.floor((new Date(key+"T12:00:00").getTime()-START.getTime())/86400000)+1; }
+function dayNum(key:string){ return dayNumber(key, getUser()?.startDate); }
 
 const STARS = Array.from({length:22},(_,i)=>({
   left:`${(i*4.7+2.3)%100}%`, top:`${(i*7.3+5.1)%100}%`,
