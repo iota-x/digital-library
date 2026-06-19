@@ -7,12 +7,13 @@ import { usePathname } from "next/navigation";
  *
  * The visibility breakpoint and safe-area padding live in globals.css under
  * `.bottom-tabs` so the bar disappears on desktop without any JS. Order of
- * tabs intentionally mirrors the 5 most-used surfaces — capsule and shared
- * stay in the hamburger menu since they're visited less often.
+ * tabs intentionally mirrors the most-used surfaces — capsule stays in the
+ * hamburger menu since it's visited less often.
  */
 
 const TABS = [
   { href: "/",         label: "home",     icon: "🌸" },
+  { href: "/daily",    label: "daily",    icon: "💭" },
   { href: "/journal",  label: "journal",  icon: "📖" },
   { href: "/map",      label: "memories", icon: "📸" },
   { href: "/timeline", label: "story",    icon: "🕰" },

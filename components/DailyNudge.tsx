@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useUserData } from "@/lib/userStore";
 import { onSSE } from "@/lib/sseClient";
 import { todayKey } from "@/lib/dailyQuestions";
@@ -11,11 +11,11 @@ import { buzz } from "@/lib/haptics";
 /**
  * "Today's question is waiting" nudge.
  *
- * The daily question lives mid-homepage, so it's easy to miss. This slim pill
- * drops in under the navbar the *first time you open the app each day* (only
- * when a partner has joined and you haven't answered yet), then auto-hides
- * after a few seconds and stays gone for the rest of the day. Tapping it jumps
- * straight to the question section.
+ * The daily question lives on its own page (/daily), so it's easy to miss from
+ * elsewhere. This slim pill drops in under the navbar the *first time you open
+ * the app each day* (only when a partner has joined and you haven't answered
+ * yet), then auto-hides after a few seconds and stays gone for the rest of the
+ * day. Tapping it jumps straight to the question page.
  *
  * Positioned below the navbar (never over it) so it doesn't cover the nav.
  */
@@ -26,7 +26,6 @@ const AUTO_HIDE_MS = 9000;
 export default function DailyNudge() {
   const user = useUserData();
   const router = useRouter();
-  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [streak, setStreak] = useState(0);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -58,6 +57,10 @@ export default function DailyNudge() {
         if (!d.mine) {
           setShow(true);
           hideTimer.current = setTimeout(() => { setShow(false); seal(); }, AUTO_HIDE_MS);
+          // First open of the day with the question still unanswered: take them
+          // straight to it so they actually see today's question, not just the
+          // pill. Only from home, so a deep-link into another page isn't hijacked.
+          if (window.location.pathname === "/") router.push("/daily");
         }
       } catch {}
     })();
@@ -76,11 +79,7 @@ export default function DailyNudge() {
   const goAnswer = () => {
     buzz("tap");
     dismiss();
-    if (pathname === "/") {
-      document.getElementById("daily")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    } else {
-      router.push("/#daily");
-    }
+    router.push("/daily");
   };
 
   if (!user?.partnerName) return null;

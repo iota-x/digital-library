@@ -10,6 +10,7 @@ import { useFocusTrap } from "@/lib/useFocusTrap";
 
 const ROUTES = [
   { href:"/",         label:"home",     emoji:"🌸", desc:"photos, memories & our timer"                 },
+  { href:"/daily",    label:"question", emoji:"💭", desc:"today's question of the day & past answers"   },
   { href:"/timeline", label:"our story", emoji:"🕰️",  desc:"memories from before this app — where it all began" },
   { href:"/journal",  label:"journal",  emoji:"📖", desc:"calendar, streaks & monthly recap"             },
   { href:"/capsule",  label:"capsule",  emoji:"💌", desc:"time capsule letters to each other"            },

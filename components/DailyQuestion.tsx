@@ -35,22 +35,37 @@ export default function DailyQuestion() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
   const wasRevealed = useRef(false);
 
   const load = useCallback(async () => {
     try {
       const r = await fetch("/api/daily", { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const d = (await r.json()) as DailyView;
-      if (d && typeof d.question === "string") {
-        setView(d);
-        if (d.revealed && !wasRevealed.current) { wasRevealed.current = true; heartBump(); }
-        if (!d.revealed) wasRevealed.current = false;
-      }
-    } catch {}
+      if (!d || typeof d.question !== "string") throw new Error("bad payload");
+      setView(d);
+      setFailed(false);
+      if (d.revealed && !wasRevealed.current) { wasRevealed.current = true; heartBump(); }
+      if (!d.revealed) wasRevealed.current = false;
+    } catch {
+      // Don't vanish on a transient hiccup — surface a retry instead, and let
+      // the auto-retry / refocus handlers below quietly try again.
+      setFailed(true);
+    }
     finally { setLoaded(true); }
   }, []);
 
   useEffect(() => { if (user?.partnerName) load(); }, [user?.partnerName, load]);
+
+  // Auto-retry a failed load every few seconds until we have a view. Combined
+  // with the refocus/visibility refetch above, this self-heals network blips
+  // without the section silently disappearing.
+  useEffect(() => {
+    if (!failed || view || !user?.partnerName) return;
+    const id = setTimeout(load, 4000);
+    return () => clearTimeout(id);
+  }, [failed, view, user?.partnerName, load]);
 
   // Auto-roll: when the app timezone's day changes (IST midnight) while the tab
   // is open, or when you refocus a tab left open past the boundary, refetch so
@@ -114,7 +129,32 @@ export default function DailyQuestion() {
 
   // Solo couple (no partner joined yet) — nothing to reveal against.
   if (!user?.partnerName) return null;
-  if (!loaded || !view) return null;
+  if (!loaded) return null;
+
+  // Loaded but no data → the fetch failed. Keep the section present (with its
+  // #daily anchor) and offer a manual retry instead of disappearing.
+  if (!view) {
+    return (
+      <section id="daily" style={{
+        position: "relative", overflow: "hidden", width: "100%",
+        padding: "clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2rem) clamp(1.2rem, 2.5vh, 1.8rem)",
+        display: "flex", justifyContent: "center",
+      }}>
+        <SectionGlow variant="a" />
+        <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
+          <div style={{ ...CARD, textAlign: "center" }}>
+            <p style={{ fontFamily: SCRIPT, fontSize: "1.1rem", color: "var(--pink-deep)", margin: "0 0 0.9rem" }}>
+              couldn&apos;t load today&apos;s question 💭
+            </p>
+            <motion.button whileTap={{ scale: 0.96 }} onClick={load}
+              style={{ ...BTN, background: "linear-gradient(135deg, var(--pink), var(--pink-deep))", color: "#fff" }}>
+              try again
+            </motion.button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const partnerName = user.partnerName;
   const showEditor = !view.mine || editing;

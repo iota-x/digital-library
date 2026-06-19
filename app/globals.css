@@ -908,6 +908,15 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
   background: rgba(var(--pink-deep-rgb), .08);
 }
 .bottom-tabs .bt-icon { font-size: 1.25rem; line-height: 1; }
+/* Keep labels on one line and clip gracefully so the bar stays even as tabs
+   are added (single words like "memories" won't wrap, so guard the overflow). */
+.bottom-tabs a { min-width: 0; }
+.bottom-tabs a > span:not(.bt-icon) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 @media (pointer: coarse) and (max-width: 820px) {
   .bottom-tabs { display: flex; }
   /* Add bottom padding to the page so content isn't covered by the bar */

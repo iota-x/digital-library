@@ -71,7 +71,7 @@ export default function NudgeLayer() {
             id: "nudge-daily", type: d.type, emoji: "💭",
             title: "today's question 💭",
             message: `${name} answered — add yours to reveal both`,
-            href: "/#daily", actionLabel: "answer", durationMs: 7000,
+            href: "/daily", actionLabel: "answer", durationMs: 7000,
           });
           break;
         }
@@ -81,7 +81,7 @@ export default function NudgeLayer() {
             id: "nudge-daily", type: d.type, emoji: "💌", variant: "success",
             title: "you can both see it now 💌",
             message: "today's answers are unlocked",
-            href: "/#daily", actionLabel: "reveal", durationMs: 7000,
+            href: "/daily", actionLabel: "reveal", durationMs: 7000,
           });
           break;
         }

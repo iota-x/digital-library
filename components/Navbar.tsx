@@ -11,6 +11,7 @@ import NotificationCenter from "@/components/NotificationCenter";
 
 const ROUTES = [
   { href: "/",         label: "home",      emoji: "🌸" },
+  { href: "/daily",    label: "question",  emoji: "💭" },
   { href: "/timeline", label: "our story",  emoji: "🕰️" },
   { href: "/journal",  label: "journal",   emoji: "📖" },
   { href: "/capsule",  label: "capsule",   emoji: "💌" },

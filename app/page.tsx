@@ -5,8 +5,6 @@ import PasswordGate  from "@/components/PasswordGate";
 import Polaroids     from "@/components/Polaroids";
 import LiveTimer     from "@/components/LiveTimer";
 import OnThisDay     from "@/components/OnThisDay";
-import DailyQuestion from "@/components/DailyQuestion";
-import DailyArchive  from "@/components/DailyArchive";
 import DateReminders from "@/components/DateReminders";
 import MemoryCards   from "@/components/MemoryCards";
 import ButtonSection from "@/components/ButtonSection";
@@ -31,8 +29,6 @@ function HomeContent() {
       <div style={{ padding: "0 clamp(1rem,3vw,2rem)" }}>
         <ErrorBoundary><OnThisDay /></ErrorBoundary>
       </div>
-      <ErrorBoundary><DailyQuestion /></ErrorBoundary>
-      <ErrorBoundary><DailyArchive /></ErrorBoundary>
       {sv("showMemoryCards") && <ErrorBoundary><MemoryCards /></ErrorBoundary>}
       <ErrorBoundary><ButtonSection /></ErrorBoundary>
       {sv("showVoiceNotes") && <ErrorBoundary><VoiceNote /></ErrorBoundary>}
