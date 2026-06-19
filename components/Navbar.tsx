@@ -8,7 +8,8 @@ import { invalidateCalendarCache } from "@/lib/calendarStore";
 import { useToast } from "@/components/Toaster";
 import { useConfirm } from "@/components/ConfirmDialog";
 import NotificationCenter from "@/components/NotificationCenter";
-import { NAV_GROUPS, PRIMARY_ITEMS, isActive } from "@/lib/nav";
+import NavMenu from "@/components/NavMenu";
+import { PRIMARY_ITEMS, isActive } from "@/lib/nav";
 
 function hasNewVoiceNote(): boolean {
   try {
@@ -21,11 +22,10 @@ function hasNewVoiceNote(): boolean {
 export default function Navbar() {
   const path        = usePathname();
   const user        = useUserData();
-  const [scrolled,    setScrolled]    = useState(false);
-  const [mobileOpen,  setMobileOpen]  = useState(false);
-  const [moreOpen,    setMoreOpen]    = useState(false);
-  const [dark,        setDark]        = useState(false);
-  const [vnBadge,     setVnBadge]     = useState(false);
+  const [scrolled,     setScrolled]     = useState(false);
+  const [menuOpen,     setMenuOpen]     = useState(false);
+  const [dark,         setDark]         = useState(false);
+  const [vnBadge,      setVnBadge]      = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [copied,       setCopied]       = useState(false);
   const [rotating,     setRotating]     = useState(false);
@@ -40,26 +40,22 @@ export default function Navbar() {
   }, []);
 
   /* close menus on route change or ESC */
-  useEffect(() => { setMobileOpen(false); setMoreOpen(false); }, [path]);
+  useEffect(() => { setMenuOpen(false); setUserMenuOpen(false); }, [path]);
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setMobileOpen(false); setUserMenuOpen(false); setMoreOpen(false); }
-    };
+    const fn = (e: KeyboardEvent) => { if (e.key === "Escape") setUserMenuOpen(false); };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, []);
 
-  /* the bottom-bar "more" tab (mobile) asks us to open the full menu */
+  /* the bottom dock's "menu" tab asks us to open the full menu */
   useEffect(() => {
-    const open = () => setMobileOpen(true);
+    const open = () => setMenuOpen(true);
     window.addEventListener("annapp:open-menu", open);
     return () => window.removeEventListener("annapp:open-menu", open);
   }, []);
 
   /* sync toggle button state with whatever DarkOverlay restored */
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
+  useEffect(() => { setDark(document.documentElement.classList.contains("dark")); }, []);
 
   /* voice-note badge */
   useEffect(() => {
@@ -82,9 +78,7 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch {}
+    try { await fetch("/api/auth/logout", { method: "POST" }); } catch {}
     clearUserData();
     invalidateCalendarCache();
     window.location.href = "/";
@@ -131,9 +125,7 @@ export default function Navbar() {
           position: "fixed",
           top: 0, left: 0, right: 0,
           zIndex: 500,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "0.75rem clamp(1rem, 4vw, 2.5rem)",
           background: scrolled
             ? dark ? "rgba(10,4,20,0.88)" : `rgba(var(--pink-light-rgb,255,245,249),0.88)`
@@ -141,9 +133,7 @@ export default function Navbar() {
           backdropFilter: scrolled ? "blur(20px)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
           borderBottom: scrolled
-            ? dark
-              ? "1px solid rgba(255,255,255,0.1)"
-              : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)`
+            ? dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)`
             : "none",
           transition: "background 0.4s, border 0.4s, backdrop-filter 0.4s",
         }}
@@ -153,42 +143,27 @@ export default function Navbar() {
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}
             style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span className="occ-heart" style={{ fontSize: "1.3rem", lineHeight: 1 }}>💗</span>
-            <span style={{
-              fontFamily: '"Georgia", "Times New Roman", serif',
-              fontStyle: "italic",
-              fontSize: "1.05rem",
-              color: "var(--pink-deep)",
-              letterSpacing: "0.02em",
-            }}>
+            <span style={{ fontFamily: '"Georgia", "Times New Roman", serif', fontStyle: "italic", fontSize: "1.05rem", color: "var(--pink-deep)", letterSpacing: "0.02em" }}>
               us
             </span>
           </motion.div>
         </Link>
 
-        {/* Desktop tabs */}
-        <div style={{
-          position: "relative",
+        {/* Desktop quick tabs (primary only — everything else is in the menu) */}
+        <div className="nav-desktop" style={{
           display: "flex", gap: "0.25rem", alignItems: "center",
           background: dark ? "rgba(255,255,255,0.1)" : "rgba(var(--pink-light-rgb,252,231,243),0.6)",
           border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
-          borderRadius: 50,
-          padding: "0.3rem",
-          backdropFilter: "blur(12px)",
-        }}
-          className="nav-desktop"
-        >
+          borderRadius: 50, padding: "0.3rem", backdropFilter: "blur(12px)",
+        }}>
           {PRIMARY_ITEMS.map(r => {
             const active = isActive(r.href, path);
             const showBadge = r.href === "/" && vnBadge;
             return (
               <Link key={r.href} href={r.href} style={{ textDecoration: "none" }}>
-                <motion.div
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.94 }}
+                <motion.div whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
                   style={{
-                    position: "relative",
-                    padding: "0.45rem 1.1rem",
-                    borderRadius: 40,
+                    position: "relative", padding: "0.45rem 1.1rem", borderRadius: 40,
                     display: "flex", alignItems: "center", gap: "0.4rem",
                     background: active ? "linear-gradient(135deg,var(--pink),var(--pink-deep))" : "transparent",
                     boxShadow: active ? `0 2px 14px rgba(var(--pink-deep-rgb,236,72,153),0.35)` : "none",
@@ -196,220 +171,84 @@ export default function Navbar() {
                   }}>
                   <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>{r.emoji}</span>
                   <span style={{
-                    fontFamily: "var(--font-lato), 'Inter', system-ui, sans-serif",
-                    fontSize: "0.82rem",
+                    fontFamily: "var(--font-lato), 'Inter', system-ui, sans-serif", fontSize: "0.82rem",
                     fontWeight: active ? 700 : 500,
                     color: active ? "#fff" : dark ? "var(--text)" : `rgba(var(--pink-deep-rgb,190,24,93),0.7)`,
-                    letterSpacing: "0.04em",
-                    transition: "color 0.25s",
+                    letterSpacing: "0.04em", transition: "color 0.25s",
                   }}>
                     {r.label}
                   </span>
                   {showBadge && (
-                    <span style={{
-                      position: "absolute", top: 4, right: 4,
-                      width: 7, height: 7, borderRadius: "50%",
-                      background: "var(--pink-deep)",
-                      boxShadow: `0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
-                    }}/>
+                    <span style={{ position: "absolute", top: 4, right: 4, width: 7, height: 7, borderRadius: "50%", background: "var(--pink-deep)", boxShadow: `0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)` }}/>
                   )}
                 </motion.div>
               </Link>
             );
           })}
-
-          {/* "more" — opens a grouped menu of every other destination */}
-          <button
-            onClick={() => setMoreOpen(o => !o)}
-            style={{
-              padding: "0.45rem 1rem", borderRadius: 40, border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", gap: "0.35rem",
-              background: moreOpen ? "rgba(var(--pink-deep-rgb,236,72,153),0.12)" : "transparent",
-              fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", fontWeight: 600,
-              color: dark ? "var(--text)" : "rgba(var(--pink-deep-rgb,190,24,93),0.7)", letterSpacing: "0.04em",
-            }}>
-            <span>more</span>
-            <span style={{ fontSize: "0.6rem", transform: moreOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
-          </button>
-
-          <AnimatePresence>
-            {moreOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                transition={{ duration: 0.18 }}
-                style={{
-                  position: "absolute", top: "calc(100% + 0.6rem)", right: 0, zIndex: 600,
-                  width: 320, maxWidth: "80vw",
-                  background: "var(--cream)", backdropFilter: "blur(20px)",
-                  border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)", borderRadius: 18,
-                  padding: "0.8rem", boxShadow: "0 16px 48px rgba(var(--pink-rgb,244,114,182),0.22)",
-                }}>
-                {NAV_GROUPS.map(g => (
-                  <div key={g.title} style={{ marginBottom: "0.5rem" }}>
-                    <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted)", margin: "0.3rem 0.5rem 0.3rem" }}>{g.title}</p>
-                    {g.items.map(it => {
-                      const active = isActive(it.href, path);
-                      return (
-                        <Link key={it.href} href={it.href} style={{ textDecoration: "none" }} onClick={() => setMoreOpen(false)}>
-                          <div style={{
-                            display: "flex", gap: "0.6rem", alignItems: "center",
-                            padding: "0.5rem 0.5rem", borderRadius: 12,
-                            background: active ? "rgba(var(--pink-rgb,249,168,212),0.18)" : "transparent",
-                          }}>
-                            <span style={{ fontSize: "1.05rem" }}>{it.emoji}</span>
-                            <div style={{ minWidth: 0 }}>
-                              <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", fontWeight: 700, color: "var(--pink-deep)", margin: 0 }}>{it.label}</p>
-                              <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.7rem", color: "var(--muted)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.desc}</p>
-                            </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* Right cluster: dark toggle + user pill + ⌘K + hamburger */}
+        {/* Right cluster */}
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-          {/* Notification bell — "what's new since you last looked" */}
           {user && <NotificationCenter />}
 
-          {/* Dark mode toggle */}
-          <motion.button
-            onClick={toggleDark}
-            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-            title={dark ? "light mode" : "dark mode"}
+          {/* Dark mode toggle — desktop only (the menu has it on mobile) */}
+          <motion.button onClick={toggleDark} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+            className="nav-desktop" title={dark ? "light mode" : "dark mode"}
             style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: 34, height: 34, borderRadius: "50%",
+              alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "50%",
               background: dark ? "rgba(255,255,255,0.1)" : "rgba(var(--pink-light-rgb,252,231,243),.55)",
               border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)",
               cursor: "pointer", fontSize: "1rem",
-            }}
-          >
+            }}>
             {dark ? "☀️" : "🌙"}
           </motion.button>
 
-          {/* User pill — desktop only */}
+          {/* User pill + dropdown — desktop only */}
           {user && (
             <div style={{ position: "relative" }} className="nav-desktop">
-              <motion.button
-                onClick={() => setUserMenuOpen(o => !o)}
-                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+              <motion.button onClick={() => setUserMenuOpen(o => !o)} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
                 style={{
                   display: "flex", alignItems: "center", gap: "0.4rem",
                   background: dark ? "rgba(255,255,255,0.12)" : "rgba(var(--pink-light-rgb,252,231,243),.7)",
                   border: dark ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
-                  borderRadius: 50,
-                  padding: "0.32rem 0.8rem",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
-                  fontSize: "0.78rem",
-                  color: "var(--pink-deep)",
-                  fontWeight: 600,
-                }}
-              >
-                <span>🌸</span>
-                <span>{user.name}</span>
+                  borderRadius: 50, padding: "0.32rem 0.8rem", cursor: "pointer",
+                  fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--pink-deep)", fontWeight: 600,
+                }}>
+                <span>🌸</span><span>{user.name}</span>
               </motion.button>
 
-              {/* User dropdown */}
               <AnimatePresence>
                 {userMenuOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                    transition={{ duration: 0.18 }}
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.95 }} transition={{ duration: 0.18 }}
                     style={{
                       position: "absolute", top: "calc(100% + 0.5rem)", right: 0,
-                      background: "var(--cream)",
-                      backdropFilter: "blur(20px)",
-                      border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
-                      borderRadius: 16,
-                      padding: "1rem",
-                      minWidth: 220,
-                      boxShadow: `0 12px 40px rgba(var(--pink-rgb,244,114,182),0.2)`,
-                      zIndex: 600,
-                    }}
-                  >
+                      background: "var(--cream)", backdropFilter: "blur(20px)",
+                      border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)", borderRadius: 16,
+                      padding: "1rem", minWidth: 220, boxShadow: `0 12px 40px rgba(var(--pink-rgb,244,114,182),0.2)`, zIndex: 600,
+                    }}>
                     <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.72rem", color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 0.4rem" }}>signed in as</p>
                     <p style={{ fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "1rem", color: "var(--pink-deep)", margin: "0 0 0.8rem", fontWeight: 400 }}>{user.name}</p>
-
                     {user.partnerName ? (
-                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 0.8rem" }}>
-                        with {user.partnerName} 💗
-                      </p>
+                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 0.8rem" }}>with {user.partnerName} 💗</p>
                     ) : (
-                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--muted)", margin: "0 0 0.8rem", fontStyle: "italic", opacity: 0.7 }}>
-                        partner not joined yet
-                      </p>
+                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--muted)", margin: "0 0 0.8rem", fontStyle: "italic", opacity: 0.7 }}>partner not joined yet</p>
                     )}
-
                     {user.inviteCode && (
                       <div style={{ marginBottom: "0.8rem" }}>
                         <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--muted)", letterSpacing: "0.14em", textTransform: "uppercase", margin: "0 0 0.3rem" }}>invite code</p>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                          <span style={{ fontFamily: '"Georgia","Times New Roman",serif', fontSize: "1.1rem", color: "var(--pink-deep)", letterSpacing: "0.25em", fontWeight: 700 }}>
-                            {user.inviteCode}
-                          </span>
-                          <button
-                            onClick={copyInviteCode}
-                            style={{ background: "rgba(var(--pink-mid-rgb,249,168,212),0.2)", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--pink-deep)" }}
-                          >
-                            {copied ? "✓" : "copy"}
-                          </button>
+                          <span style={{ fontFamily: '"Georgia","Times New Roman",serif', fontSize: "1.1rem", color: "var(--pink-deep)", letterSpacing: "0.25em", fontWeight: 700 }}>{user.inviteCode}</span>
+                          <button onClick={copyInviteCode} style={{ background: "rgba(var(--pink-mid-rgb,249,168,212),0.2)", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--pink-deep)" }}>{copied ? "✓" : "copy"}</button>
                           {user.role === "creator" && !user.partnerName && (
-                            <button
-                              onClick={rotateInviteCode}
-                              disabled={rotating}
-                              title="generate a new code if you accidentally shared the old one"
-                              style={{ background: "transparent", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: rotating ? "wait" : "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--muted)" }}
-                            >
-                              {rotating ? "…" : "rotate"}
-                            </button>
+                            <button onClick={rotateInviteCode} disabled={rotating} title="generate a new code if you accidentally shared the old one" style={{ background: "transparent", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: rotating ? "wait" : "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--muted)" }}>{rotating ? "…" : "rotate"}</button>
                           )}
                         </div>
                       </div>
                     )}
-
                     <div style={{ borderTop: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)", paddingTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <button
-                        onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new Event("annapp:settings")); }}
-                        style={{
-                          width: "100%", padding: "0.6rem 0.8rem",
-                          borderRadius: 10,
-                          border: dark ? "1px solid rgba(255,255,255,0.15)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`,
-                          background: dark ? "rgba(255,255,255,0.08)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`,
-                          cursor: "pointer",
-                          fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
-                          fontSize: "0.82rem", color: "var(--pink-deep)",
-                          textAlign: "left" as const,
-                          fontWeight: 600,
-                        }}
-                      >
-                        🎨 customize
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        style={{
-                          width: "100%", padding: "0.6rem 0.8rem",
-                          borderRadius: 10,
-                          border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)",
-                          background: "transparent",
-                          cursor: "pointer",
-                          fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif",
-                          fontSize: "0.82rem", color: "var(--muted)",
-                          textAlign: "left" as const,
-                        }}
-                      >
-                        sign out
-                      </button>
+                      <button onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new Event("annapp:settings")); }} style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: 10, border: dark ? "1px solid rgba(255,255,255,0.15)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`, background: dark ? "rgba(255,255,255,0.08)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`, cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", color: "var(--pink-deep)", textAlign: "left", fontWeight: 600 }}>🎨 customize</button>
+                      <button onClick={handleLogout} style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: 10, border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)", background: "transparent", cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", color: "var(--muted)", textAlign: "left" }}>sign out</button>
                     </div>
                   </motion.div>
                 )}
@@ -417,210 +256,41 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* ⌘K shortcut hint — desktop only */}
-          <button
-            className="nav-cmdK"
-            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
+          {/* ⌘K — desktop only */}
+          <button className="nav-cmdK" onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
             style={{
               display:"flex", alignItems:"center", gap:"0.35rem",
               background: dark ? "rgba(255,255,255,0.1)" : `rgba(var(--pink-light-rgb,252,231,243),.55)`,
               border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)`,
-              borderRadius:8, padding:"0.32rem 0.65rem",
-              cursor:"pointer",
-              fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif",
-              fontSize:"0.62rem", fontWeight:700,
-              color: dark ? "rgba(255,255,255,0.5)" : `rgba(var(--pink-deep-rgb,190,24,93),.5)`,
-              letterSpacing:"0.06em",
+              borderRadius:8, padding:"0.32rem 0.65rem", cursor:"pointer",
+              fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.62rem", fontWeight:700,
+              color: dark ? "rgba(255,255,255,0.5)" : `rgba(var(--pink-deep-rgb,190,24,93),.5)`, letterSpacing:"0.06em",
             }}>
             <span>⌘K</span>
           </button>
 
-          {/* Mobile hamburger */}
-          <motion.button
-            onClick={() => setMobileOpen(o => !o)}
-            whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-            className="nav-mobile-btn"
+          {/* Menu button — the single "go anywhere" trigger, on every size */}
+          <motion.button onClick={() => setMenuOpen(true)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.92 }} aria-label="open menu"
             style={{
-              background: dark ? "rgba(255,255,255,0.1)" : `rgba(var(--pink-light-rgb,252,231,243),0.7)`,
-              border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)`,
-              borderRadius: 10, width: 40, height: 40,
-              cursor: "pointer", display: "none",
-              alignItems: "center", justifyContent: "center",
-              flexDirection: "column", gap: 4, padding: "0.5rem",
-              position: "relative",
+              position: "relative", display: "flex", alignItems: "center", gap: "0.4rem",
+              height: 38, padding: "0 0.85rem", borderRadius: 50, cursor: "pointer",
+              background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", border: "none",
+              color: "#fff", boxShadow: "0 4px 16px rgba(var(--pink-deep-rgb,236,72,153),0.3)",
             }}>
-            {[0,1,2].map(i => (
-              <motion.div key={i}
-                animate={mobileOpen ? {
-                  rotate: i === 0 ? 45 : i === 2 ? -45 : 0,
-                  y:      i === 0 ? 8  : i === 2 ? -8  : 0,
-                  opacity: i === 1 ? 0 : 1,
-                } : { rotate: 0, y: 0, opacity: 1 }}
-                transition={{ duration: 0.25 }}
-                style={{ width: 18, height: 2, background: "var(--pink-deep)", borderRadius: 1 }}
-              />
-            ))}
-            {/* Voice note badge on hamburger */}
+            <span style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <span style={{ width: 15, height: 2, background: "#fff", borderRadius: 1 }} />
+              <span style={{ width: 15, height: 2, background: "#fff", borderRadius: 1 }} />
+              <span style={{ width: 15, height: 2, background: "#fff", borderRadius: 1 }} />
+            </span>
+            <span className="nav-desktop" style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", fontWeight: 700 }}>menu</span>
             {vnBadge && (
-              <span style={{
-                position:"absolute",top:6,right:6,
-                width:7,height:7,borderRadius:"50%",
-                background:"var(--pink-deep)",
-                boxShadow:`0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
-              }}/>
+              <span style={{ position:"absolute", top:5, right:5, width:8, height:8, borderRadius:"50%", background:"#fff", boxShadow:"0 0 6px rgba(255,255,255,.9)" }}/>
             )}
           </motion.button>
         </div>
       </motion.nav>
 
-      {/* Mobile dropdown */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            style={{
-              position: "fixed",
-              top: 60, left: "1rem", right: "1rem",
-              zIndex: 499,
-              background: dark ? "rgba(18,6,36,0.96)" : "var(--cream)",
-              backdropFilter: "blur(24px)",
-              border: dark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)",
-              borderRadius: 20,
-              padding: "1rem",
-              boxShadow: `0 16px 48px rgba(var(--pink-rgb,244,114,182),0.2)`,
-              display: "flex", flexDirection: "column", gap: "0.2rem",
-              maxHeight: "calc(100dvh - 80px)", overflowY: "auto",
-            }}>
-            {NAV_GROUPS.map((g) => (
-              <div key={g.title}>
-                <p style={{ fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "0.78rem", color: "var(--muted)", margin: "0.5rem 1.2rem 0.25rem", letterSpacing: "0.04em" }}>
-                  {g.title}
-                </p>
-                {g.items.map((r) => {
-                  const active    = isActive(r.href, path);
-                  const showBadge = r.href === "/" && vnBadge;
-                  return (
-                    <Link key={r.href} href={r.href} style={{ textDecoration: "none" }}>
-                      <div style={{
-                        padding: "0.7rem 1.2rem",
-                        borderRadius: 14,
-                        background: active
-                          ? dark ? "rgba(255,255,255,0.12)" : `linear-gradient(135deg,rgba(var(--pink-rgb,249,168,212),0.3),rgba(var(--pink-deep-rgb,236,72,153),0.15))`
-                          : "transparent",
-                        border: active
-                          ? dark ? "1px solid rgba(255,255,255,0.2)" : `1px solid rgba(var(--pink-deep-rgb,236,72,153),0.25)`
-                          : "1px solid transparent",
-                        display: "flex", alignItems: "center", gap: "0.8rem",
-                        position: "relative",
-                      }}>
-                        <span style={{ fontSize: "1.2rem" }}>{r.emoji}</span>
-                        <span style={{ flex: 1, minWidth: 0 }}>
-                          <span style={{
-                            display: "block",
-                            fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "1.02rem",
-                            color: active ? "var(--pink-deep)" : dark ? "var(--text)" : `rgba(var(--pink-deep-rgb,190,24,93),0.7)`,
-                            fontWeight: active ? 600 : 400,
-                          }}>
-                            {r.label}
-                          </span>
-                          <span style={{ display: "block", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.68rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                            {r.desc}
-                          </span>
-                        </span>
-                        {showBadge && (
-                          <span style={{
-                            width:8,height:8,borderRadius:"50%",
-                            background:"var(--pink-deep)",flexShrink:0,
-                            boxShadow:`0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
-                          }}/>
-                        )}
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ))}
-
-            {/* Dark mode row in mobile menu */}
-            <div style={{ borderTop: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.3rem", paddingTop:"0.6rem" }}>
-              <button
-                onClick={toggleDark}
-                style={{
-                  width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                  border: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
-                  display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
-                }}
-              >
-                <span style={{ fontSize:"1.2rem" }}>{dark ? "☀️" : "🌙"}</span>
-                <span style={{
-                  fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
-                  fontSize:"1.05rem", color: dark ? "var(--text)" : "var(--muted)",
-                }}>
-                  {dark ? "light mode" : "dark mode"}
-                </span>
-              </button>
-            </div>
-
-            {/* User info + customize + logout in mobile menu */}
-            {user && (
-              <div style={{ borderTop: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.1rem", paddingTop:"0.6rem" }}>
-                <div style={{ padding:"0.5rem 1.2rem", marginBottom:"0.4rem" }}>
-                  <p style={{ fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic", fontSize:"0.95rem", color:"var(--pink-deep)", margin:0 }}>
-                    🌸 {user.name}
-                  </p>
-                  {user.partnerName && (
-                    <p style={{ fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.75rem", color:"var(--muted)", margin:"0.15rem 0 0" }}>
-                      with {user.partnerName} 💗
-                    </p>
-                  )}
-                  {user.inviteCode && (
-                    <p style={{ fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.72rem", color:"var(--muted)", margin:"0.2rem 0 0", opacity:0.75 }}>
-                      invite: <strong style={{ letterSpacing:"0.2em" }}>{user.inviteCode}</strong>
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={() => { setMobileOpen(false); window.dispatchEvent(new Event("annapp:settings")); }}
-                  style={{
-                    width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                    border: dark ? "1px solid rgba(255,255,255,0.15)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`,
-                    background: dark ? "rgba(255,255,255,0.08)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`,
-                    display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
-                    marginBottom:"0.3rem",
-                  }}
-                >
-                  <span style={{ fontSize:"1.2rem" }}>🎨</span>
-                  <span style={{
-                    fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
-                    fontSize:"1.05rem", color:"var(--pink-deep)", fontWeight:600,
-                  }}>
-                    customize
-                  </span>
-                </button>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    width:"100%", padding:"0.7rem 1.2rem", borderRadius:14,
-                    border: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, background:"transparent",
-                    display:"flex", alignItems:"center", gap:"0.8rem", cursor:"pointer",
-                  }}
-                >
-                  <span style={{ fontSize:"1.2rem" }}>👋</span>
-                  <span style={{
-                    fontFamily:'"Georgia","Times New Roman",serif', fontStyle:"italic",
-                    fontSize:"1.05rem", color:"var(--muted)",
-                  }}>
-                    sign out
-                  </span>
-                </button>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <NavMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       {/* Top padding spacer */}
       <div style={{ height: 64 }} />

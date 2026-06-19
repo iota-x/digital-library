@@ -28,6 +28,15 @@ const CARD: React.CSSProperties = {
   boxShadow: "0 12px 40px rgba(var(--pink-deep-rgb), .1)",
 };
 
+// Shared full-bleed section wrapper — `minHeight` keeps the page feeling full
+// (and seamless into the archive below) instead of collapsing while loading.
+const SECTION_STYLE: React.CSSProperties = {
+  position: "relative", overflow: "hidden", width: "100%", minHeight: "62vh",
+  padding: "clamp(2.5rem, 7vh, 4.5rem) clamp(1rem, 4vw, 2rem) clamp(1.5rem, 3vh, 2.2rem)",
+  display: "flex", justifyContent: "center", alignItems: "flex-start",
+};
+const SKEL: React.CSSProperties = { background: "rgba(var(--pink-rgb), .16)", borderRadius: 10 };
+
 export default function DailyQuestion() {
   const user = useUserData();
   const [view, setView] = useState<DailyView | null>(null);
@@ -129,17 +138,33 @@ export default function DailyQuestion() {
 
   // Solo couple (no partner joined yet) — nothing to reveal against.
   if (!user?.partnerName) return null;
-  if (!loaded) return null;
+
+  // Loading → a full-height skeleton so the page reads as "ready" instantly
+  // instead of a blank/short page while /api/daily resolves.
+  if (!loaded) {
+    return (
+      <section id="daily" style={SECTION_STYLE}>
+        <SectionGlow variant="a" />
+        <motion.div animate={{ opacity: [0.55, 1, 0.55] }} transition={{ repeat: Infinity, duration: 1.4 }}
+          style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
+          <div style={{ textAlign: "center", marginBottom: "1.3rem" }}>
+            <div style={{ ...SKEL, width: 150, height: 11, margin: "0 auto 0.6rem" }} />
+            <div style={{ ...SKEL, width: 230, height: 10, margin: "0 auto" }} />
+          </div>
+          <div style={CARD}>
+            <div style={{ ...SKEL, width: "75%", height: 24, marginBottom: "1.3rem" }} />
+            <div style={{ ...SKEL, width: "100%", height: 88, borderRadius: 12 }} />
+          </div>
+        </motion.div>
+      </section>
+    );
+  }
 
   // Loaded but no data → the fetch failed. Keep the section present (with its
   // #daily anchor) and offer a manual retry instead of disappearing.
   if (!view) {
     return (
-      <section id="daily" style={{
-        position: "relative", overflow: "hidden", width: "100%",
-        padding: "clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2rem) clamp(1.2rem, 2.5vh, 1.8rem)",
-        display: "flex", justifyContent: "center",
-      }}>
+      <section id="daily" style={SECTION_STYLE}>
         <SectionGlow variant="a" />
         <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
           <div style={{ ...CARD, textAlign: "center" }}>
@@ -160,12 +185,7 @@ export default function DailyQuestion() {
   const showEditor = !view.mine || editing;
 
   return (
-    <section id="daily" style={{
-      position: "relative", overflow: "hidden",
-      width: "100%",
-      padding: "clamp(3rem, 8vh, 5rem) clamp(1rem, 4vw, 2rem) clamp(1.2rem, 2.5vh, 1.8rem)",
-      display: "flex", justifyContent: "center",
-    }}>
+    <section id="daily" style={SECTION_STYLE}>
       <SectionGlow variant="a" />
       <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
         {/* Heading */}

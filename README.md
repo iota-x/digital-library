@@ -60,11 +60,13 @@ Pages are organised into three clusters, mirrored across the nav (see
 With this many surfaces, navigation is deliberately two-tier and driven from a
 single config (`lib/nav.ts`):
 
-- **Primary** — the few most-used destinations (Home, Question, Journal, Play)
-  sit in the top bar (desktop) and the bottom tab bar (mobile).
-- **More** — a grouped menu (the same three clusters above, each with a one-line
-  "what's here") holds everything else. It opens from the "more" pill/tab.
-- **Explore** — the home page renders the full grouped map so newcomers can see
+- **Quick access** — the few most-used destinations (Home, Question, Journal,
+  Play) sit in the desktop top bar and a floating mobile **dock**.
+- **The menu** — one "menu" button (and the dock's "more") opens a full-screen
+  `NavMenu` overlay: a days-together header, every destination as a grouped card
+  (each with a one-line "what's here"), and quick actions (customize, dark mode,
+  sign out). This replaced the old cramped dropdowns.
+- **Explore** — the home page renders the same grouped map so newcomers see
   every area at a glance.
 - **⌘K** — a command palette searches every destination plus your own entries
   (journal days, bucket-list items, letters…).

@@ -5,7 +5,6 @@ import WatchlistSection from "@/components/WatchlistSection";
 import LoveJar          from "@/components/LoveJar";
 import BucketList       from "@/components/BucketList";
 import Ideas            from "@/components/Ideas";
-import SectionNav, { type Section } from "@/components/SectionNav";
 import { useUserData }  from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
@@ -94,25 +93,14 @@ function SharedContent() {
   const user = useUserData();
   const sv = (key: string) => sectionVisible(user?.settings, "shared", key);
 
-  const sections: Section[] = [
-    { id: "ideas", label: "date ideas", emoji: "🌙" },
-    ...(sv("showBucketList") ? [{ id: "bucket", label: "bucket list", emoji: "✅" }] : []),
-    ...(sv("showSpotify") ? [{ id: "playlist", label: "playlist", emoji: "🎵" }] : []),
-    ...(sv("showWatchlist") ? [{ id: "watchlist", label: "watchlist", emoji: "🎬" }] : []),
-    { id: "jar", label: "love jar", emoji: "🫙" },
-  ];
-
   return (
     <main>
       <SharedHero />
-      <SectionNav sections={sections} />
-      <div id="ideas" style={{ scrollMarginTop: 120 }}>
-        <Ideas mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
-      </div>
-      {sv("showBucketList") && <div id="bucket" style={{ scrollMarginTop: 120 }}><BucketList /></div>}
-      {sv("showSpotify") && <div id="playlist" style={{ scrollMarginTop: 120 }}><SpotifySection /></div>}
-      {sv("showWatchlist") && <div id="watchlist" style={{ scrollMarginTop: 120 }}><WatchlistSection /></div>}
-      <div id="jar" style={{ scrollMarginTop: 120 }}><LoveJar /></div>
+      <Ideas mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
+      {sv("showBucketList") && <BucketList />}
+      {sv("showSpotify") && <SpotifySection />}
+      {sv("showWatchlist") && <WatchlistSection />}
+      <LoveJar />
     </main>
   );
 }
