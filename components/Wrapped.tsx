@@ -188,13 +188,35 @@ export default function Wrapped() {
     finally { setSharing(false); }
   };
 
-  if (!loaded) return <Centered>loading your year…</Centered>;
-  if (failed || !data) return (
-    <Centered>
-      <p style={{ fontFamily: SCRIPT, fontSize: "1.2rem", color: "var(--pink-deep)", marginBottom: "0.8rem" }}>couldn&apos;t load your wrapped 💭</p>
-      <button onClick={load} style={pillBtn()}>try again</button>
-    </Centered>
-  );
+  // Loading / error both render inside the same phone-shaped frame as the real
+  // player, so the page looks intentional instead of a void with floating text.
+  if (!loaded) {
+    return (
+      <Stack>
+        <Frame>
+          <motion.div animate={{ opacity: [0.55, 1, 0.55] }} transition={{ repeat: Infinity, duration: 1.5 }}
+            style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.8rem", padding: "2rem", textAlign: "center" }}>
+            <motion.div animate={{ scale: [1, 1.12, 1] }} transition={{ repeat: Infinity, duration: 1.6 }} style={{ fontSize: "2.4rem" }}>💞</motion.div>
+            <p style={{ fontFamily: SCRIPT, fontSize: "1.15rem", color: "#fff", margin: 0 }}>counting up your year…</p>
+          </motion.div>
+        </Frame>
+        <p style={{ fontFamily: SANS, fontSize: "0.74rem", color: "var(--muted)", margin: 0 }}>gathering every little moment 💗</p>
+      </Stack>
+    );
+  }
+  if (failed || !data) {
+    return (
+      <Stack>
+        <Frame>
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", padding: "2rem", textAlign: "center" }}>
+            <div style={{ fontSize: "2.2rem" }}>💭</div>
+            <p style={{ fontFamily: SCRIPT, fontSize: "1.2rem", color: "#fff", margin: 0 }}>couldn&apos;t load your wrapped</p>
+            <motion.button whileTap={{ scale: 0.96 }} onClick={load} style={{ ...pillBtn(), background: "#fff", color: "#be185d" }}>try again</motion.button>
+          </div>
+        </Frame>
+      </Stack>
+    );
+  }
 
   const last = idx === cards.length - 1;
 
@@ -269,8 +291,21 @@ function Soft({ children }: { children: React.ReactNode }) {
 function Kicker({ children }: { children: React.ReactNode }) {
   return <p style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", margin: 0 }}>{children}</p>;
 }
-function Centered({ children }: { children: React.ReactNode }) {
-  return <div style={{ textAlign: "center", padding: "3rem 1rem", fontFamily: SANS, color: "var(--muted)" }}>{children}</div>;
+function Stack({ children }: { children: React.ReactNode }) {
+  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>{children}</div>;
+}
+/** The phone-shaped card used for loading/error so they match the real player. */
+function Frame({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      position: "relative", width: "min(94vw, 420px)", aspectRatio: "9 / 16",
+      borderRadius: 28, overflow: "hidden",
+      background: "linear-gradient(160deg,#f9a8d4,#9d174d)",
+      boxShadow: "0 24px 70px rgba(var(--pink-deep-rgb), .28)",
+    }}>
+      {children}
+    </div>
+  );
 }
 function pillBtn(): React.CSSProperties {
   return { fontFamily: SANS, fontSize: "0.9rem", fontWeight: 700, border: "none", borderRadius: 50, padding: "0.7rem 1.5rem", cursor: "pointer", background: "var(--pink-deep)", color: "#fff" };
