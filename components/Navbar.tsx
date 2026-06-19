@@ -8,16 +8,7 @@ import { invalidateCalendarCache } from "@/lib/calendarStore";
 import { useToast } from "@/components/Toaster";
 import { useConfirm } from "@/components/ConfirmDialog";
 import NotificationCenter from "@/components/NotificationCenter";
-
-const ROUTES = [
-  { href: "/",         label: "home",      emoji: "🌸" },
-  { href: "/daily",    label: "question",  emoji: "💭" },
-  { href: "/timeline", label: "our story",  emoji: "🕰️" },
-  { href: "/journal",  label: "journal",   emoji: "📖" },
-  { href: "/capsule",  label: "capsule",   emoji: "💌" },
-  { href: "/shared",   label: "shared",    emoji: "🎬" },
-  { href: "/map",      label: "memories",  emoji: "📸" },
-];
+import { NAV_GROUPS, PRIMARY_ITEMS, isActive } from "@/lib/nav";
 
 function hasNewVoiceNote(): boolean {
   try {
@@ -32,6 +23,7 @@ export default function Navbar() {
   const user        = useUserData();
   const [scrolled,    setScrolled]    = useState(false);
   const [mobileOpen,  setMobileOpen]  = useState(false);
+  const [moreOpen,    setMoreOpen]    = useState(false);
   const [dark,        setDark]        = useState(false);
   const [vnBadge,     setVnBadge]     = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -47,14 +39,21 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* close mobile menu on route change or ESC */
-  useEffect(() => setMobileOpen(false), [path]);
+  /* close menus on route change or ESC */
+  useEffect(() => { setMobileOpen(false); setMoreOpen(false); }, [path]);
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setMobileOpen(false); setUserMenuOpen(false); }
+      if (e.key === "Escape") { setMobileOpen(false); setUserMenuOpen(false); setMoreOpen(false); }
     };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
+  }, []);
+
+  /* the bottom-bar "more" tab (mobile) asks us to open the full menu */
+  useEffect(() => {
+    const open = () => setMobileOpen(true);
+    window.addEventListener("annapp:open-menu", open);
+    return () => window.removeEventListener("annapp:open-menu", open);
   }, []);
 
   /* sync toggle button state with whatever DarkOverlay restored */
@@ -168,6 +167,7 @@ export default function Navbar() {
 
         {/* Desktop tabs */}
         <div style={{
+          position: "relative",
           display: "flex", gap: "0.25rem", alignItems: "center",
           background: dark ? "rgba(255,255,255,0.1)" : "rgba(var(--pink-light-rgb,252,231,243),0.6)",
           border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)",
@@ -177,8 +177,8 @@ export default function Navbar() {
         }}
           className="nav-desktop"
         >
-          {ROUTES.map(r => {
-            const active = r.href === "/" ? path === "/" : path.startsWith(r.href);
+          {PRIMARY_ITEMS.map(r => {
+            const active = isActive(r.href, path);
             const showBadge = r.href === "/" && vnBadge;
             return (
               <Link key={r.href} href={r.href} style={{ textDecoration: "none" }}>
@@ -217,6 +217,61 @@ export default function Navbar() {
               </Link>
             );
           })}
+
+          {/* "more" — opens a grouped menu of every other destination */}
+          <button
+            onClick={() => setMoreOpen(o => !o)}
+            style={{
+              padding: "0.45rem 1rem", borderRadius: 40, border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "0.35rem",
+              background: moreOpen ? "rgba(var(--pink-deep-rgb,236,72,153),0.12)" : "transparent",
+              fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", fontWeight: 600,
+              color: dark ? "var(--text)" : "rgba(var(--pink-deep-rgb,190,24,93),0.7)", letterSpacing: "0.04em",
+            }}>
+            <span>more</span>
+            <span style={{ fontSize: "0.6rem", transform: moreOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+          </button>
+
+          <AnimatePresence>
+            {moreOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                transition={{ duration: 0.18 }}
+                style={{
+                  position: "absolute", top: "calc(100% + 0.6rem)", right: 0, zIndex: 600,
+                  width: 320, maxWidth: "80vw",
+                  background: "var(--cream)", backdropFilter: "blur(20px)",
+                  border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)", borderRadius: 18,
+                  padding: "0.8rem", boxShadow: "0 16px 48px rgba(var(--pink-rgb,244,114,182),0.22)",
+                }}>
+                {NAV_GROUPS.map(g => (
+                  <div key={g.title} style={{ marginBottom: "0.5rem" }}>
+                    <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted)", margin: "0.3rem 0.5rem 0.3rem" }}>{g.title}</p>
+                    {g.items.map(it => {
+                      const active = isActive(it.href, path);
+                      return (
+                        <Link key={it.href} href={it.href} style={{ textDecoration: "none" }} onClick={() => setMoreOpen(false)}>
+                          <div style={{
+                            display: "flex", gap: "0.6rem", alignItems: "center",
+                            padding: "0.5rem 0.5rem", borderRadius: 12,
+                            background: active ? "rgba(var(--pink-rgb,249,168,212),0.18)" : "transparent",
+                          }}>
+                            <span style={{ fontSize: "1.05rem" }}>{it.emoji}</span>
+                            <div style={{ minWidth: 0 }}>
+                              <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", fontWeight: 700, color: "var(--pink-deep)", margin: 0 }}>{it.label}</p>
+                              <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.7rem", color: "var(--muted)", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.desc}</p>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Right cluster: dark toggle + user pill + ⌘K + hamburger */}
@@ -436,52 +491,58 @@ export default function Navbar() {
               borderRadius: 20,
               padding: "1rem",
               boxShadow: `0 16px 48px rgba(var(--pink-rgb,244,114,182),0.2)`,
-              display: "flex", flexDirection: "column", gap: "0.4rem",
+              display: "flex", flexDirection: "column", gap: "0.2rem",
+              maxHeight: "calc(100dvh - 80px)", overflowY: "auto",
             }}>
-            {ROUTES.map((r, i) => {
-              const active     = r.href === "/" ? path === "/" : path.startsWith(r.href);
-              const showBadge  = r.href === "/" && vnBadge;
-              return (
-                <motion.div key={r.href}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06 }}>
-                  <Link href={r.href} style={{ textDecoration: "none" }}>
-                    <div style={{
-                      padding: "0.85rem 1.2rem",
-                      borderRadius: 14,
-                      background: active
-                        ? dark ? "rgba(255,255,255,0.12)" : `linear-gradient(135deg,rgba(var(--pink-rgb,249,168,212),0.3),rgba(var(--pink-deep-rgb,236,72,153),0.15))`
-                        : "transparent",
-                      border: active
-                        ? dark ? "1px solid rgba(255,255,255,0.2)" : `1px solid rgba(var(--pink-deep-rgb,236,72,153),0.25)`
-                        : "1px solid transparent",
-                      display: "flex", alignItems: "center", gap: "0.8rem",
-                      position: "relative",
-                    }}>
-                      <span style={{ fontSize: "1.2rem" }}>{r.emoji}</span>
-                      <span style={{
-                        fontFamily: '"Georgia","Times New Roman",serif',
-                        fontStyle: "italic",
-                        fontSize: "1.05rem",
-                        color: active ? "var(--pink-deep)" : dark ? "var(--text)" : `rgba(var(--pink-deep-rgb,190,24,93),0.6)`,
-                        fontWeight: active ? 600 : 400,
-                        flex: 1,
+            {NAV_GROUPS.map((g) => (
+              <div key={g.title}>
+                <p style={{ fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "0.78rem", color: "var(--muted)", margin: "0.5rem 1.2rem 0.25rem", letterSpacing: "0.04em" }}>
+                  {g.title}
+                </p>
+                {g.items.map((r) => {
+                  const active    = isActive(r.href, path);
+                  const showBadge = r.href === "/" && vnBadge;
+                  return (
+                    <Link key={r.href} href={r.href} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        padding: "0.7rem 1.2rem",
+                        borderRadius: 14,
+                        background: active
+                          ? dark ? "rgba(255,255,255,0.12)" : `linear-gradient(135deg,rgba(var(--pink-rgb,249,168,212),0.3),rgba(var(--pink-deep-rgb,236,72,153),0.15))`
+                          : "transparent",
+                        border: active
+                          ? dark ? "1px solid rgba(255,255,255,0.2)" : `1px solid rgba(var(--pink-deep-rgb,236,72,153),0.25)`
+                          : "1px solid transparent",
+                        display: "flex", alignItems: "center", gap: "0.8rem",
+                        position: "relative",
                       }}>
-                        {r.label}
-                      </span>
-                      {showBadge && (
-                        <span style={{
-                          width:8,height:8,borderRadius:"50%",
-                          background:"var(--pink-deep)",flexShrink:0,
-                          boxShadow:`0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
-                        }}/>
-                      )}
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
+                        <span style={{ fontSize: "1.2rem" }}>{r.emoji}</span>
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{
+                            display: "block",
+                            fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "1.02rem",
+                            color: active ? "var(--pink-deep)" : dark ? "var(--text)" : `rgba(var(--pink-deep-rgb,190,24,93),0.7)`,
+                            fontWeight: active ? 600 : 400,
+                          }}>
+                            {r.label}
+                          </span>
+                          <span style={{ display: "block", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.68rem", color: "var(--muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {r.desc}
+                          </span>
+                        </span>
+                        {showBadge && (
+                          <span style={{
+                            width:8,height:8,borderRadius:"50%",
+                            background:"var(--pink-deep)",flexShrink:0,
+                            boxShadow:`0 0 6px rgba(var(--pink-deep-rgb,236,72,153),.7)`,
+                          }}/>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
 
             {/* Dark mode row in mobile menu */}
             <div style={{ borderTop: dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.2)`, marginTop:"0.3rem", paddingTop:"0.6rem" }}>

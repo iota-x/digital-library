@@ -85,6 +85,27 @@ export default function NudgeLayer() {
           });
           break;
         }
+        case "quiz:answered": {
+          const name = (d.name as string) || "they";
+          buzz("tap");
+          push({
+            id: "nudge-quiz", type: d.type, emoji: "🎮",
+            title: "a quiz is waiting 🎮",
+            message: `${name} played one — play it too to reveal your score`,
+            href: "/play", actionLabel: "play", durationMs: 7000,
+          });
+          break;
+        }
+        case "quiz:reveal": {
+          heartBump();
+          push({
+            id: "nudge-quiz", type: d.type, emoji: "💞", variant: "success",
+            title: "your quiz results are in 💞",
+            message: "see how in sync you are",
+            href: "/play", actionLabel: "reveal", durationMs: 7000,
+          });
+          break;
+        }
         case "doodle:nudge": {
           const name = (d.name as string) || "they";
           heartBump();

@@ -18,6 +18,7 @@ const REACTIONS: Record<string, string> = {
   "🥺": "is missing you",
   "🤗": "sent you a hug",
   "🔥": "thinks you're on fire",
+  "💭": "is thinking of you",
 };
 
 export const POST = withAuth(async (req, session) => {

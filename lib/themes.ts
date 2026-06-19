@@ -28,6 +28,10 @@ export interface CoupleSettings {
   /** Optional — the "just so you know…" letter pages on the home page. When
    *  present, overrides the filler prompts. (Ankit & Juhi keep a hardcoded set.) */
   finalPages?: { icon?: string; text: string }[];
+  /** Long-distance widgets (/together). Each partner stores their own IANA
+   *  timezone in their role slot; `nextVisit` is the shared next-meet date. */
+  timezones?: { person1?: string; person2?: string };
+  nextVisit?: string;
   sections: {
     home:    { showTimer: boolean; showMemoryCards: boolean; showVoiceNotes: boolean; showCapsuleTeaser: boolean; showFinal: boolean };
     journal: { showStreak: boolean; showSurpriseMe: boolean; showMonthlyRecap: boolean; showAnniversaryBanner: boolean };

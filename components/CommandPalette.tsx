@@ -6,17 +6,10 @@ import { useCalendarData } from "@/lib/calendarStore";
 import { useUserData } from "@/lib/userStore";
 import { SERIF, SANS } from "@/lib/typography";
 import { useFocusTrap } from "@/lib/useFocusTrap";
+import { NAV_ITEMS } from "@/lib/nav";
 
-
-const ROUTES = [
-  { href:"/",         label:"home",     emoji:"🌸", desc:"photos, memories & our timer"                 },
-  { href:"/daily",    label:"question", emoji:"💭", desc:"today's question of the day & past answers"   },
-  { href:"/timeline", label:"our story", emoji:"🕰️",  desc:"memories from before this app — where it all began" },
-  { href:"/journal",  label:"journal",  emoji:"📖", desc:"calendar, streaks & monthly recap"             },
-  { href:"/capsule",  label:"capsule",  emoji:"💌", desc:"time capsule letters to each other"            },
-  { href:"/shared",   label:"shared",   emoji:"🎬", desc:"bucket list, our playlist & watchlist"         },
-  { href:"/map",      label:"memories", emoji:"📸", desc:"our story so far — scattered photos & notes"   },
-];
+// Destinations come from the shared nav config so the palette never drifts.
+const ROUTES = NAV_ITEMS;
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function fmtEntry(date: string) {

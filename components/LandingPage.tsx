@@ -18,20 +18,12 @@ interface LandingPageProps {
 const FLOATERS = ["🌸","💗","🩷","✨","🌷","💕","💫","🌙","⭐","🌸","💗","🩷"];
 
 const FEATURES = [
-  { e: "📔", t: "Shared journal",       d: "every memory, note & photo on one timeline" },
-  { e: "💌", t: "Question of the day",  d: "answer privately — unlocks when you both do" },
-  { e: "🫙", t: "Love jar",             d: "drop little notes to open later" },
-  { e: "🎵", t: "Your playlist",        d: "a song a day, always thinking of you" },
-  { e: "📸", t: "Polaroids",            d: "your favourite moments, pinned up" },
+  { e: "📔", t: "Shared journal",       d: "every memory, photo & mood on one timeline" },
+  { e: "💭", t: "Question of the day",  d: "answer privately — unlocks when you both do" },
+  { e: "🎮", t: "Quizzes & games",      d: "see how in sync you really are" },
+  { e: "✨", t: "Us, Wrapped",          d: "your story in numbers — made to share" },
+  { e: "🌍", t: "Across the miles",     d: "timezones, a buzz & a visit countdown" },
   { e: "🔥", t: "Streaks & milestones", d: "celebrate every day of us" },
-];
-
-// Rotating "feel" snapshots — real-looking moments from inside the app.
-const PREVIEWS = [
-  { tag: "question of the day", title: "what made you smile today?",       foot: "🔥 7-day streak · you both answered 💞" },
-  { tag: "from your love jar",  title: "“found this & thought of you” 🥹", foot: "💌 12 little notes waiting inside" },
-  { tag: "song of the day",     title: "the one that's stuck in my head 🎧", foot: "🎵 added with love 💗" },
-  { tag: "a milestone today",   title: "Day 100 of us 🎉",                  foot: "✨ unlocked together" },
 ];
 
 // Honest reassurances that lower the bar to signing up.
@@ -165,37 +157,110 @@ function InviteCodeDisplay({ code, onDone }: { code: string; onDone: () => void 
   );
 }
 
+/* ── Phone-mockup screens: stylised versions of real app surfaces, on a loop ── */
+const scrBase: React.CSSProperties = { position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "1.5rem 1.2rem" };
+const scrKick: React.CSSProperties = { fontFamily: SANS, fontSize: "0.58rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(190,24,93,0.5)", margin: "0 0 0.25rem" };
+const scrCard: React.CSSProperties = { width: "100%", background: "#fff", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 10, padding: "0.4rem 0.55rem", textAlign: "left" };
+const scrMiniLabel: React.CSSProperties = { fontFamily: SANS, fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#be185d" };
+const scrMiniText: React.CSSProperties = { fontFamily: SCRIPT, fontSize: "0.82rem", color: "#4a1628", margin: "0.05rem 0 0", lineHeight: 1.2 };
+const scrPill: React.CSSProperties = { marginTop: "0.7rem", display: "inline-block", background: "rgba(249,168,212,0.25)", border: "1px solid rgba(249,168,212,0.6)", borderRadius: 50, padding: "0.2rem 0.6rem", fontFamily: SANS, fontSize: "0.56rem", fontWeight: 700, color: "#be185d" };
+const scrWRow: React.CSSProperties = { display: "flex", alignItems: "baseline", gap: "0.4rem", marginTop: "0.2rem" };
+
+function PhoneMock() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI(n => (n + 1) % 5), 2900);
+    return () => clearInterval(id);
+  }, []);
+
+  const screens = [
+    <div key="days" style={scrBase}>
+      <div style={{ fontSize: "1.9rem" }}>💗</div>
+      <p style={scrKick}>you, together</p>
+      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 700, fontSize: "3.1rem", color: "#be185d", lineHeight: 1 }}>142</div>
+      <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "rgba(157,23,77,0.7)", margin: "0.2rem 0 0" }}>days &amp; counting</p>
+    </div>,
+    <div key="daily" style={scrBase}>
+      <p style={scrKick}>question of the day</p>
+      <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.1rem", color: "#be185d", margin: "0.2rem 0 0.7rem", lineHeight: 1.35 }}>what made you smile today?</p>
+      <div style={scrCard}><span style={scrMiniLabel}>you</span><p style={scrMiniText}>your text 🥹</p></div>
+      <div style={{ ...scrCard, marginTop: 6 }}><span style={scrMiniLabel}>them</span><p style={scrMiniText}>your face, always</p></div>
+      <span style={scrPill}>🔥 7-day streak · revealed 💞</span>
+    </div>,
+    <div key="wrapped" style={{ ...scrBase, background: "linear-gradient(160deg,#ec4899,#9d174d)", color: "#fff" }}>
+      <p style={{ ...scrKick, color: "rgba(255,255,255,0.85)" }}>us, wrapped</p>
+      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 700, fontSize: "2.5rem", lineHeight: 1 }}>142</div>
+      <p style={{ fontFamily: SCRIPT, fontSize: "0.95rem", margin: "0.1rem 0 0.7rem", opacity: 0.92 }}>days together</p>
+      {[["87", "memories"], ["240", "photos"], ["92%", "in sync"]].map(([v, l]) => (
+        <div key={l} style={scrWRow}><span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: "1.1rem" }}>{v}</span><span style={{ fontFamily: SANS, fontSize: "0.74rem", opacity: 0.9 }}>{l}</span></div>
+      ))}
+    </div>,
+    <div key="quiz" style={scrBase}>
+      <div style={{ fontSize: "1.5rem" }}>💞</div>
+      <p style={scrKick}>how in sync are you?</p>
+      <div style={{ fontFamily: SERIF, fontWeight: 700, fontSize: "2.7rem", color: "#be185d", lineHeight: 1 }}>7/8</div>
+      <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "rgba(157,23,77,0.7)", margin: "0.2rem 0 0" }}>seriously in sync ✨</p>
+    </div>,
+    <div key="journal" style={scrBase}>
+      <p style={scrKick}>our journal</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 5, margin: "0.5rem 0 0.7rem", width: "100%" }}>
+        {Array.from({ length: 21 }).map((_, k) => (
+          <div key={k} style={{ aspectRatio: "1", borderRadius: 5, background: (k % 5 === 0 || k % 4 === 0) ? "#ec4899" : "rgba(249,168,212,0.4)" }} />
+        ))}
+      </div>
+      <span style={scrPill}>🔥 12-day journaling streak</span>
+    </div>,
+  ];
+
+  return (
+    <motion.div
+      animate={{ y: [0, -8, 0] }}
+      transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
+      style={{ position: "relative", width: "min(70vw,210px)", aspectRatio: "9 / 19", borderRadius: 32, background: "#3a1020", padding: 8, boxShadow: "0 30px 70px rgba(157,23,77,0.28)", flexShrink: 0 }}
+    >
+      <div style={{ position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)", width: 62, height: 15, background: "#3a1020", borderRadius: "0 0 11px 11px", zIndex: 3 }} />
+      <div style={{ position: "relative", width: "100%", height: "100%", borderRadius: 25, overflow: "hidden", background: "linear-gradient(160deg,#fff1f2,#fce7f3)" }}>
+        <AnimatePresence mode="wait">
+          <motion.div key={i} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.45 }} style={{ position: "absolute", inset: 0 }}>
+            {screens[i]}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
 /** Left-hand showcase shown beside the auth card on the create/join/sign-in
  *  screens — gives newcomers a feel for the app and its features before they
  *  commit to making an account. Hidden once a flow (verify/forgot) is underway. */
 function Showcase() {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setI(n => (n + 1) % PREVIEWS.length), 3200);
-    return () => clearInterval(id);
-  }, []);
-  const p = PREVIEWS[i];
-
   return (
     <motion.div
       initial={{ opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-      style={{ flex: "1 1 360px", maxWidth: 480, color: "#9d174d" }}
+      style={{ flex: "1 1 420px", maxWidth: 560, color: "#9d174d" }}
     >
-      <p style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(190,24,93,0.5)", margin: "0 0 0.6rem" }}>
-        your own little world, together
-      </p>
-      <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.9rem,4.7vw,2.7rem)", color: "#be185d", lineHeight: 1.12, margin: "0 0 0.7rem" }}>
-        every little moment,<br />kept just for the two of you 🌸
-      </h2>
-      <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(157,23,77,0.72)", lineHeight: 1.55, margin: "0 0 1.1rem", maxWidth: 430 }}>
-        journal your days, trade a daily question, save your songs, photos &amp;
-        voice notes — and watch your streak of &ldquo;us&rdquo; grow, one day at a time.
-      </p>
+      {/* Above the fold: sharp FOMO headline + a live phone */}
+      <div style={{ display: "flex", gap: "clamp(1rem,3vw,1.6rem)", alignItems: "center", flexWrap: "wrap", marginBottom: "1.3rem" }}>
+        <div style={{ flex: "1 1 220px", minWidth: 210 }}>
+          <p style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(190,24,93,0.5)", margin: "0 0 0.6rem" }}>
+            your own little world, together
+          </p>
+          <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.8rem,4.5vw,2.5rem)", color: "#be185d", lineHeight: 1.12, margin: "0 0 0.7rem" }}>
+            the small moments slip away. keep yours. 🌸
+          </h2>
+          <p style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(157,23,77,0.72)", lineHeight: 1.55, margin: 0 }}>
+            every day you don&apos;t write down is a day you&apos;ll only half-remember.
+            journal it, answer a daily question, play together, and watch your streak of
+            &ldquo;us&rdquo; grow — private, just for two.
+          </p>
+        </div>
+        <PhoneMock />
+      </div>
 
       {/* Trust row — low-friction reassurance */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1.3rem" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1.1rem" }}>
         {TRUST.map(tr => (
           <span key={tr.t} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", background: "rgba(255,255,255,0.65)", border: "1px solid rgba(249,168,212,0.45)", borderRadius: 50, padding: "0.28rem 0.7rem", fontFamily: SANS, fontSize: "0.7rem", fontWeight: 600, color: "rgba(157,23,77,0.8)" }}>
             <span aria-hidden>{tr.e}</span>{tr.t}
@@ -204,7 +269,7 @@ function Showcase() {
       </div>
 
       {/* Feature grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "0.6rem", marginBottom: "1.3rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "0.6rem", marginBottom: "1.1rem" }}>
         {FEATURES.map(f => (
           <div key={f.t} style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start", background: "rgba(255,255,255,0.6)", border: "1px solid rgba(249,168,212,0.4)", borderRadius: 14, padding: "0.7rem 0.8rem" }}>
             <span aria-hidden style={{ fontSize: "1.15rem", lineHeight: 1 }}>{f.e}</span>
@@ -216,32 +281,9 @@ function Showcase() {
         ))}
       </div>
 
-      {/* Rotating live-feel preview — cycles through real moments in the app */}
-      <div style={{ position: "relative", minHeight: 116, marginBottom: "1rem" }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.4 }}
-            style={{ background: "#fff", border: "1px solid rgba(249,168,212,0.5)", borderRadius: 18, padding: "1rem 1.1rem", boxShadow: "0 12px 32px rgba(244,114,182,0.16)", maxWidth: 360 }}
-          >
-            <p style={{ fontFamily: SANS, fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(190,24,93,0.45)", margin: "0 0 0.4rem" }}>
-              {p.tag}
-            </p>
-            <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.08rem", color: "#be185d", margin: "0 0 0.7rem", lineHeight: 1.3 }}>
-              {p.title}
-            </p>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", background: "rgba(249,168,212,0.18)", border: "1px solid rgba(249,168,212,0.45)", borderRadius: 50, padding: "0.22rem 0.65rem", fontFamily: SANS, fontSize: "0.68rem", fontWeight: 600, color: "rgba(190,24,93,0.75)" }}>
-              {p.foot}
-            </span>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "rgba(190,24,93,0.55)", margin: 0 }}>
-        your story starts the moment you both sign in 🌸
+      {/* Honest "social proof" — positioning, not fabricated reviews/counts */}
+      <p style={{ fontFamily: SCRIPT, fontSize: "1.05rem", color: "rgba(190,24,93,0.6)", margin: 0 }}>
+        no feed, no followers, no ads — made for couples who don&apos;t want to forget the small stuff 💗
       </p>
     </motion.div>
   );
@@ -601,7 +643,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
       }}>
         <div style={{
           display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center",
-          gap: "clamp(1.5rem,4vw,2.8rem)", width: "100%", maxWidth: showShowcase ? 980 : 460,
+          gap: "clamp(1.5rem,4vw,2.8rem)", width: "100%", maxWidth: showShowcase ? 1060 : 460,
         }}>
           {showShowcase && <Showcase />}
 

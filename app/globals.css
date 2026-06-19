@@ -890,7 +890,8 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
   display: none;
   gap: 0.2rem;
 }
-.bottom-tabs a {
+.bottom-tabs a,
+.bottom-tabs button {
   flex: 1;
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 0.4rem 0.2rem;
@@ -902,6 +903,7 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transition: color .18s ease, background .18s ease;
+  background: none; border: none; cursor: pointer;
 }
 .bottom-tabs a[data-active="true"] {
   color: var(--pink-deep);
@@ -910,8 +912,9 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
 .bottom-tabs .bt-icon { font-size: 1.25rem; line-height: 1; }
 /* Keep labels on one line and clip gracefully so the bar stays even as tabs
    are added (single words like "memories" won't wrap, so guard the overflow). */
-.bottom-tabs a { min-width: 0; }
-.bottom-tabs a > span:not(.bt-icon) {
+.bottom-tabs a, .bottom-tabs button { min-width: 0; }
+.bottom-tabs a > span:not(.bt-icon),
+.bottom-tabs button > span:not(.bt-icon) {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -9,25 +9,67 @@ you close, even apart.
 
 ## Features
 
-- **Home** — live "days together" timer, on-this-day flashbacks, the daily
-  question (answer privately, reveals once you both do, with a shared answer
-  streak + keepsake archive), memory cards, voice notes, and a love-letter
-  finale.
-- **Our story** (`/timeline`) — a written timeline of your milestones + a mood
-  "star chart" graph.
+Pages are organised into three clusters, mirrored across the nav (see
+[Navigation](#navigation)). The single source of truth is `lib/nav.ts`.
+
+### Every day
+
+- **Home** (`/`) — live "days together" timer, on-this-day flashbacks, memory
+  cards, voice notes, a love-letter finale, and an **Explore** map of the whole
+  app so you always know what lives where.
+- **Question of the day** (`/daily`) — a daily prompt you each answer privately;
+  it reveals once you both do, with a shared answer streak and a keepsake
+  archive. Auto-opens the first time you open the app each day.
 - **Journal** (`/journal`) — a shared calendar of moods, notes & photos, a
   journaling streak, "surprise me" random-memory draw, monthly recaps, and an
   "us by the numbers" stats panel.
-- **Capsule** (`/capsule`) — write letters that unlock on a future date.
-- **Shared** (`/shared`) — bucket list, a "song a day" playlist, a watchlist,
-  and a "reasons I love you" jar you draw from.
+
+### Together
+
+- **Play** (`/play`) — a games & quizzes hub: a "how in sync are you?"
+  compatibility quiz (with **AI-generatable packs**), truth-or-dare,
+  would-you-rather, a private **weekly relationship check-in** with an 8-week
+  trend, and date-night / reconnect idea cards.
+- **Across the miles** (`/together`) — long-distance widgets: a two-timezone
+  clock, a one-tap "thinking of you" buzz (push + live reaction), a countdown to
+  your next visit, and **watch-together** (start a show in sync).
+- **Shared** (`/shared`) — date-night ideas, a bucket list, a "song a day"
+  playlist, a watchlist, and a "reasons I love you" jar you draw from.
+
+### Looking back
+
 - **Memories** (`/map`) — a polaroid memory lane, a pin map of places that are
   yours, and a printable PDF export.
+- **Our story** (`/timeline`) — a written timeline of your milestones + a mood
+  "star chart" graph.
+- **Time capsule** (`/capsule`) — write letters that unlock on a future date.
+- **Us, Wrapped** (`/wrapped`) — a Spotify-Wrapped-style recap computed from
+  your own data (days together, memories, top mood, quiz sync, …), shown as
+  swipeable story cards with a **shareable Instagram-story image**.
+
+### Always on
+
 - **Live togetherness** — real-time presence ("you're both here"), a shared
   doodle canvas, and tap-to-send reactions (hearts, kisses, hugs…), all over
   Server-Sent Events, plus web-push so a nudge lands even when the app's closed.
 - **PWA** — installable, offline-tolerant (queued writes), home-screen
   "days together" widget, dark mode, and per-couple themes.
+
+## Navigation
+
+With this many surfaces, navigation is deliberately two-tier and driven from a
+single config (`lib/nav.ts`):
+
+- **Primary** — the few most-used destinations (Home, Question, Journal, Play)
+  sit in the top bar (desktop) and the bottom tab bar (mobile).
+- **More** — a grouped menu (the same three clusters above, each with a one-line
+  "what's here") holds everything else. It opens from the "more" pill/tab.
+- **Explore** — the home page renders the full grouped map so newcomers can see
+  every area at a glance.
+- **⌘K** — a command palette searches every destination plus your own entries
+  (journal days, bucket-list items, letters…).
+
+Change a destination once in `lib/nav.ts` and every surface updates.
 
 ## Tech stack
 
@@ -38,6 +80,8 @@ you close, even apart.
 - **Leaflet** for the memory map, **framer-motion** for animation
 - **jsPDF** for the exportable memory book, **Resend** for transactional email
 - Optional **Redis** (Upstash) for cross-instance rate limiting
+- Optional **Claude** (`@anthropic-ai/sdk`) — personalises date/reconnect ideas
+  and generates quiz packs; unset → a built-in deterministic content library
 - **Vitest** for tests
 
 ## Getting started
@@ -57,7 +101,11 @@ first access without them — see `lib/env.ts`): `JWT_SECRET`, `MONGODB_URI`,
 `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `VAPID_SUBJECT`,
 `VAPID_PRIVATE_KEY`, plus public `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` and
 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Everything else (email, Spotify, Redis, weather,
-reminders) degrades to a silent no-op when unset.
+reminders, AI) degrades to a silent no-op / deterministic fallback when unset.
+
+Set `ANTHROPIC_API_KEY` to turn on AI personalisation for date/reconnect ideas
+and generated quiz packs (optionally `ANTHROPIC_MODEL`, default
+`claude-opus-4-8`). Without it those features use the built-in content library.
 
 ## Scheduled reminders (optional)
 
