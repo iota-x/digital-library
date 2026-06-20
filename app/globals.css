@@ -134,10 +134,14 @@ html.dark section {
   background-attachment: fixed;
 }
 /* Any <section> inside a flow page goes transparent so the single wash shows
-   through with no seams. Triple-classed purely to out-specify the per-theme
-   `html.dark.theme-X section` background rules above without an ID hack. */
+   through with no seams, and shrinks to its content (many sections were built
+   as standalone full-screen pages with `min-height:100vh`, which leaves big
+   gaps when stacked) so components just append one after another.
+   Triple-classed purely to out-specify the per-theme `html.dark.theme-X
+   section` background rules above without an ID hack. */
 .flow-page.flow-page.flow-page section {
   background: transparent !important;
+  min-height: 0 !important;
 }
 
 /* ── Footer ── */
@@ -265,10 +269,9 @@ html.dark .lt-chip span {
 html.dark .dk-journal-header {
   background:
     linear-gradient(180deg,
-      rgba(var(--pink-deep-rgb), 0.10) 0%,
-      rgba(var(--pink-deep-rgb), 0.22) 100%),
-    #0a0410 !important;
-  border-color: rgba(var(--pink-rgb), 0.18) !important;
+      rgba(var(--pink-deep-rgb), 0.22) 0%,
+      rgba(var(--pink-deep-rgb), 0) 100%) !important;
+  border-color: transparent !important;
 }
 html.dark .dk-journal-header h1,
 html.dark .dk-journal-header p,

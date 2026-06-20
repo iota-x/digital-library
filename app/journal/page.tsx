@@ -38,7 +38,7 @@ function JournalPageInner() {
     <PasswordGate>
       <div ref={trackRef} className="ptr-track">
         <div className={`ptr-indicator ${refreshing ? "spinning" : ""}`} aria-hidden>↻</div>
-        <main>
+        <main className="flow-page">
           <JournalHeader />
           <ErrorBoundary><JournalSearch /></ErrorBoundary>
           <div style={{ padding: "2rem clamp(1rem,3vw,2rem) 0" }}>

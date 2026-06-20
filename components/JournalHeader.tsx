@@ -38,8 +38,9 @@ export default function JournalHeader() {
   return (
     <div className="dk-journal-header" style={{
       padding: "2.5rem clamp(1rem,3vw,2rem) 1.5rem",
-      background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 100%)",
-      borderBottom: "1px solid rgba(var(--pink-rgb),.18)",
+      // Fades to transparent so it melts into the page's flow wash — no hard
+      // seam/border between the header and the sections below.
+      background: "linear-gradient(180deg,var(--rose) 0%,rgba(var(--pink-light-rgb,252,231,243),0) 100%)",
     }}>
       {/* Title */}
       <div style={{ textAlign: "center", marginBottom: "1.4rem" }}>

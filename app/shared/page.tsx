@@ -96,8 +96,8 @@ function SharedContent() {
   return (
     <main className="flow-page">
       <SharedHero />
-      <Ideas flat mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
       {sv("showBucketList") && <BucketList />}
+      <Ideas flat mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
       {sv("showSpotify") && <SpotifySection />}
       {sv("showWatchlist") && <WatchlistSection />}
       <LoveJar />
