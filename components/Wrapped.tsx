@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
-import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { DISPLAY, SANS, SCRIPT } from "@/lib/typography";
 import { buzz, heartBump } from "@/lib/haptics";
 import { shareWrapped, type ShareStats } from "@/lib/shareCard";
 
@@ -130,7 +130,7 @@ export default function Wrapped() {
           <div style={{ display: "grid", gap: "0.6rem", marginTop: "0.6rem" }}>
             {tallies.map(([n, l]) => (
               <div key={l} style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", justifyContent: "center" }}>
-                <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: "2rem", color: "#fff" }}>{n}</span>
+                <span style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: "2.2rem", color: "#fff", letterSpacing: "-0.02em" }}>{n}</span>
                 <span style={{ fontFamily: SANS, fontSize: "0.95rem", color: "rgba(255,255,255,0.9)" }}>{l}</span>
               </div>
             ))}
@@ -251,10 +251,14 @@ export default function Wrapped() {
 
         <AnimatePresence mode="wait">
           <motion.div key={idx}
-            initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            style={{ position: "absolute", inset: 0, background: cards[idx].bg, display: "flex", alignItems: "center", justifyContent: "center", padding: "2.4rem 1.6rem" }}
+            initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: "absolute", inset: 0, background: cards[idx].bg, display: "flex", alignItems: "center", justifyContent: "center", padding: "2.6rem 1.7rem" }}
           >
+            {/* top sheen for depth */}
+            <div aria-hidden style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 70% at 50% -10%, rgba(255,255,255,0.28), rgba(255,255,255,0) 55%)" }} />
+            {/* soft bottom vignette so the share button + footer stay legible */}
+            <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.18) 100%)" }} />
             {cards[idx].node}
           </motion.div>
         </AnimatePresence>
@@ -280,16 +284,16 @@ export default function Wrapped() {
 
 /* ── little presentational helpers (white-on-gradient story text) ── */
 function Stage({ children }: { children: React.ReactNode }) {
-  return <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "0.5rem", color: "#fff" }}>{children}</div>;
+  return <div style={{ position: "relative", zIndex: 1, textAlign: "center", display: "flex", flexDirection: "column", gap: "0.55rem", color: "#fff" }}>{children}</div>;
 }
 function Big({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <div style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 700, color: "#fff", lineHeight: 1.1, ...style }}>{children}</div>;
+  return <div style={{ fontFamily: DISPLAY, fontWeight: 700, color: "#fff", lineHeight: 1.02, letterSpacing: "-0.02em", textShadow: "0 6px 30px rgba(0,0,0,0.22)", ...style }}>{children}</div>;
 }
 function Soft({ children }: { children: React.ReactNode }) {
-  return <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,3.5vw,1.2rem)", color: "rgba(255,255,255,0.92)", margin: 0 }}>{children}</p>;
+  return <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1.05rem,3.8vw,1.3rem)", color: "rgba(255,255,255,0.94)", margin: 0 }}>{children}</p>;
 }
 function Kicker({ children }: { children: React.ReactNode }) {
-  return <p style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.85)", margin: 0 }}>{children}</p>;
+  return <p style={{ fontFamily: SANS, fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(255,255,255,0.88)", margin: 0 }}>{children}</p>;
 }
 function Stack({ children }: { children: React.ReactNode }) {
   return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>{children}</div>;

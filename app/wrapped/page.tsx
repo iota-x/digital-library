@@ -2,19 +2,21 @@
 import PasswordGate from "@/components/PasswordGate";
 import Wrapped      from "@/components/Wrapped";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { DISPLAY, SANS, SCRIPT } from "@/lib/typography";
 
 function WrappedHero() {
   return (
     <div style={{
-      textAlign: "center",
+      position: "relative", textAlign: "center", overflow: "hidden",
       padding: "clamp(3rem,7vh,4.5rem) clamp(1rem,4vw,2rem) clamp(1rem,3vh,1.8rem)",
-      background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 60%,rgba(var(--pink-light-rgb),0) 100%)",
+      // A soft radial glow that fades fully to transparent — blends seamlessly
+      // into the page in every theme (light or dark), no hard seam.
+      background: "radial-gradient(120% 85% at 50% -15%, rgba(var(--pink-rgb),0.32), rgba(var(--pink-rgb),0) 62%)",
     }}>
-      <p style={{ fontFamily: SANS, fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--pink-deep-rgb), .5)", margin: "0 0 0.4rem" }}>
-        us, wrapped
+      <p style={{ fontFamily: SANS, fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.24em", textTransform: "uppercase", color: "rgba(var(--pink-deep-rgb), .6)", margin: "0 0 0.5rem" }}>
+        ✦ us, wrapped ✦
       </p>
-      <h1 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(2.2rem,6vw,3.4rem)", color: "var(--pink-deep)", margin: "0 0 0.4rem", lineHeight: 1.1 }}>
+      <h1 style={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: "clamp(2.3rem,6.5vw,3.6rem)", color: "var(--pink-deep)", margin: "0 0 0.4rem", lineHeight: 1.08, letterSpacing: "-0.01em" }}>
         your story, in numbers
       </h1>
       <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1.05rem,2.5vw,1.25rem)", color: "var(--muted)", margin: 0 }}>
