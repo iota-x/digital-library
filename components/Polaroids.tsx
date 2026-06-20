@@ -238,7 +238,7 @@ export default function Polaroids() {
         position:"relative", width:"100%", minHeight:"100vh",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
         padding:"5rem 2rem", overflow:"hidden",
-        background:"linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 45%,var(--rose) 100%)",
+        background:"linear-gradient(160deg,var(--cream) 0%,var(--rose) 50%,var(--cream) 100%)",
       }}>
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none", zIndex:0,
