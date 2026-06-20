@@ -55,7 +55,7 @@ export default function Wrapped() {
     const title = data.coupleName?.trim() || `${you} & ${partner}`;
     const list: Card[] = [];
 
-    list.push({ bg: "linear-gradient(160deg,#f9a8d4,#ec4899)", node: (
+    list.push({ bg: "linear-gradient(160deg,color-mix(in srgb,var(--pink) 60%,#fff),var(--pink))", node: (
       <Stage>
         <Kicker>us, wrapped</Kicker>
         <Big style={{ fontSize: "clamp(2.2rem,8vw,3rem)" }}>{title}</Big>
@@ -63,7 +63,7 @@ export default function Wrapped() {
       </Stage>
     ) });
 
-    list.push({ bg: "linear-gradient(160deg,#ec4899,#9d174d)", node: (
+    list.push({ bg: "linear-gradient(160deg,var(--pink),var(--pink-deep))", node: (
       <Stage>
         <Soft>you&apos;ve been together</Soft>
         <Big style={{ fontSize: "clamp(4rem,20vw,7rem)", lineHeight: 1 }}>{data.daysTogether}</Big>
@@ -73,7 +73,7 @@ export default function Wrapped() {
     ) });
 
     if (data.journal.entries > 0) {
-      list.push({ bg: "linear-gradient(160deg,#c084fc,#7c3aed)", node: (
+      list.push({ bg: "linear-gradient(160deg,color-mix(in srgb,var(--pink) 75%,#fff),var(--pink-deep))", node: (
         <Stage>
           <Soft>together you kept</Soft>
           <Big style={{ fontSize: "clamp(3.5rem,16vw,6rem)" }}>{data.journal.entries}</Big>
@@ -85,7 +85,7 @@ export default function Wrapped() {
     }
 
     if (data.journal.topMood) {
-      list.push({ bg: "linear-gradient(160deg,#fb7185,#be123c)", node: (
+      list.push({ bg: "linear-gradient(160deg,var(--pink),color-mix(in srgb,var(--pink-deep) 65%,#000))", node: (
         <Stage>
           <Soft>your most-felt mood</Soft>
           <Big style={{ fontSize: "clamp(3rem,14vw,5rem)" }}>{data.journal.topMood}</Big>
@@ -95,7 +95,7 @@ export default function Wrapped() {
     }
 
     if (data.daily.answeredTogether > 0) {
-      list.push({ bg: "linear-gradient(160deg,#f472b6,#a21caf)", node: (
+      list.push({ bg: "linear-gradient(160deg,var(--pink),var(--pink-deep))", node: (
         <Stage>
           <Soft>questions you answered together</Soft>
           <Big style={{ fontSize: "clamp(3.5rem,16vw,6rem)" }}>{data.daily.answeredTogether}</Big>
@@ -105,7 +105,7 @@ export default function Wrapped() {
     }
 
     if (matchPct != null) {
-      list.push({ bg: "linear-gradient(160deg,#f9a8d4,#db2777)", node: (
+      list.push({ bg: "linear-gradient(160deg,color-mix(in srgb,var(--pink) 55%,#fff),var(--pink))", node: (
         <Stage>
           <Soft>at your most in sync, you were</Soft>
           <Big style={{ fontSize: "clamp(4rem,18vw,6.5rem)" }}>{matchPct}%</Big>
@@ -124,7 +124,7 @@ export default function Wrapped() {
     ];
     const tallies = tallySource.filter(([n]) => n > 0);
     if (tallies.length) {
-      list.push({ bg: "linear-gradient(160deg,#c084fc,#6d28d9)", node: (
+      list.push({ bg: "linear-gradient(160deg,color-mix(in srgb,var(--pink) 70%,#fff),var(--pink-deep))", node: (
         <Stage>
           <Soft>the little things add up</Soft>
           <div style={{ display: "grid", gap: "0.6rem", marginTop: "0.6rem" }}>
@@ -139,7 +139,7 @@ export default function Wrapped() {
       ) });
     }
 
-    list.push({ bg: "linear-gradient(160deg,#ec4899,#9d174d)", node: (
+    list.push({ bg: "linear-gradient(160deg,var(--pink),var(--pink-deep))", node: (
       <Stage>
         <Kicker>that&apos;s your story — so far</Kicker>
         <Big style={{ fontSize: "clamp(1.8rem,7vw,2.6rem)" }}>{title} 💗</Big>
@@ -306,7 +306,7 @@ function Frame({ children }: { children: React.ReactNode }) {
     <div style={{
       position: "relative", width: "min(94vw, 420px)", aspectRatio: "9 / 16",
       borderRadius: 28, overflow: "hidden",
-      background: "linear-gradient(160deg,#f9a8d4,#9d174d)",
+      background: "linear-gradient(160deg,var(--pink),var(--pink-deep))",
       boxShadow: "0 24px 70px rgba(var(--pink-deep-rgb), .28)",
     }}>
       {children}

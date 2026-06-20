@@ -136,7 +136,7 @@ export default function MemoryMap() {
             transition={{ delay: 1 }}
             style={{
               position: "absolute", bottom: "5rem", left: "50%", transform: "translateX(-50%)",
-              zIndex: 800, background: "rgba(255,245,249,.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
+              zIndex: 800, background: "rgba(var(--cream-rgb,255,245,249),.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
               borderRadius: 50, padding: "0.6rem 1.4rem", backdropFilter: "blur(12px)",
               boxShadow: "0 4px 20px rgba(var(--pink-deep-rgb),.15)", pointerEvents: "none",
             }}>
@@ -151,7 +151,7 @@ export default function MemoryMap() {
       {pins.length > 0 && (
         <div style={{
           position: "absolute", top: "1rem", right: "1rem", zIndex: 800,
-          background: "rgba(255,245,249,.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
+          background: "rgba(var(--cream-rgb,255,245,249),.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
           borderRadius: 50, padding: "0.4rem 1rem", backdropFilter: "blur(12px)",
           boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.15)",
         }}>
@@ -183,7 +183,7 @@ export default function MemoryMap() {
               transition={{ type: "spring", stiffness: 280, damping: 28 }}
               style={{
                 position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
-                zIndex: 900, background: "rgba(255,245,249,.97)",
+                zIndex: 900, background: "rgba(var(--cream-rgb,255,245,249),.97)",
                 borderRadius: 24, padding: "1.8rem", width: "min(92vw,380px)",
                 boxShadow: "0 24px 70px rgba(0,0,0,.35)", border: "1px solid rgba(var(--pink-deep-rgb),.18)",
               }}>
@@ -244,7 +244,7 @@ export default function MemoryMap() {
               transition={{ type: "spring", stiffness: 280, damping: 28 }}
               style={{
                 position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)",
-                zIndex: 900, background: "rgba(255,245,249,.97)",
+                zIndex: 900, background: "rgba(var(--cream-rgb,255,245,249),.97)",
                 borderRadius: 24, padding: "1.6rem", width: "min(92vw,380px)",
                 boxShadow: "0 16px 50px rgba(0,0,0,.3)", border: "1px solid rgba(var(--pink-deep-rgb),.18)",
               }}>
