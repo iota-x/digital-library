@@ -255,8 +255,8 @@ html.dark footer {
   border-color: rgba(var(--pink-rgb), 0.22) !important;
 }
 
-/* ── Navbar ── */
-html.dark nav {
+/* ── Navbar ── (exclude the in-page side dot-nav, which is also a <nav>) */
+html.dark nav:not(.side-nav) {
   background: color-mix(in srgb, var(--cream) 88%, transparent) !important;
   border-color: rgba(var(--pink-rgb), 0.18) !important;
 }
@@ -564,7 +564,7 @@ html.dark.theme-purple section {
 }
 html.dark.theme-purple body   { background: #0a001e !important; }
 html.dark.theme-purple footer { background: linear-gradient(135deg, #120038, #1e005a, #140042) !important; border-color: rgba(167,139,250,.22) !important; }
-html.dark.theme-purple nav    { background: rgba(10, 0, 30, 0.88) !important; border-color: rgba(167,139,250,.18) !important; }
+html.dark.theme-purple nav:not(.side-nav)    { background: rgba(10, 0, 30, 0.88) !important; border-color: rgba(167,139,250,.18) !important; }
 html.dark.theme-purple ::-webkit-scrollbar-thumb { background: #7c3aed; }
 html.dark.theme-purple ::-webkit-scrollbar-thumb:hover { background: #9d5ef5; }
 /* component cards */
@@ -594,7 +594,7 @@ html.dark.theme-blue section {
 }
 html.dark.theme-blue body   { background: #000810 !important; }
 html.dark.theme-blue footer { background: linear-gradient(135deg, #001428, #002040, #001030) !important; border-color: rgba(56,189,248,.22) !important; }
-html.dark.theme-blue nav    { background: rgba(0, 8, 20, 0.88) !important; border-color: rgba(56,189,248,.18) !important; }
+html.dark.theme-blue nav:not(.side-nav)    { background: rgba(0, 8, 20, 0.88) !important; border-color: rgba(56,189,248,.18) !important; }
 html.dark.theme-blue ::-webkit-scrollbar-thumb { background: #0284c7; }
 html.dark.theme-blue ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
 /* component cards */
@@ -630,7 +630,7 @@ html.dark.theme-green section {
 }
 html.dark.theme-green body   { background: #010c05 !important; }
 html.dark.theme-green footer { background: linear-gradient(135deg, #021410, #031e16, #021410) !important; border-color: rgba(52,211,153,.22) !important; }
-html.dark.theme-green nav    { background: rgba(1, 10, 6, 0.88) !important; border-color: rgba(52,211,153,.18) !important; }
+html.dark.theme-green nav:not(.side-nav)    { background: rgba(1, 10, 6, 0.88) !important; border-color: rgba(52,211,153,.18) !important; }
 html.dark.theme-green ::-webkit-scrollbar-thumb { background: #059669; }
 html.dark.theme-green ::-webkit-scrollbar-thumb:hover { background: #34d399; }
 /* component cards */
@@ -666,7 +666,7 @@ html.dark.theme-gold section {
 }
 html.dark.theme-gold body   { background: #090500 !important; }
 html.dark.theme-gold footer { background: linear-gradient(135deg, #1a0e00, #281800, #1a0e00) !important; border-color: rgba(251,191,36,.22) !important; }
-html.dark.theme-gold nav    { background: rgba(10, 6, 0, 0.88) !important; border-color: rgba(251,191,36,.18) !important; }
+html.dark.theme-gold nav:not(.side-nav)    { background: rgba(10, 6, 0, 0.88) !important; border-color: rgba(251,191,36,.18) !important; }
 html.dark.theme-gold ::-webkit-scrollbar-thumb { background: #d97706; }
 html.dark.theme-gold ::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
 /* component cards */
