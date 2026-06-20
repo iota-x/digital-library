@@ -270,7 +270,7 @@ html.dark nav {
    hardcoded for light mode in JS. Override them all here in dark so the
    palette tints with the active theme instead of staying cream-with-plum. */
 html.dark .cmd-palette {
-  background: rgba(14, 6, 22, 0.96) !important;
+  background: color-mix(in srgb, var(--cream) 96%, transparent) !important;
   border-color: rgba(var(--pink-rgb), 0.35) !important;
   box-shadow:
     0 28px 80px rgba(0, 0, 0, 0.55),
@@ -386,9 +386,9 @@ html.dark .dk-journal-header span {
 
 /* Timeline memory cards — lighter plum so content stands out */
 html.dark .dk-timeline-card {
-  background: #2a0848 !important;
-  border-color: rgba(200, 100, 255, 0.35) !important;
-  box-shadow: 0 6px 24px rgba(120, 0, 200, 0.25) !important;
+  background: var(--pink-mid) !important;
+  border-color: color-mix(in srgb, var(--pink) 35%, transparent) !important;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--pink-deep) 25%, transparent) !important;
 }
 html.dark .dk-timeline-card p,
 html.dark .dk-timeline-card span {
@@ -397,7 +397,7 @@ html.dark .dk-timeline-card span {
 
 /* Timeline letter drawer (full-screen bottom sheet) */
 html.dark .dk-timeline-drawer {
-  background: #180030 !important;
+  background: var(--rose) !important;
 }
 html.dark .dk-timeline-drawer p {
   color: var(--text) !important;
@@ -405,8 +405,8 @@ html.dark .dk-timeline-drawer p {
 
 /* Memory cards (home page pastel sticky notes) */
 html.dark .dk-mem-card {
-  background: #2a0848 !important;
-  box-shadow: 4px 4px 18px rgba(100, 0, 160, 0.28) !important;
+  background: var(--pink-mid) !important;
+  box-shadow: 4px 4px 18px color-mix(in srgb, var(--pink-deep) 28%, transparent) !important;
 }
 html.dark .dk-mem-card h3,
 html.dark .dk-mem-card p,
@@ -416,8 +416,8 @@ html.dark .dk-mem-card span {
 
 /* Memory card modal popup */
 html.dark .dk-mem-modal {
-  background: #1e0038 !important;
-  box-shadow: 0 24px 60px rgba(140, 0, 220, 0.35) !important;
+  background: var(--rose) !important;
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--pink-deep) 35%, transparent) !important;
 }
 html.dark .dk-mem-modal h2,
 html.dark .dk-mem-modal p {
@@ -426,8 +426,8 @@ html.dark .dk-mem-modal p {
 
 /* Final.tsx — love letter book pages */
 html.dark .dk-book-page {
-  background: linear-gradient(160deg, #1e0438 0%, #2a0850 50%, #180330 100%) !important;
-  border-color: rgba(200, 100, 255, 0.25) !important;
+  background: linear-gradient(160deg, var(--pink-light) 0%, var(--pink-mid) 50%, var(--rose) 100%) !important;
+  border-color: color-mix(in srgb, var(--pink) 25%, transparent) !important;
 }
 html.dark .dk-book-page p {
   color: var(--text) !important;
@@ -435,8 +435,8 @@ html.dark .dk-book-page p {
 
 /* Final.tsx — "I love you" game section */
 html.dark .dk-ily-game {
-  background: linear-gradient(180deg, #0c0018, #160030, #0c0018) !important;
-  border-color: rgba(180, 70, 255, 0.15) !important;
+  background: linear-gradient(180deg, var(--cream), var(--rose), var(--cream)) !important;
+  border-color: color-mix(in srgb, var(--pink) 15%, transparent) !important;
 }
 html.dark .dk-ily-game p {
   color: var(--text) !important;
@@ -450,7 +450,7 @@ html.dark footer span {
 
 /* /shared page hero banner */
 html.dark .dk-shared-hero {
-  background: linear-gradient(180deg, #0c0018 0%, #160030 60%, rgba(8,0,14,0) 100%) !important;
+  background: linear-gradient(180deg, var(--cream) 0%, var(--rose) 60%, transparent 100%) !important;
 }
 html.dark .dk-shared-hero h1,
 html.dark .dk-shared-hero p,
@@ -460,26 +460,26 @@ html.dark .dk-shared-hero span {
 
 /* BucketList diary paper */
 html.dark .dk-bucket-paper {
-  background: #0e0020 !important;
+  background: var(--cream) !important;
   background-image: repeating-linear-gradient(
     180deg,
     transparent,
     transparent 31px,
-    rgba(180,80,255,.07) 31px,
-    rgba(180,80,255,.07) 32px
+    color-mix(in srgb, var(--pink) 7%, transparent) 31px,
+    color-mix(in srgb, var(--pink) 7%, transparent) 32px
   ) !important;
 }
 
 /* BucketList tabs pill bar */
 html.dark .dk-bucket-tabs {
-  background: rgba(30, 5, 55, 0.88) !important;
-  border-color: rgba(180, 80, 255, 0.22) !important;
+  background: color-mix(in srgb, var(--pink-mid) 88%, transparent) !important;
+  border-color: color-mix(in srgb, var(--pink) 22%, transparent) !important;
 }
 
 /* BucketList add-dream form card */
 html.dark .dk-bucket-form {
-  background: rgba(22, 4, 44, 0.95) !important;
-  border-color: rgba(180, 80, 255, 0.22) !important;
+  background: color-mix(in srgb, var(--pink-light) 95%, transparent) !important;
+  border-color: color-mix(in srgb, var(--pink) 22%, transparent) !important;
 }
 html.dark .dk-bucket-form p,
 html.dark .dk-bucket-form input {
@@ -491,8 +491,8 @@ html.dark .dk-bucket-form input::placeholder {
 
 /* BucketList items container */
 html.dark .dk-bucket-list {
-  background: rgba(20, 4, 38, 0.9) !important;
-  border-color: rgba(180, 80, 255, 0.1) !important;
+  background: color-mix(in srgb, var(--pink-light) 90%, transparent) !important;
+  border-color: color-mix(in srgb, var(--pink) 10%, transparent) !important;
 }
 html.dark .dk-bucket-list p {
   color: var(--text) !important;
@@ -500,13 +500,13 @@ html.dark .dk-bucket-list p {
 
 /* Calendar main card (white body) */
 html.dark .dk-cal-card {
-  background: rgba(18, 3, 34, 0.97) !important;
-  box-shadow: 0 16px 70px rgba(100, 0, 180, 0.22), 0 4px 16px rgba(0,0,0,.4), inset 0 0 0 1.5px rgba(180, 70, 255, 0.18) !important;
+  background: color-mix(in srgb, var(--pink-light) 97%, transparent) !important;
+  box-shadow: 0 16px 70px color-mix(in srgb, var(--pink-deep) 22%, transparent), 0 4px 16px rgba(0,0,0,.4), inset 0 0 0 1.5px color-mix(in srgb, var(--pink) 18%, transparent) !important;
 }
 
 /* Day column headers (Su Mo Tu…) */
 html.dark .dk-cal-card > div:nth-child(2) {
-  background: rgba(30, 5, 55, 0.5) !important;
+  background: color-mix(in srgb, var(--pink-mid) 50%, transparent) !important;
 }
 
 /* Day number text inside cells */
@@ -531,15 +531,15 @@ html.dark .dk-cal-legend span {
 
 /* Stat chips above the calendar */
 html.dark .dk-cal-chip {
-  background: rgba(28, 5, 52, 0.9) !important;
-  border-color: rgba(180, 80, 255, 0.22) !important;
+  background: color-mix(in srgb, var(--pink-mid) 90%, transparent) !important;
+  border-color: color-mix(in srgb, var(--pink) 22%, transparent) !important;
   color: var(--text) !important;
 }
 
 /* ── Scrollbar ── */
-html.dark ::-webkit-scrollbar-track { background: #0c0018; }
-html.dark ::-webkit-scrollbar-thumb { background: #7c3aed; }
-html.dark ::-webkit-scrollbar-thumb:hover { background: #9d5ef5; }
+html.dark ::-webkit-scrollbar-track { background: var(--cream); }
+html.dark ::-webkit-scrollbar-thumb { background: var(--pink-deep); }
+html.dark ::-webkit-scrollbar-thumb:hover { background: var(--pink); }
 
 /* ══════════════════════════════════════════════════════════════════
    DARK + THEMED ACCENT OVERRIDES

@@ -104,12 +104,12 @@ export default function Navbar() {
           display: "flex", alignItems: "center", gap: "0.75rem",
           padding: "0.65rem clamp(0.85rem, 3vw, 2rem)",
           background: scrolled
-            ? dark ? "rgba(10,4,20,0.9)" : `rgba(var(--pink-light-rgb,255,245,249),0.9)`
-            : dark ? "rgba(10,4,20,0.4)" : "rgba(255,255,255,0.35)",
+            ? dark ? "color-mix(in srgb, var(--cream) 90%, transparent)" : `rgba(var(--pink-light-rgb,255,245,249),0.9)`
+            : dark ? "color-mix(in srgb, var(--cream) 60%, transparent)" : "rgba(255,255,255,0.35)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           borderBottom: scrolled
-            ? dark ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)`
+            ? dark ? "1px solid rgba(var(--pink-rgb),0.14)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)`
             : "1px solid transparent",
           transition: "background 0.4s, border 0.4s",
         }}
@@ -139,8 +139,8 @@ export default function Navbar() {
             title={dark ? "light mode" : "dark mode"}
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "50%",
-              background: dark ? "rgba(255,255,255,0.1)" : "rgba(var(--pink-light-rgb,252,231,243),.55)",
-              border: dark ? "1px solid rgba(255,255,255,0.18)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)",
+              background: dark ? "rgba(var(--pink-rgb),0.12)" : "rgba(var(--pink-light-rgb,252,231,243),.55)",
+              border: dark ? "1px solid rgba(var(--pink-rgb),0.22)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)",
               cursor: "pointer", fontSize: "1rem", flexShrink: 0,
             }}>
             {dark ? "☀️" : "🌙"}
@@ -151,11 +151,11 @@ export default function Navbar() {
             onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
             style={{
               display:"flex", alignItems:"center", gap:"0.35rem",
-              background: dark ? "rgba(255,255,255,0.1)" : `rgba(var(--pink-light-rgb,252,231,243),.55)`,
-              border: dark ? "1px solid rgba(255,255,255,0.18)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)`,
+              background: dark ? "rgba(var(--pink-rgb),0.12)" : `rgba(var(--pink-light-rgb,252,231,243),.55)`,
+              border: dark ? "1px solid rgba(var(--pink-rgb),0.22)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),.35)`,
               borderRadius:8, padding:"0.4rem 0.6rem", cursor:"pointer",
               fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.62rem", fontWeight:700,
-              color: dark ? "rgba(255,255,255,0.5)" : `rgba(var(--pink-deep-rgb,190,24,93),.5)`, letterSpacing:"0.06em",
+              color: dark ? "rgba(var(--pink-rgb),0.72)" : `rgba(var(--pink-deep-rgb,190,24,93),.5)`, letterSpacing:"0.06em",
             }}>
             <span>{isMac ? "⌘K" : "Ctrl K"}</span>
           </button>
@@ -167,8 +167,8 @@ export default function Navbar() {
                 aria-label="account"
                 style={{
                   display: "flex", alignItems: "center", gap: "0.4rem",
-                  background: dark ? "rgba(255,255,255,0.12)" : "rgba(var(--pink-light-rgb,252,231,243),.7)",
-                  border: dark ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                  background: dark ? "rgba(var(--pink-rgb),0.16)" : "rgba(var(--pink-light-rgb,252,231,243),.7)",
+                  border: dark ? "1px solid rgba(var(--pink-rgb),0.26)" : "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
                   borderRadius: 50, padding: "0.3rem 0.55rem", cursor: "pointer",
                   fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--pink-deep)", fontWeight: 600,
                 }}>
@@ -205,7 +205,7 @@ export default function Navbar() {
                       </div>
                     )}
                     <div style={{ borderTop: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)", paddingTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                      <button onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new Event("annapp:settings")); }} style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: 10, border: dark ? "1px solid rgba(255,255,255,0.15)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`, background: dark ? "rgba(255,255,255,0.08)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`, cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", color: "var(--pink-deep)", textAlign: "left", fontWeight: 600 }}>🎨 customize</button>
+                      <button onClick={() => { setUserMenuOpen(false); window.dispatchEvent(new Event("annapp:settings")); }} style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: 10, border: dark ? "1px solid rgba(var(--pink-rgb),0.2)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)`, background: dark ? "rgba(var(--pink-rgb),0.1)" : `rgba(var(--pink-light-rgb,252,231,243),0.4)`, cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", color: "var(--pink-deep)", textAlign: "left", fontWeight: 600 }}>🎨 customize</button>
                       <button onClick={handleLogout} style={{ width: "100%", padding: "0.6rem 0.8rem", borderRadius: 10, border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.3)", background: "transparent", cursor: "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.82rem", color: "var(--muted)", textAlign: "left" }}>sign out</button>
                     </div>
                   </motion.div>
