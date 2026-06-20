@@ -132,6 +132,43 @@ describe("calendarStore", () => {
     expect(relayed).toEqual([{ type: "presence", userId: "u1" }]);
   });
 
+  it("a racing refetch does NOT wipe a just-saved optimistic photo", async () => {
+    await mod.fetchCalendarData(true); // _cache = []
+    // User uploads a photo → optimistic cache write, server POST still in flight.
+    mod.updateCalendarCache({ date: "2026-03-01", note: "", photos: ["https://img/a.jpg"] } as never);
+    // A focus/visibility/poll refetch lands before the POST commits — server
+    // still returns the photo-less entry.
+    (globalThis as Record<string, unknown>).fetch = vi.fn(async () =>
+      new Response(JSON.stringify([{ date: "2026-03-01", note: "", photos: [], _id: "x", coupleId: "c" }]), { status: 200 }));
+    mod.refreshCalendarData();
+    await flush(); await flush();
+    // The optimistic photo must survive.
+    expect(readSession()).toEqual([{ date: "2026-03-01", note: "", photos: ["https://img/a.jpg"] }]);
+  });
+
+  it("releases the guard once the server reflects the write", async () => {
+    await mod.fetchCalendarData(true);
+    mod.updateCalendarCache({ date: "2026-03-01", note: "hi", photos: ["u"] } as never);
+    // Server has now committed the same content (with its volatile fields).
+    (globalThis as Record<string, unknown>).fetch = vi.fn(async () =>
+      new Response(JSON.stringify([{ date: "2026-03-01", note: "hi", photos: ["u"], _id: "x", coupleId: "c", weather: null }]), { status: 200 }));
+    mod.refreshCalendarData();
+    await flush(); await flush();
+    // Guard clears, authoritative server copy is accepted.
+    expect(readSession()).toEqual([{ date: "2026-03-01", note: "hi", photos: ["u"], _id: "x", coupleId: "c", weather: null }]);
+  });
+
+  it("an optimistic delete is not resurrected by a racing refetch", async () => {
+    await mod.fetchCalendarData(true);
+    mod.updateCalendarCache({ date: "2026-03-01", note: "a" } as never);
+    mod.deleteFromCalendarCache("2026-03-01");
+    (globalThis as Record<string, unknown>).fetch = vi.fn(async () =>
+      new Response(JSON.stringify([{ date: "2026-03-01", note: "a", _id: "x", coupleId: "c" }]), { status: 200 }));
+    mod.refreshCalendarData();
+    await flush(); await flush();
+    expect(readSession()).toEqual([]);
+  });
+
   it("invalidate clears the cache and marks realtime disconnected", async () => {
     await mod.fetchCalendarData(true);
     esInstances[0].onopen?.();

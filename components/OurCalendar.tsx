@@ -1075,7 +1075,10 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
     // Update the local cache first so the entry shows immediately, then queue
     // the network write (queuedFetch replays offline saves when back online).
     updateCalendarCache(payload);
-    await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });
+    const res = await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });
+    // A genuine rejection (4xx) is dropped by the offline queue and won't
+    // replay — surface it instead of silently pretending the save worked.
+    if (!res.ok) throw new Error(`Save rejected by server (${res.status})`);
   }, [selected]);
 
   const handleDelete = useCallback(async () => {
