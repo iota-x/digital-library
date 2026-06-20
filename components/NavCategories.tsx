@@ -9,15 +9,19 @@ import { buzz } from "@/lib/haptics";
 /**
  * Purpose-grouped navigation: a short row of category pills (Home · Connect ·
  * Memories · Fun · Capsule). Single-page categories link directly; multi-page
- * ones open a dropdown. Used inline in the desktop top bar and — with `dock` —
- * as a floating bottom dock on phones (dropdowns open upward there).
+ * ones reveal a dropdown — on hover on desktop, on tap on the mobile dock.
+ * Used inline in the top bar and, with `dock`, as a floating bottom dock.
  */
 export default function NavCategories({ dock = false }: { dock?: boolean }) {
   const path = usePathname();
   const [open, setOpen] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => setOpen(null), [path]);
+  const clearClose = () => { if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; } };
+  const scheduleClose = () => { clearClose(); closeTimer.current = setTimeout(() => setOpen(null), 140); };
+
+  useEffect(() => { setOpen(null); clearClose(); }, [path]);
   useEffect(() => {
     const onDoc = (e: MouseEvent) => { if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(null); };
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(null); };
@@ -25,6 +29,10 @@ export default function NavCategories({ dock = false }: { dock?: boolean }) {
     window.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("mousedown", onDoc); window.removeEventListener("keydown", onKey); };
   }, []);
+
+  // Hover intent (desktop only — touch devices use tap).
+  const onEnter = (label: string) => { if (dock) return; clearClose(); setOpen(label); };
+  const onLeave = () => { if (dock) return; scheduleClose(); };
 
   return (
     <div ref={wrapRef} className={`nav-cats${dock ? " nav-cats-dock" : ""}`} role="navigation" aria-label="sections">
@@ -44,10 +52,12 @@ export default function NavCategories({ dock = false }: { dock?: boolean }) {
         // Multi-page category → dropdown.
         const isOpen = open === c.label;
         return (
-          <div key={c.label} style={{ position: "relative", display: "flex" }}>
+          <div key={c.label} style={{ position: "relative", display: "flex" }}
+            onMouseEnter={() => onEnter(c.label)} onMouseLeave={onLeave}>
             <button
               className="nav-cat-pill"
               data-active={active ? "true" : "false"}
+              data-open={isOpen ? "true" : "false"}
               aria-expanded={isOpen}
               onClick={() => { buzz("tap"); setOpen(isOpen ? null : c.label); }}
             >
@@ -59,23 +69,31 @@ export default function NavCategories({ dock = false }: { dock?: boolean }) {
             <AnimatePresence>
               {isOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: dock ? 10 : -10, scale: 0.96 }}
+                  initial={{ opacity: 0, y: dock ? 10 : -10, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: dock ? 10 : -10, scale: 0.96 }}
-                  transition={{ duration: 0.16 }}
+                  exit={{ opacity: 0, y: dock ? 8 : -8, scale: 0.97 }}
+                  transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
                   className="nav-cat-menu"
-                  style={dock ? { bottom: "calc(100% + 0.6rem)" } : { top: "calc(100% + 0.6rem)" }}
+                  style={dock ? { bottom: "calc(100% + 0.6rem)" } : { top: "calc(100% + 0.5rem)" }}
+                  onMouseEnter={clearClose} onMouseLeave={onLeave}
                 >
-                  {c.items!.map((it) => {
+                  {/* invisible bridge so the cursor can cross the gap without closing */}
+                  <span aria-hidden className="nav-cat-bridge" style={dock ? { top: "auto", bottom: -12 } : { top: -12 }} />
+                  {c.items!.map((it, i) => {
                     const a = isActive(it.href, path);
                     return (
-                      <Link key={it.href} href={it.href} className="nav-cat-item" data-active={a ? "true" : "false"} onClick={() => setOpen(null)}>
-                        <span aria-hidden style={{ fontSize: "1.2rem", lineHeight: 1 }}>{it.emoji}</span>
-                        <span style={{ minWidth: 0 }}>
-                          <span className="nci-label">{it.label}</span>
-                          <span className="nci-desc">{it.desc}</span>
-                        </span>
-                      </Link>
+                      <motion.div key={it.href}
+                        initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.03 * i, duration: 0.2 }}>
+                        <Link href={it.href} className="nav-cat-item" data-active={a ? "true" : "false"} onClick={() => setOpen(null)}>
+                          <span aria-hidden className="nci-emoji">{it.emoji}</span>
+                          <span style={{ minWidth: 0 }}>
+                            <span className="nci-label">{it.label}</span>
+                            <span className="nci-desc">{it.desc}</span>
+                          </span>
+                          <span aria-hidden className="nci-arrow">→</span>
+                        </Link>
+                      </motion.div>
                     );
                   })}
                 </motion.div>

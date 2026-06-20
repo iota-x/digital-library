@@ -2,20 +2,20 @@
 import { motion } from "framer-motion";
 import PasswordGate from "@/components/PasswordGate";
 import Wrapped      from "@/components/Wrapped";
+import WrappedParticles from "@/components/WrappedParticles";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { DISPLAY, SANS, SCRIPT } from "@/lib/typography";
 
 /** Ambient decorative layer so the wide desktop margins beside the phone feel
- *  alive and intentional instead of an empty void. Theme-aware (uses the pink
- *  accent vars), purely decorative, behind the content. */
+ *  alive and intentional instead of an empty void: soft theme-coloured orbs for
+ *  depth plus a drifting particle trail (WrappedParticles) up the sides. */
 function Backdrop() {
   const orbs = [
-    { l: "8%",  t: "18%", s: 360, c: "rgba(var(--pink-rgb),0.22)" },
-    { l: "78%", t: "12%", s: 300, c: "rgba(var(--pink-mid-rgb,249,168,212),0.20)" },
-    { l: "82%", t: "62%", s: 340, c: "rgba(var(--pink-deep-rgb),0.14)" },
-    { l: "4%",  t: "66%", s: 280, c: "rgba(var(--pink-rgb),0.18)" },
+    { l: "8%",  t: "18%", s: 360, c: "rgba(var(--pink-rgb),0.20)" },
+    { l: "80%", t: "14%", s: 300, c: "rgba(var(--pink-mid-rgb,249,168,212),0.18)" },
+    { l: "82%", t: "64%", s: 340, c: "rgba(var(--pink-deep-rgb),0.13)" },
+    { l: "4%",  t: "66%", s: 280, c: "rgba(var(--pink-rgb),0.16)" },
   ];
-  const hearts = ["💗","🩷","✨","💞","🌸","💕","🩷","✨","💗","🌷"];
   return (
     <div aria-hidden style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
       {orbs.map((o, i) => (
@@ -24,16 +24,6 @@ function Backdrop() {
           transition={{ repeat: Infinity, duration: 7 + i, delay: i * 1.1, ease: "easeInOut" }}
           style={{ position: "absolute", left: o.l, top: o.t, width: o.s, height: o.s, borderRadius: "50%", background: o.c, filter: "blur(60px)" }}
         />
-      ))}
-      {hearts.map((h, i) => (
-        <motion.span key={`h${i}`}
-          initial={{ y: "108vh", opacity: 0 }}
-          animate={{ y: "-12vh", opacity: [0, 0.5, 0] }}
-          transition={{ repeat: Infinity, duration: 13 + (i % 4) * 3, delay: i * 1.6, ease: "linear" }}
-          style={{ position: "absolute", left: `${(i * 9.5 + 3) % 100}%`, fontSize: `${15 + (i % 3) * 7}px`, filter: "saturate(0.9)" }}
-        >
-          {h}
-        </motion.span>
       ))}
     </div>
   );
@@ -65,6 +55,7 @@ export default function WrappedPage() {
   return (
     <PasswordGate>
       <Backdrop />
+      <WrappedParticles />
       <main style={{ position: "relative", zIndex: 1 }}>
         <WrappedHero />
         <section style={{ padding: "clamp(1rem,3vh,2rem) clamp(1rem,4vw,2rem) clamp(3rem,7vh,5rem)", display: "flex", justifyContent: "center" }}>
