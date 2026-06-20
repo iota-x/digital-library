@@ -13,7 +13,16 @@ import StreakTracker     from "@/components/StreakTracker";
 import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
 import UsByNumbers       from "@/components/UsByNumbers";
+import SideNav           from "@/components/SideNav";
 import ErrorBoundary     from "@/components/ErrorBoundary";
+
+const JOURNAL_NAV = [
+  { id: "calendar", label: "calendar" },
+  { id: "streak",   label: "streak" },
+  { id: "surprise", label: "surprise me" },
+  { id: "recap",    label: "monthly recap" },
+  { id: "numbers",  label: "by the numbers" },
+];
 
 function JournalPageInner() {
   const params = useSearchParams();
@@ -45,13 +54,16 @@ function JournalPageInner() {
             <ErrorBoundary><AnniversaryBanner /></ErrorBoundary>
             <ErrorBoundary><OnThisDay /></ErrorBoundary>
           </div>
+          {/* calendar / streak / surprise / recap already carry their own
+              section ids internally — the side-nav targets those directly. */}
           <ErrorBoundary><OurCalendar initialDate={dateParam} /></ErrorBoundary>
           <ErrorBoundary><StreakTracker /></ErrorBoundary>
           <ErrorBoundary><SurpriseMe /></ErrorBoundary>
           <ErrorBoundary><MonthlyRecap /></ErrorBoundary>
-          <ErrorBoundary><UsByNumbers /></ErrorBoundary>
+          <div id="numbers" style={{ scrollMarginTop: 72 }}><ErrorBoundary><UsByNumbers /></ErrorBoundary></div>
         </main>
       </div>
+      <SideNav items={JOURNAL_NAV} />
     </PasswordGate>
   );
 }

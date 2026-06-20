@@ -5,9 +5,16 @@ import WatchlistSection from "@/components/WatchlistSection";
 import LoveJar          from "@/components/LoveJar";
 import BucketList       from "@/components/BucketList";
 import Ideas            from "@/components/Ideas";
+import SideNav, { type SideNavItem } from "@/components/SideNav";
 import { useUserData }  from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+
+/** Wraps a section with a scroll anchor for the side dot-nav (offset so the
+ *  heading clears the fixed navbar). */
+function Anchor({ id, children }: { id: string; children: React.ReactNode }) {
+  return <div id={id} style={{ scrollMarginTop: 72 }}>{children}</div>;
+}
 
 
 function SharedHero() {
@@ -93,15 +100,26 @@ function SharedContent() {
   const user = useUserData();
   const sv = (key: string) => sectionVisible(user?.settings, "shared", key);
 
+  const nav: SideNavItem[] = [
+    ...(sv("showBucketList") ? [{ id: "bucket", label: "bucket list" }] : []),
+    { id: "jar", label: "love jar" },
+    { id: "ideas", label: "date ideas" },
+    ...(sv("showSpotify") ? [{ id: "playlist", label: "playlist" }] : []),
+    ...(sv("showWatchlist") ? [{ id: "watchlist", label: "watchlist" }] : []),
+  ];
+
   return (
-    <main className="flow-page">
-      <SharedHero />
-      {sv("showBucketList") && <BucketList />}
-      <Ideas flat mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
-      {sv("showSpotify") && <SpotifySection />}
-      {sv("showWatchlist") && <WatchlistSection />}
-      <LoveJar />
-    </main>
+    <>
+      <main className="flow-page">
+        <SharedHero />
+        {sv("showBucketList") && <Anchor id="bucket"><BucketList /></Anchor>}
+        <Anchor id="jar"><LoveJar /></Anchor>
+        <Anchor id="ideas"><Ideas flat mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" /></Anchor>
+        {sv("showSpotify") && <Anchor id="playlist"><SpotifySection /></Anchor>}
+        {sv("showWatchlist") && <Anchor id="watchlist"><WatchlistSection /></Anchor>}
+      </main>
+      <SideNav items={nav} />
+    </>
   );
 }
 

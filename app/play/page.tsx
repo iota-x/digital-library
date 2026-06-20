@@ -5,6 +5,7 @@ import TruthOrDare     from "@/components/TruthOrDare";
 import WouldYouRather  from "@/components/WouldYouRather";
 import WeeklyCheckin   from "@/components/WeeklyCheckin";
 import Ideas           from "@/components/Ideas";
+import SideNav         from "@/components/SideNav";
 import ErrorBoundary   from "@/components/ErrorBoundary";
 import { SERIF, SCRIPT } from "@/lib/typography";
 
@@ -37,24 +38,37 @@ function PlayHero() {
 /** A plain centering wrapper (not a <section>, so it never paints its own
  *  background band) — every game sits on the page's single continuous flow,
  *  with the same equal top/bottom spacing as the flow-page sections. */
-function Band({ children }: { children: React.ReactNode }) {
+function Band({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
-    <div style={{ width: "100%", padding: "clamp(3rem,7.5vh,5rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+    <div id={id} style={{ width: "100%", padding: "clamp(6rem,15vh,10rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center", scrollMarginTop: 72 }}>
       <div style={{ width: "100%", maxWidth: 760 }}>{children}</div>
     </div>
   );
 }
 
+const PLAY_NAV = [
+  { id: "quiz",    label: "compatibility quiz" },
+  { id: "truth",   label: "truth or dare" },
+  { id: "rather",  label: "would you rather" },
+  { id: "checkin", label: "weekly check-in" },
+  { id: "ideas",   label: "reconnect ideas" },
+];
+
 function PlayContent() {
   return (
-    <main className="flow-page">
-      <PlayHero />
-      <Band><ErrorBoundary><CoupleQuiz /></ErrorBoundary></Band>
-      <Band><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>
-      <Band><ErrorBoundary><WouldYouRather /></ErrorBoundary></Band>
-      <Band><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
-      <ErrorBoundary><Ideas flat mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
-    </main>
+    <>
+      <main className="flow-page">
+        <PlayHero />
+        <Band id="quiz"><ErrorBoundary><CoupleQuiz /></ErrorBoundary></Band>
+        <Band id="truth"><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>
+        <Band id="rather"><ErrorBoundary><WouldYouRather /></ErrorBoundary></Band>
+        <Band id="checkin"><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
+        <div id="ideas" style={{ scrollMarginTop: 72 }}>
+          <ErrorBoundary><Ideas flat mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
+        </div>
+      </main>
+      <SideNav items={PLAY_NAV} />
+    </>
   );
 }
 
