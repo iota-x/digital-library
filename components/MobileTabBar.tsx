@@ -1,11 +1,11 @@
 "use client";
-import NavRail from "@/components/NavRail";
+import NavCategories from "@/components/NavCategories";
 
 /**
- * Mobile bottom dock — the full nav rail (every destination, scrollable) as a
- * floating pill at the bottom on phones. Visibility lives in globals.css under
- * `.nav-rail-dock` so it disappears on desktop without any JS.
+ * Mobile bottom dock — the purpose-grouped category nav as a floating pill at
+ * the bottom on phones (dropdowns open upward). Visibility lives in globals.css
+ * under `.nav-cats-dock` so it disappears on desktop without any JS.
  */
 export default function MobileTabBar() {
-  return <NavRail dock />;
+  return <NavCategories dock />;
 }

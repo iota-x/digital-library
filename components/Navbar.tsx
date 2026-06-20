@@ -8,7 +8,7 @@ import { invalidateCalendarCache } from "@/lib/calendarStore";
 import { useToast } from "@/components/Toaster";
 import { useConfirm } from "@/components/ConfirmDialog";
 import NotificationCenter from "@/components/NotificationCenter";
-import NavRail from "@/components/NavRail";
+import NavCategories from "@/components/NavCategories";
 
 export default function Navbar() {
   const path        = usePathname();
@@ -119,10 +119,10 @@ export default function Navbar() {
           </motion.div>
         </Link>
 
-        {/* The whole nav — always visible, scrollable. Hidden on phones (the
-            bottom dock takes over there) to keep the top bar uncluttered. */}
-        <div className="nav-desktop" style={{ flex: 1, minWidth: 0 }}>
-          <NavRail />
+        {/* Purpose-grouped categories. Hidden on phones (the bottom dock takes
+            over there) to keep the top bar uncluttered. */}
+        <div className="nav-desktop" style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+          <NavCategories />
         </div>
 
         {/* Right cluster */}
