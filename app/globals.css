@@ -98,25 +98,26 @@ html.theme-gold:not(.dark) body { background: #fffef5; }
 html.dark {
   color-scheme: dark;
 
-  /* CSS-variable overrides — var() references auto-update */
-  --cream:      #09000f;
-  --text:       #eeddf8;
-  --muted:      #c8a0e8;
+  /* Default (pink) dark palette — tinted toward the accent, not a fixed purple.
+     Non-pink themes override these in their own html.dark.theme-* blocks. */
+  --cream:      #120410;
+  --text:       #f6e3ee;
+  --muted:      #e0a6c6;
   --pink:       #f472b6;
-  --pink-light: #1c0630;
-  --pink-mid:   #26083e;
+  --pink-light: #2c0c1e;
+  --pink-mid:   #3a1228;
   --pink-deep:  #f472b6;
-  --rose:       #0b0014;
+  --rose:       #160512;
 }
 
+/* body + section backgrounds reference the theme vars so they always match the
+   active theme (no hardcoded colour). */
 html.dark body {
-  background: #09000f !important;
+  background: var(--cream) !important;
   color: var(--text) !important;
 }
-
-/* ── All <section> backgrounds → dark plum ── */
 html.dark section {
-  background: linear-gradient(160deg, #0c0018 0%, #170030 45%, #09000f 100%) !important;
+  background: linear-gradient(160deg, var(--cream) 0%, var(--pink-mid) 45%, var(--cream) 100%) !important;
 }
 
 /* ── Seamless "flow" pages ──────────────────────────────────────────
@@ -148,7 +149,7 @@ html.dark section {
   min-height: 0 !important;
   /* Uniform, equal top/bottom breathing room for every stacked component
      (horizontal padding from each section is left intact). */
-  padding-block: clamp(6rem, 15vh, 10rem) !important;
+  padding-block: clamp(3rem, 7vh, 4.5rem) !important;
   /* So side-nav jumps land below the fixed navbar. */
   scroll-margin-top: 72px;
 }
@@ -236,14 +237,14 @@ html.dark section {
 
 /* ── Footer ── */
 html.dark footer {
-  background: linear-gradient(135deg, #100036, #1c0050, #120038) !important;
-  border-color: rgba(180, 70, 255, 0.22) !important;
+  background: linear-gradient(135deg, var(--cream), var(--pink-mid), var(--rose)) !important;
+  border-color: rgba(var(--pink-rgb), 0.22) !important;
 }
 
 /* ── Navbar ── */
 html.dark nav {
-  background: rgba(9, 0, 18, 0.88) !important;
-  border-color: rgba(150, 50, 220, 0.18) !important;
+  background: color-mix(in srgb, var(--cream) 88%, transparent) !important;
+  border-color: rgba(var(--pink-rgb), 0.18) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────

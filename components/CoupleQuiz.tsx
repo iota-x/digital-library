@@ -30,6 +30,21 @@ const BTN: React.CSSProperties = {
   fontFamily: SANS, fontSize: "0.84rem", fontWeight: 700,
   border: "none", borderRadius: 50, padding: "0.6rem 1.4rem", cursor: "pointer",
 };
+const SKEL: React.CSSProperties = { background: "rgba(var(--pink-rgb), .16)", borderRadius: 8 };
+
+/** Pulsing placeholder shown while the quiz catalog loads, so cards don't pop
+ *  in abruptly. */
+function QuizSkeleton() {
+  return (
+    <motion.div animate={{ opacity: [0.55, 1, 0.55] }} transition={{ repeat: Infinity, duration: 1.4 }}
+      style={{ ...CARD, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+      <div style={{ ...SKEL, width: 34, height: 34, borderRadius: 10 }} />
+      <div style={{ ...SKEL, width: "70%", height: 16 }} />
+      <div style={{ ...SKEL, width: "90%", height: 11 }} />
+      <div style={{ ...SKEL, width: "45%", height: 20, borderRadius: 50, marginTop: "0.3rem" }} />
+    </motion.div>
+  );
+}
 
 function scoreLine(score: number, total: number): string {
   const pct = total ? score / total : 0;
@@ -148,6 +163,7 @@ export default function CoupleQuiz() {
           </motion.button>
         </div>
         <div style={{ display: "grid", gap: "0.9rem", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
+        {!catalog && [0, 1, 2].map((i) => <QuizSkeleton key={`s${i}`} />)}
         {(catalog ?? []).map((c) => (
           <motion.button key={c.id} onClick={() => open(c.id)}
             whileHover={{ y: -3 }} whileTap={{ scale: 0.98 }}
@@ -185,7 +201,19 @@ export default function CoupleQuiz() {
 
   // ── Single quiz ──
   if (!view) {
-    return <p style={{ fontFamily: SANS, color: "var(--muted)", textAlign: "center" }}>loading…</p>;
+    return (
+      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+        <button onClick={back} style={{ ...linkBtn(), marginBottom: "0.8rem" }}>← all quizzes</button>
+        <motion.div animate={{ opacity: [0.55, 1, 0.55] }} transition={{ repeat: Infinity, duration: 1.4 }} style={CARD}>
+          <div style={{ ...SKEL, width: 60, height: 60, borderRadius: "50%", margin: "0 auto 0.9rem" }} />
+          <div style={{ ...SKEL, width: "55%", height: 18, margin: "0 auto 0.7rem" }} />
+          <div style={{ ...SKEL, width: "75%", height: 12, margin: "0 auto 1.4rem" }} />
+          <div style={{ display: "grid", gap: "0.9rem" }}>
+            {[0, 1, 2].map((i) => <div key={i} style={{ ...SKEL, height: 54, borderRadius: 12 }} />)}
+          </div>
+        </motion.div>
+      </div>
+    );
   }
 
   const showResults = view.revealed && !redo;
