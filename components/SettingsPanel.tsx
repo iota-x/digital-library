@@ -186,9 +186,13 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
     applyAccent(null);
   }, []);
 
-  // Live custom-accent preview.
+  // Live custom-accent preview. A custom accent replaces the theme entirely, so
+  // drop any built-in theme class — otherwise that theme's HARDCODED section/nav
+  // backgrounds keep painting over the accent's variables (the "backgrounds stay
+  // blue but text follows my colour" bug).
   const handleAccentChange = useCallback((hex: string) => {
-    setDraft(d => ({ ...d, customAccent: hex }));
+    setDraft(d => ({ ...d, customAccent: hex, theme: "pink" }));
+    applyThemeClass("pink");
     if (isValidHex(hex)) applyAccent(hex);
   }, []);
 

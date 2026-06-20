@@ -26,8 +26,13 @@ export default function ThemeProvider() {
     if (!user) return;
     const root = document.documentElement;
     root.classList.remove(...ALL_THEME_CLASSES);
-    if (themeId !== "pink") root.classList.add(`theme-${themeId}`);
-    // A custom accent (if set) layers on top of the chosen theme class.
+    // A custom accent must NOT carry a built-in theme class: the theme-X classes
+    // style section/nav backgrounds with HARDCODED colours that out-specify the
+    // variable-based rules, so a leftover class (e.g. from previously trying the
+    // blue theme) would keep painting the backgrounds that theme's colour while
+    // only the foreground followed the custom accent. So a custom accent always
+    // uses the base palette (no theme class) and drives everything via variables.
+    if (themeId !== "pink" && !accent) root.classList.add(`theme-${themeId}`);
     applyAccent(accent || null);
     try { localStorage.setItem("ann_color_theme", themeId); } catch {}
 

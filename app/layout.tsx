@@ -48,7 +48,10 @@ export const viewport = {
 // Runs before first paint to apply the saved theme + custom accent, killing the
 // flash where the page rendered in the default pink theme until /api/auth/me
 // resolved client-side. Reads the same localStorage keys ThemeProvider writes.
-const THEME_BOOTSTRAP = `(function(){try{var t=localStorage.getItem('ann_color_theme');if(t&&t!=='pink')document.documentElement.classList.add('theme-'+t);var a=localStorage.getItem('ann_accent_vars');if(a){var m=JSON.parse(a);for(var k in m)document.documentElement.style.setProperty(k,m[k]);}}catch(e){}})();`;
+// NOTE: a custom accent (ann_accent_vars) must NOT also apply a built-in theme
+// class — the theme-X classes hardcode section/nav backgrounds that override the
+// accent's CSS variables. So when an accent is cached, skip the theme class.
+const THEME_BOOTSTRAP = `(function(){try{var a=localStorage.getItem('ann_accent_vars');var t=localStorage.getItem('ann_color_theme');if(t&&t!=='pink'&&!a)document.documentElement.classList.add('theme-'+t);if(a){var m=JSON.parse(a);for(var k in m)document.documentElement.style.setProperty(k,m[k]);}}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
