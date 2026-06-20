@@ -163,7 +163,7 @@ export default function LiveTimer() {
         alignItems:"center", justifyContent:"center",
         padding:"5rem 2rem",
         position:"relative", overflow:"hidden",
-        background:"linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 45%,var(--rose) 100%)",
+        background:"linear-gradient(160deg,var(--cream) 0%,var(--rose) 50%,var(--cream) 100%)",
         textAlign:"center",
       }}
     >

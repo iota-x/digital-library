@@ -1,4 +1,4 @@
-const CACHE = "ann-v5";
+const CACHE = "ann-v6";
 const NAV_ROUTES = ["/", "/journal", "/timeline", "/capsule", "/shared", "/map", "/favicon.svg", "/manifest.json"];
 
 // Read-only API endpoints worth keeping a last-known copy of, so the journal
