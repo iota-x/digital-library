@@ -119,6 +119,25 @@ html.dark section {
   background: linear-gradient(160deg, #0c0018 0%, #170030 45%, #09000f 100%) !important;
 }
 
+/* ── Seamless "flow" pages ──────────────────────────────────────────
+   For pages with many stacked sections (e.g. /play), one continuous
+   theme-coloured wash behind everything so there are no per-section seams.
+   Children are plain <div>s (not <section>), so the band rule above never
+   applies. `fixed` attachment keeps the wash anchored to the viewport, so it
+   reads as one flowing background as you scroll. */
+.flow-page {
+  background:
+    radial-gradient(90% 55% at 12% 8%,  rgba(var(--pink-rgb), .16), transparent 60%),
+    radial-gradient(85% 55% at 88% 34%, rgba(var(--pink-deep-rgb), .13), transparent 60%),
+    radial-gradient(95% 60% at 50% 96%, rgba(var(--pink-rgb), .14), transparent 62%),
+    var(--cream) !important;
+  background-attachment: fixed;
+}
+/* The hero on a flow page fades into the wash instead of a hard gradient edge. */
+.flow-page > div:first-child {
+  background: radial-gradient(120% 80% at 50% -20%, rgba(var(--pink-rgb), .22), transparent 60%);
+}
+
 /* ── Footer ── */
 html.dark footer {
   background: linear-gradient(135deg, #100036, #1c0050, #120038) !important;

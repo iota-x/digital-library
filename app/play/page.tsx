@@ -16,7 +16,6 @@ function PlayHero() {
     <div style={{
       position: "relative", textAlign: "center", overflow: "hidden",
       padding: "clamp(3.5rem,8vh,5.5rem) clamp(1rem,4vw,2rem) clamp(1rem,3vh,1.5rem)",
-      background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 60%,rgba(var(--pink-light-rgb),0) 100%)",
     }}>
       <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,2.5vw,1.2rem)", color: "var(--muted)", margin: "0 0 0.5rem" }}>
         a little fun, just the two of you ✦
@@ -35,25 +34,25 @@ function PlayHero() {
   );
 }
 
-/** One consistent, divider-free band so the sections read as a continuous flow
- *  instead of a stack of boxed-off heroes. */
+/** A plain centering wrapper (not a <section>, so it never paints its own
+ *  background band) — every game sits on the page's single continuous flow. */
 function Band({ children }: { children: React.ReactNode }) {
   return (
-    <section style={{ width: "100%", padding: "clamp(1.4rem,3.5vh,2.2rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+    <div style={{ width: "100%", padding: "clamp(1.4rem,3.5vh,2.2rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 760 }}>{children}</div>
-    </section>
+    </div>
   );
 }
 
 function PlayContent() {
   return (
-    <main>
+    <main className="flow-page">
       <PlayHero />
       <Band><ErrorBoundary><CoupleQuiz /></ErrorBoundary></Band>
       <Band><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>
       <Band><ErrorBoundary><WouldYouRather /></ErrorBoundary></Band>
       <Band><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
-      <ErrorBoundary><Ideas mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
+      <Band><ErrorBoundary><Ideas flat mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary></Band>
     </main>
   );
 }

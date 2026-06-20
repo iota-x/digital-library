@@ -10,6 +10,9 @@ interface Props {
   heading: string;
   sub: string;
   emoji: string;
+  /** Render as a plain <div> instead of a <section> — used on pages with one
+   *  continuous flowing background so it doesn't paint its own section band. */
+  flat?: boolean;
 }
 
 const CARD: React.CSSProperties = {
@@ -20,7 +23,7 @@ const CARD: React.CSSProperties = {
   boxShadow: "0 12px 40px rgba(var(--pink-deep-rgb), .1)",
 };
 
-export default function Ideas({ mode, heading, sub, emoji }: Props) {
+export default function Ideas({ mode, heading, sub, emoji, flat = false }: Props) {
   const [ideas, setIdeas] = useState<Idea[] | null>(null);
   const [source, setSource] = useState<"ai" | "library">("library");
   const [loading, setLoading] = useState(false);
@@ -40,8 +43,9 @@ export default function Ideas({ mode, heading, sub, emoji }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
+  const Wrap = flat ? "div" : "section";
   return (
-    <section style={{ width: "100%", padding: "clamp(1.5rem,4vh,2.5rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+    <Wrap style={{ width: "100%", padding: "clamp(1.5rem,4vh,2.5rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 680 }}>
         <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
           <div style={{ fontSize: "1.7rem" }}>{emoji}</div>
@@ -83,7 +87,7 @@ export default function Ideas({ mode, heading, sub, emoji }: Props) {
           </motion.button>
         </div>
       </div>
-    </section>
+    </Wrap>
   );
 }
 
