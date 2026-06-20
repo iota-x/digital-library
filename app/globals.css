@@ -108,6 +108,13 @@ html.dark {
   --pink-mid:   #3a1228;
   --pink-deep:  #f472b6;
   --rose:       #160512;
+  /* rgb forms must track the dark hexes above — otherwise rgba(var(--*-rgb))
+     usages fall back to the light defaults (e.g. the notification-bell circle). */
+  --pink-rgb:        244, 114, 182;
+  --pink-deep-rgb:   244, 114, 182;
+  --pink-light-rgb:   44,  12,  30;
+  --pink-mid-rgb:     58,  18,  40;
+  --cream-rgb:        18,   4,  16;
 }
 
 /* body + section backgrounds reference the theme vars so they always match the
