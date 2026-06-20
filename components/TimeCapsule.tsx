@@ -9,7 +9,10 @@ import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SANS } from "@/lib/typography";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-const BG     = "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,var(--pink) 65%,var(--pink-deep) 100%)";
+// Soft, theme-defined gradient that stays in the light/dark base range so all
+// content (headings, muted text, cards, buttons) keeps good contrast in every
+// theme — instead of saturating to deep pink and camouflaging the content.
+const BG     = "linear-gradient(180deg,var(--pink-light) 0%,var(--rose) 48%,var(--cream) 100%)";
 const ACC    = "var(--pink-deep)";
 
 interface Capsule { id:string; letter:string; unlockDate:string; from:string; createdAt:string; imageUrl?:string; }
@@ -166,7 +169,7 @@ export default function TimeCapsule() {
   };
 
   return (
-    <section style={{position:"relative",width:"100%",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",background:BG,overflow:"hidden"}}>
+    <div style={{position:"relative",width:"100%",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",background:BG,overflow:"hidden"}}>
 
       {/* Floating petals */}
       {[3,54,27,62,10,44,68,6,38,18,58,1,46,31,64,13,50,72,22,56].map((l,i)=>(
@@ -452,7 +455,7 @@ export default function TimeCapsule() {
           />
         )}
       </motion.div>
-    </section>
+    </div>
   );
 }
 

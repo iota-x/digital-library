@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useUserData } from "@/lib/userStore";
 import { THEMES } from "@/lib/themes";
-import { applyAccent } from "@/lib/themeColor";
+import { applyAccent, reapplyAccent } from "@/lib/themeColor";
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
 
@@ -35,6 +35,14 @@ export default function ThemeProvider() {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
   }, [user, themeId, accent]);
+
+  // A custom accent derives different shades for light vs dark — so when dark
+  // mode is toggled (fires `annapp:theme`), re-derive it for the new mode.
+  useEffect(() => {
+    const onThemeFlip = () => reapplyAccent();
+    window.addEventListener("annapp:theme", onThemeFlip);
+    return () => window.removeEventListener("annapp:theme", onThemeFlip);
+  }, []);
 
   // Dynamic browser tab title
   useEffect(() => {
