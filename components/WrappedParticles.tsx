@@ -41,51 +41,59 @@ export default function WrappedParticles() {
     resize();
     window.addEventListener("resize", resize);
 
-    // Side bands — particles live only in the margins beside the phone.
-    const bandX = () => {
-      // left third or right third of the screen
+    // Side bands — particles live in the margins beside the phone (the centre
+    // ~36% is left clear). `wide` lets the softest bokeh roam a little further in.
+    const bandX = (wide = false) => {
+      const edge = wide ? 0.40 : 0.32;
       const onLeft = Math.random() < 0.5;
       const t = Math.random();
-      return onLeft ? t * W * 0.26 : W * (0.74 + t * 0.26);
+      return onLeft ? t * W * edge : W * (1 - edge + t * edge);
     };
 
-    interface P { x: number; y: number; baseX: number; vy: number; phase: number; sway: number; amp: number; r: number; a: number; deep: boolean; trail: { x: number; y: number }[] }
-    const COUNT = Math.max(14, Math.min(30, Math.round(W / 60)));
-    const make = (seedY?: number): P => ({
-      x: 0, y: seedY ?? Math.random() * H, baseX: bandX(),
-      vy: 0.25 + Math.random() * 0.55,
-      phase: Math.random() * Math.PI * 2,
-      sway: 0.4 + Math.random() * 0.8,
-      amp: 8 + Math.random() * 22,
-      r: 1.4 + Math.random() * 2.4,
-      a: 0.35 + Math.random() * 0.5,
-      deep: Math.random() < 0.4,
-      trail: [],
-    });
+    interface P { x: number; y: number; baseX: number; vy: number; phase: number; sway: number; amp: number; r: number; a: number; deep: boolean; bokeh: boolean; trail: { x: number; y: number }[] }
+    const COUNT = Math.max(40, Math.min(80, Math.round((W * H) / 26000)));
+    const make = (seedY?: number): P => {
+      const bokeh = Math.random() < 0.28;
+      return {
+        x: 0, y: seedY ?? Math.random() * H, baseX: bandX(bokeh),
+        vy: bokeh ? 0.12 + Math.random() * 0.25 : 0.3 + Math.random() * 0.7,
+        phase: Math.random() * Math.PI * 2,
+        sway: 0.4 + Math.random() * 0.9,
+        amp: bokeh ? 14 + Math.random() * 30 : 8 + Math.random() * 22,
+        r: bokeh ? 5 + Math.random() * 9 : 1.5 + Math.random() * 2.6,
+        a: bokeh ? 0.06 + Math.random() * 0.08 : 0.4 + Math.random() * 0.5,
+        deep: Math.random() < 0.4,
+        bokeh,
+        trail: [],
+      };
+    };
     const ps: P[] = Array.from({ length: COUNT }, () => make());
 
     let t = 0, raf = 0;
-    const TRAIL = 14;
+    const TRAIL = 16;
 
     const drawParticle = (p: P) => {
       const col = p.deep ? rgbDeep : rgb;
-      // trail
-      for (let i = 1; i < p.trail.length; i++) {
-        const f = i / p.trail.length;
-        ctx.strokeStyle = `rgba(${col},${(p.a * f * 0.5).toFixed(3)})`;
-        ctx.lineWidth = p.r * f;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(p.trail[i - 1].x, p.trail[i - 1].y);
-        ctx.lineTo(p.trail[i].x, p.trail[i].y);
-        ctx.stroke();
+      if (!p.bokeh) {
+        // trail
+        for (let i = 1; i < p.trail.length; i++) {
+          const f = i / p.trail.length;
+          ctx.strokeStyle = `rgba(${col},${(p.a * f * 0.55).toFixed(3)})`;
+          ctx.lineWidth = p.r * f;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(p.trail[i - 1].x, p.trail[i - 1].y);
+          ctx.lineTo(p.trail[i].x, p.trail[i].y);
+          ctx.stroke();
+        }
       }
-      // glowing head
-      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+      // glowing head (soft, larger for bokeh)
+      const rad = p.bokeh ? p.r : p.r * 4;
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
       g.addColorStop(0, `rgba(${col},${p.a})`);
       g.addColorStop(1, `rgba(${col},0)`);
       ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, rad, 0, Math.PI * 2); ctx.fill();
     };
 
     const frame = () => {
@@ -95,9 +103,11 @@ export default function WrappedParticles() {
       for (const p of ps) {
         p.y -= p.vy;
         p.x = p.baseX + Math.sin(t * p.sway + p.phase) * p.amp;
-        p.trail.push({ x: p.x, y: p.y });
-        if (p.trail.length > TRAIL) p.trail.shift();
-        if (p.y < -30) { Object.assign(p, make(H + 30)); }
+        if (!p.bokeh) {
+          p.trail.push({ x: p.x, y: p.y });
+          if (p.trail.length > TRAIL) p.trail.shift();
+        }
+        if (p.y < -40) { Object.assign(p, make(H + 40)); }
         drawParticle(p);
       }
       ctx.globalCompositeOperation = "source-over";
