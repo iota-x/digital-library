@@ -243,8 +243,8 @@ export default function Polaroids() {
         <div style={{
           position:"absolute", inset:0, pointerEvents:"none", zIndex:0,
           background:[
-            "radial-gradient(ellipse 55% 45% at 28% 38%, rgba(var(--pink-rgb),0.32) 0%, transparent 70%)",
-            "radial-gradient(ellipse 45% 40% at 72% 58%, rgba(var(--pink-rgb),0.26) 0%, transparent 70%)",
+            "radial-gradient(ellipse 55% 45% at 28% 38%, rgba(var(--pink-rgb),0.14) 0%, transparent 70%)",
+            "radial-gradient(ellipse 45% 40% at 72% 58%, rgba(var(--pink-rgb),0.11) 0%, transparent 70%)",
           ].join(","),
         }} />
 
