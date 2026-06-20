@@ -2,6 +2,7 @@
 import PasswordGate  from "@/components/PasswordGate";
 import DailyQuestion from "@/components/DailyQuestion";
 import DailyArchive  from "@/components/DailyArchive";
+import AmbientBackdrop from "@/components/AmbientBackdrop";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useUserData } from "@/lib/userStore";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
@@ -72,6 +73,7 @@ function DailyContent() {
 
   return (
     <main className="flow-page">
+      <AmbientBackdrop />
       <DailyHeader />
       {solo ? (
         <SoloNote inviteCode={user?.inviteCode} />

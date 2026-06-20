@@ -126,6 +126,10 @@ html.dark section {
    applies. `fixed` attachment keeps the wash anchored to the viewport, so it
    reads as one flowing background as you scroll. */
 .flow-page {
+  position: relative;
+  /* new stacking context so an AmbientBackdrop child at z-index:-1 paints above
+     this wash but below the page content */
+  isolation: isolate;
   background:
     radial-gradient(90% 55% at 12% 8%,  rgba(var(--pink-rgb), .16), transparent 60%),
     radial-gradient(85% 55% at 88% 34%, rgba(var(--pink-deep-rgb), .13), transparent 60%),

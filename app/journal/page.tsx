@@ -14,6 +14,7 @@ import SurpriseMe        from "@/components/SurpriseMe";
 import MonthlyRecap      from "@/components/MonthlyRecap";
 import UsByNumbers       from "@/components/UsByNumbers";
 import SideNav           from "@/components/SideNav";
+import AmbientBackdrop   from "@/components/AmbientBackdrop";
 import ErrorBoundary     from "@/components/ErrorBoundary";
 
 const JOURNAL_NAV = [
@@ -48,6 +49,7 @@ function JournalPageInner() {
       <div ref={trackRef} className="ptr-track">
         <div className={`ptr-indicator ${refreshing ? "spinning" : ""}`} aria-hidden>↻</div>
         <main className="flow-page">
+          <AmbientBackdrop />
           <JournalHeader />
           <ErrorBoundary><JournalSearch /></ErrorBoundary>
           <div style={{ padding: "2rem clamp(1rem,3vw,2rem) 0" }}>

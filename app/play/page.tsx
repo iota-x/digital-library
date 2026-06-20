@@ -6,6 +6,7 @@ import WouldYouRather  from "@/components/WouldYouRather";
 import WeeklyCheckin   from "@/components/WeeklyCheckin";
 import Ideas           from "@/components/Ideas";
 import SideNav         from "@/components/SideNav";
+import AmbientBackdrop from "@/components/AmbientBackdrop";
 import ErrorBoundary   from "@/components/ErrorBoundary";
 import { SERIF, SCRIPT } from "@/lib/typography";
 
@@ -58,6 +59,7 @@ function PlayContent() {
   return (
     <>
       <main className="flow-page">
+        <AmbientBackdrop />
         <PlayHero />
         <Band id="quiz"><ErrorBoundary><CoupleQuiz /></ErrorBoundary></Band>
         <Band id="truth"><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>

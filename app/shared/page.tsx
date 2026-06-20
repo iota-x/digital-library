@@ -6,6 +6,7 @@ import LoveJar          from "@/components/LoveJar";
 import BucketList       from "@/components/BucketList";
 import Ideas            from "@/components/Ideas";
 import SideNav, { type SideNavItem } from "@/components/SideNav";
+import AmbientBackdrop from "@/components/AmbientBackdrop";
 import { useUserData }  from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
@@ -111,6 +112,7 @@ function SharedContent() {
   return (
     <>
       <main className="flow-page">
+        <AmbientBackdrop />
         <SharedHero />
         {sv("showBucketList") && <Anchor id="bucket"><BucketList /></Anchor>}
         <Anchor id="jar"><LoveJar /></Anchor>
