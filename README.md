@@ -57,21 +57,19 @@ Pages are organised into three clusters, mirrored across the nav (see
 
 ## Navigation
 
-With this many surfaces, navigation is deliberately two-tier and driven from a
-single config (`lib/nav.ts`):
+With this many surfaces, the navigation is **always visible** — no menu to open.
+A single horizontally-scrollable **rail** (`NavRail`) shows every destination as
+a pill, with the active one auto-scrolled to centre. It lives inline in the
+desktop top bar and as a floating bottom **dock** on phones. Everything is
+driven from one config (`lib/nav.ts`).
 
-- **Quick access** — the few most-used destinations (Home, Question, Journal,
-  Play) sit in the desktop top bar and a floating mobile **dock**.
-- **The menu** — one "menu" button (and the dock's "more") opens a full-screen
-  `NavMenu` overlay: a days-together header, every destination as a grouped card
-  (each with a one-line "what's here"), and quick actions (customize, dark mode,
-  sign out). This replaced the old cramped dropdowns.
-- **Explore** — the home page renders the same grouped map so newcomers see
-  every area at a glance.
+- **Explore** — the home page also renders the full grouped map (the same items,
+  with a one-line "what's here" each) so newcomers see every area at a glance.
 - **⌘K** — a command palette searches every destination plus your own entries
   (journal days, bucket-list items, letters…).
 
-Change a destination once in `lib/nav.ts` and every surface updates.
+Change a destination once in `lib/nav.ts` and the rail, Explore, and palette all
+update.
 
 ## Tech stack
 
