@@ -49,7 +49,7 @@ function isAcceptedMedia(file: File) {
 }
 
 /* ─── Cloudinary signed upload (via /api/upload/sign) ─── */
-import { uploadToCloudinary as _uploadToCloudinary } from "@/lib/cloudUpload";
+import { uploadToCloudinary as _uploadToCloudinary, isHostedUrl, dataUrlToFile } from "@/lib/cloudUpload";
 import { cldThumb as _cldThumb } from "@/lib/cldImg";
 async function uploadToCloudinary(file: File): Promise<string> {
   const resourceType = file.type.startsWith("video/") ? "video" : "image";
@@ -543,6 +543,47 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
       return false;
     }
   }, [onSave]);
+
+  /* One-time legacy migration: entries created before the Cloudinary upload
+     mechanism stored each photo as a giant base64 `data:` URL embedded right in
+     the document. Those exceed the server's 2048-char photo limit, so *any*
+     save of such an entry (even just editing the note) is rejected — that's the
+     "save failed (400): photos[0]: must be at most 2048 char(s)". On open, we
+     re-upload any non-hosted photo to Cloudinary, swap in the real URL, and
+     persist — healing the entry and shrinking the DB doc. Best-effort: a photo
+     that can't be re-uploaded (e.g. offline) is left as-is to retry next time. */
+  const migratedRef = useRef(false);
+  useEffect(() => {
+    if (migratedRef.current) return;
+    const photos = draftRef.current.photos || [];
+    if (!photos.some(p => !isHostedUrl(p))) return; // nothing legacy
+    migratedRef.current = true;
+    (async () => {
+      setUploading(true);
+      try {
+        const migrated: string[] = [];
+        let changed = false;
+        for (const p of photos) {
+          if (isHostedUrl(p)) { migrated.push(p); continue; }
+          try {
+            migrated.push(await uploadToCloudinary(await dataUrlToFile(p)));
+            changed = true;
+          } catch {
+            migrated.push(p); // keep original; will retry on next open
+          }
+        }
+        if (changed) {
+          setDraft(d => ({ ...d, photos: migrated }));
+          // Only persist once everything is a valid hosted URL — otherwise a
+          // photo that failed to migrate (offline) would re-trigger the 400.
+          if (migrated.every(isHostedUrl)) await persist({ ...draftRef.current, photos: migrated });
+        }
+      } finally {
+        setUploading(false);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* Upload each file to Cloudinary, appending each returned URL as it lands
      (progressive feedback). When the batch finishes we persist immediately with

@@ -95,6 +95,8 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [zipBusy,     setZipBusy]     = useState(false);
   const [zipProgress, setZipProgress] = useState<ExportProgress | null>(null);
   const [zipErr,      setZipErr]      = useState("");
+  const [migrateBusy, setMigrateBusy] = useState(false);
+  const [migrateMsg,  setMigrateMsg]  = useState("");
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
@@ -301,6 +303,30 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       setZipErr(e instanceof Error ? e.message : "couldn't build the zip — try again");
     } finally {
       setZipBusy(false); setZipProgress(null);
+    }
+  };
+
+  // One-shot bulk fix for old journal entries whose photos were stored as giant
+  // embedded data: URLs (pre-Cloudinary). Re-uploads them to the CDN so those
+  // entries stop failing to save. Idempotent — safe to run more than once.
+  const migrateOldPhotos = async () => {
+    if (migrateBusy) return;
+    setMigrateBusy(true); setMigrateMsg("");
+    try {
+      const res = await fetch("/api/admin/migrate-photos", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || `failed (${res.status})`);
+      const { photosMigrated = 0, entriesUpdated = 0, failures = [] } = data;
+      setMigrateMsg(
+        photosMigrated === 0
+          ? "✓ all photos are already up to date"
+          : `✓ fixed ${photosMigrated} photo${photosMigrated === 1 ? "" : "s"} across ${entriesUpdated} ${entriesUpdated === 1 ? "entry" : "entries"}` +
+            (failures.length ? ` · ${failures.length} couldn't be converted` : ""),
+      );
+    } catch (e) {
+      setMigrateMsg(`⚠️ ${e instanceof Error ? e.message : "migration failed — try again"}`);
+    } finally {
+      setMigrateBusy(false);
     }
   };
 
@@ -678,6 +704,26 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 </motion.button>
                 {zipErr && (
                   <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "#ef4444", margin: 0 }}>⚠️ {zipErr}</p>
+                )}
+                <motion.button
+                  onClick={migrateOldPhotos} disabled={migrateBusy}
+                  whileHover={{ scale: migrateBusy ? 1 : 1.02 }} whileTap={{ scale: migrateBusy ? 1 : 0.98 }}
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
+                    padding: "0.6rem 1.1rem", borderRadius: 12,
+                    border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)",
+                    color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
+                    cursor: migrateBusy ? "wait" : "pointer", opacity: migrateBusy ? 0.7 : 1,
+                  }}>
+                  {migrateBusy ? "fixing old photos…" : "🛠️ fix old photos (one-time)"}
+                </motion.button>
+                <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: 0, lineHeight: 1.45 }}>
+                  Repairs older entries whose photos won&apos;t save. Safe to run anytime.
+                </p>
+                {migrateMsg && (
+                  <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: migrateMsg.startsWith("⚠️") ? "#ef4444" : "var(--pink-deep)", margin: 0, lineHeight: 1.45 }}>
+                    {migrateMsg}
+                  </p>
                 )}
               </div>
 

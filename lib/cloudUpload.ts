@@ -26,6 +26,21 @@ const DEFAULT_LIMITS = {
 
 export class UploadError extends Error {}
 
+/** A stored photo value we can keep as-is: a real hosted URL. Legacy entries
+ *  (pre-Cloudinary) embedded the whole image as a base64 `data:` URL, which is
+ *  huge, bloats the DB, and now fails the server's 2048-char limit. */
+export function isHostedUrl(s: string): boolean {
+  return /^https?:\/\//i.test(s);
+}
+
+/** Decode a `data:` (or blob:) URL back into a File so it can be re-uploaded. */
+export async function dataUrlToFile(dataUrl: string, name = "migrated"): Promise<File> {
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const ext = (blob.type.split("/")[1] || "jpg").split("+")[0];
+  return new File([blob], `${name}.${ext}`, { type: blob.type || "image/jpeg" });
+}
+
 /**
  * Downscale + recompress a large image in the browser before upload.
  *
