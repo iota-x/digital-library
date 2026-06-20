@@ -97,6 +97,9 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [zipErr,      setZipErr]      = useState("");
   const [migrateBusy, setMigrateBusy] = useState(false);
   const [migrateMsg,  setMigrateMsg]  = useState("");
+  // Raw text in the hex field — kept separate so partially-typed values (e.g.
+  // "#99") don't get reverted while applying only completed, valid hexes.
+  const [hexInput,    setHexInput]    = useState("");
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
@@ -151,6 +154,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
         },
       };
       setDraft(merged);
+      setHexInput(merged.customAccent ?? "");
       setStartDate(user.startDate ?? "");
       initialDraftRef.current = JSON.stringify(merged);
       initialDateRef.current  = user.startDate ?? "";
@@ -198,8 +202,18 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
 
   const clearAccent = useCallback(() => {
     setDraft(d => ({ ...d, customAccent: "" }));
+    setHexInput("");
     applyAccent(null);
   }, []);
+
+  // Hex text field: apply only when the typed value is a complete valid hex,
+  // but always reflect what's typed so editing feels natural.
+  const handleHexInput = useCallback((raw: string) => {
+    setHexInput(raw);
+    const v = raw.trim();
+    const norm = v && !v.startsWith("#") ? `#${v}` : v;
+    if (isValidHex(norm)) handleAccentChange(norm);
+  }, [handleAccentChange]);
 
   // Close without saving — effect above handles the revert
   const handleClose = useCallback(() => { onClose(); }, [onClose]);
@@ -507,7 +521,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                   <input
                     type="color"
                     value={draft.customAccent && isValidHex(draft.customAccent) ? draft.customAccent : "#ec4899"}
-                    onChange={e => handleAccentChange(e.target.value)}
+                    onChange={e => { setHexInput(e.target.value); handleAccentChange(e.target.value); }}
                     aria-label="custom accent colour"
                     style={{ width: 0, height: 0, opacity: 0, position: "absolute" }}
                   />
@@ -515,6 +529,26 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                     custom colour
                   </span>
                 </label>
+                {/* Hex code field — type any colour like #993357 */}
+                <input
+                  type="text"
+                  value={hexInput}
+                  onChange={e => handleHexInput(e.target.value)}
+                  placeholder="#993357"
+                  maxLength={7}
+                  spellCheck={false}
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  aria-label="custom theme hex code"
+                  style={{
+                    width: 96, boxSizing: "border-box",
+                    padding: "0.4rem 0.6rem", borderRadius: 8,
+                    border: `1.5px solid ${hexInput && !isValidHex(hexInput.startsWith("#") ? hexInput : "#" + hexInput) ? "#ef4444" : "rgba(var(--pink-mid-rgb,249,168,212),.5)"}`,
+                    background: "rgba(var(--pink-light-rgb,252,231,243),.4)",
+                    color: "var(--pink-deep)", fontFamily: "var(--font-lato),monospace", fontSize: "0.8rem", fontWeight: 600,
+                    letterSpacing: "0.04em", textTransform: "lowercase", outline: "none",
+                  }}
+                />
                 {draft.customAccent && (
                   <button onClick={clearAccent}
                     style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontFamily: SANS, fontSize: "0.74rem", textDecoration: "underline" }}>
