@@ -44,8 +44,11 @@ export default function Ideas({ mode, heading, sub, emoji, flat = false }: Props
   useEffect(() => { load(); }, [load]);
 
   const Wrap = flat ? "div" : "section";
+  // `flat` is used on flow pages, where every component shares this equal
+  // top/bottom spacing; the plain <section> form keeps its own page padding.
+  const pad = flat ? "clamp(3rem,7.5vh,5rem)" : "clamp(1.5rem,4vh,2.5rem)";
   return (
-    <Wrap style={{ width: "100%", padding: "clamp(1.5rem,4vh,2.5rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+    <Wrap style={{ width: "100%", padding: `${pad} clamp(1rem,4vw,2rem)`, display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 680 }}>
         <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
           <div style={{ fontSize: "1.7rem" }}>{emoji}</div>

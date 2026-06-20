@@ -142,6 +142,9 @@ html.dark section {
 .flow-page.flow-page.flow-page section {
   background: transparent !important;
   min-height: 0 !important;
+  /* Uniform, equal top/bottom breathing room for every stacked component
+     (horizontal padding from each section is left intact). */
+  padding-block: clamp(3rem, 7.5vh, 5rem) !important;
 }
 
 /* ── Footer ── */

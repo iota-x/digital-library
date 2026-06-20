@@ -35,10 +35,11 @@ function PlayHero() {
 }
 
 /** A plain centering wrapper (not a <section>, so it never paints its own
- *  background band) — every game sits on the page's single continuous flow. */
+ *  background band) — every game sits on the page's single continuous flow,
+ *  with the same equal top/bottom spacing as the flow-page sections. */
 function Band({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ width: "100%", padding: "clamp(1.4rem,3.5vh,2.2rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+    <div style={{ width: "100%", padding: "clamp(3rem,7.5vh,5rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 760 }}>{children}</div>
     </div>
   );
@@ -52,7 +53,7 @@ function PlayContent() {
       <Band><ErrorBoundary><TruthOrDare /></ErrorBoundary></Band>
       <Band><ErrorBoundary><WouldYouRather /></ErrorBoundary></Band>
       <Band><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
-      <Band><ErrorBoundary><Ideas flat mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary></Band>
+      <ErrorBoundary><Ideas flat mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
     </main>
   );
 }
