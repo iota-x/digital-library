@@ -134,16 +134,23 @@ html.dark section {
    applies. `fixed` attachment keeps the wash anchored to the viewport, so it
    reads as one flowing background as you scroll. */
 .flow-page {
-  position: relative;
-  /* new stacking context so an AmbientBackdrop child at z-index:-1 paints above
-     this wash but below the page content */
-  isolation: isolate;
+  /* IMPORTANT: no stacking context here (no isolation / positioned z-index) —
+     otherwise it would trap fixed descendants like the calendar's modals below
+     the navbar. The wash lives on a fixed ::before at z-index:-2 (behind the
+     AmbientBackdrop at -1, behind content), so modals/navbar stack normally. */
+  background: transparent !important;
+}
+.flow-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
   background:
     radial-gradient(90% 55% at 12% 8%,  rgba(var(--pink-rgb), .16), transparent 60%),
     radial-gradient(85% 55% at 88% 34%, rgba(var(--pink-deep-rgb), .13), transparent 60%),
     radial-gradient(95% 60% at 50% 96%, rgba(var(--pink-rgb), .14), transparent 62%),
-    var(--cream) !important;
-  background-attachment: fixed;
+    var(--cream);
 }
 /* Any <section> inside a flow page goes transparent so the single wash shows
    through with no seams, and shrinks to its content (many sections were built
