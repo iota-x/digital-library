@@ -248,7 +248,7 @@ export default function BucketList() {
                   onKeyDown={e => e.key==="Enter" && addItem()}
                   style={{
                     width:"100%", boxSizing:"border-box",
-                    fontFamily:SANS, fontSize:"1rem", color:"#7c3f58",
+                    fontFamily:SANS, fontSize:"1rem", color:"var(--muted)",
                     background:"transparent",
                     border:"none", borderBottom:"2px solid rgba(var(--pink-deep-rgb),.25)",
                     padding:"0.4rem 0", outline:"none",

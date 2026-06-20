@@ -105,7 +105,7 @@ export default function SpotifySection() {
       `}</style>
 
       {/* Orbs */}
-      {[{l:"3%",t:"5%",c:"rgba(var(--pink-rgb),.2)",w:260},{l:"68%",t:"3%",c:"rgba(var(--pink-rgb),.12)",w:200},{l:"40%",t:"72%",c:"rgba(216,180,254,.1)",w:220}].map((o,i)=>(
+      {[{l:"3%",t:"5%",c:"rgba(var(--pink-rgb),.2)",w:260},{l:"68%",t:"3%",c:"rgba(var(--pink-rgb),.12)",w:200},{l:"40%",t:"72%",c:"rgba(var(--pink-deep-rgb),.1)",w:220}].map((o,i)=>(
         <div key={i} style={{position:"absolute",left:o.l,top:o.t,width:o.w,height:o.w,
           borderRadius:"50%",background:o.c,filter:"blur(60px)",pointerEvents:"none",zIndex:0}} />
       ))}
@@ -246,7 +246,7 @@ export default function SpotifySection() {
                 )}
               </div>
               <p style={{fontFamily:SERIF,fontStyle:"italic",
-                fontSize:"clamp(1rem,2.8vw,1.2rem)",color:"#7c3f58",
+                fontSize:"clamp(1rem,2.8vw,1.2rem)",color:"var(--muted)",
                 margin:"0 0 0.18rem",lineHeight:1.3,
                 overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                 {songOfDay.track.name}
@@ -339,7 +339,7 @@ export default function SpotifySection() {
                       )}
                     </div>
                     <div style={{flex:1,minWidth:0}}>
-                      <p style={{fontFamily:SANS,fontSize:"0.84rem",fontWeight:500,color:"#7c3f58",
+                      <p style={{fontFamily:SANS,fontSize:"0.84rem",fontWeight:500,color:"var(--muted)",
                         margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                         {t.track.name}
                       </p>

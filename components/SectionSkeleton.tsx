@@ -9,8 +9,8 @@ interface SkeletonProps {
 }
 
 export default function SectionSkeleton({
-  bg = "linear-gradient(160deg,#3b032f 0%,#4e0535 50%,#3b032f 100%)",
-  accent = "rgba(161,11,86,0.3)",
+  bg = "linear-gradient(160deg,var(--cream) 0%,var(--pink-mid) 50%,var(--cream) 100%)",
+  accent = "rgba(var(--pink-deep-rgb),0.3)",
   lines = 4,
   showHeader = true,
 }: SkeletonProps) {

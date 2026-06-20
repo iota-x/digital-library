@@ -130,7 +130,7 @@ export default function WatchlistSection() {
       `}</style>
 
       {/* Orbs */}
-      {[{l:"5%",t:"4%",c:"rgba(var(--pink-rgb),.16)",w:260},{l:"70%",t:"6%",c:"rgba(216,180,254,.12)",w:200},{l:"45%",t:"68%",c:"rgba(var(--pink-rgb),.09)",w:230}].map((o,i)=>(
+      {[{l:"5%",t:"4%",c:"rgba(var(--pink-rgb),.16)",w:260},{l:"70%",t:"6%",c:"rgba(var(--pink-deep-rgb),.12)",w:200},{l:"45%",t:"68%",c:"rgba(var(--pink-rgb),.09)",w:230}].map((o,i)=>(
         <div key={i} style={{position:"absolute",left:o.l,top:o.t,width:o.w,height:o.w,
           borderRadius:"50%",background:o.c,filter:"blur(60px)",pointerEvents:"none",zIndex:0}} />
       ))}

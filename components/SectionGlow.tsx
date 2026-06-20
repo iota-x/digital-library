@@ -17,16 +17,16 @@ const VARIANTS: Record<string, Orb[]> = {
   a: [
     { x: "-6%", y: "6%",  size: 340, color: "rgba(var(--pink-rgb),.20)" },
     { x: "80%", y: "-4%", size: 280, color: "rgba(var(--pink-deep-rgb),.12)" },
-    { x: "58%", y: "68%", size: 320, color: "rgba(216,180,254,.10)" },
+    { x: "58%", y: "68%", size: 320, color: "rgba(var(--pink-deep-rgb),.10)" },
   ],
   b: [
     { x: "78%", y: "4%",  size: 320, color: "rgba(var(--pink-rgb),.18)" },
     { x: "-8%", y: "52%", size: 300, color: "rgba(var(--pink-deep-rgb),.12)" },
-    { x: "38%", y: "82%", size: 260, color: "rgba(216,180,254,.10)" },
+    { x: "38%", y: "82%", size: 260, color: "rgba(var(--pink-deep-rgb),.10)" },
   ],
   c: [
     { x: "-5%", y: "58%", size: 340, color: "rgba(var(--pink-rgb),.18)" },
-    { x: "70%", y: "-8%", size: 300, color: "rgba(216,180,254,.12)" },
+    { x: "70%", y: "-8%", size: 300, color: "rgba(var(--pink-deep-rgb),.12)" },
     { x: "86%", y: "60%", size: 260, color: "rgba(var(--pink-deep-rgb),.12)" },
   ],
 };

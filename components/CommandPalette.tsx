@@ -227,7 +227,7 @@ export default function CommandPalette() {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="go somewhere or search memories…"
-                style={{flex:1,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:"#7c3f58",background:"transparent",border:"none",outline:"none"}}
+                style={{flex:1,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:"var(--muted)",background:"transparent",border:"none",outline:"none"}}
               />
               <kbd style={KBD}>esc</kbd>
             </div>
@@ -347,7 +347,7 @@ function ResultRow({ r, idx, sel, onSelect, onClick }: {
       }}>
       <span style={{fontSize:r.isEntry?"1rem":"1.25rem",lineHeight:1,flexShrink:0}}>{r.emoji}</span>
       <div style={{flex:1,minWidth:0}}>
-        <p className="cp-label" style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:active?"var(--pink-deep)":"#7c3f58",margin:"0 0 0.06rem",fontWeight:400}}>
+        <p className="cp-label" style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem",color:active?"var(--pink-deep)":"var(--muted)",margin:"0 0 0.06rem",fontWeight:400}}>
           {r.label}
         </p>
         <p className="cp-desc" style={{fontFamily:SANS,fontSize:"0.72rem",color:"rgba(var(--pink-deep-rgb),.42)",margin:0,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
