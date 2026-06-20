@@ -94,9 +94,9 @@ function SharedContent() {
   const sv = (key: string) => sectionVisible(user?.settings, "shared", key);
 
   return (
-    <main>
+    <main className="flow-page">
       <SharedHero />
-      <Ideas mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
+      <Ideas flat mode="date" emoji="🌙" heading="date night ideas" sub="something to do together this week" />
       {sv("showBucketList") && <BucketList />}
       {sv("showSpotify") && <SpotifySection />}
       {sv("showWatchlist") && <WatchlistSection />}

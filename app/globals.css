@@ -133,9 +133,11 @@ html.dark section {
     var(--cream) !important;
   background-attachment: fixed;
 }
-/* The hero on a flow page fades into the wash instead of a hard gradient edge. */
-.flow-page > div:first-child {
-  background: radial-gradient(120% 80% at 50% -20%, rgba(var(--pink-rgb), .22), transparent 60%);
+/* Any <section> inside a flow page goes transparent so the single wash shows
+   through with no seams. Triple-classed purely to out-specify the per-theme
+   `html.dark.theme-X section` background rules above without an ID hack. */
+.flow-page.flow-page.flow-page section {
+  background: transparent !important;
 }
 
 /* ── Footer ── */
