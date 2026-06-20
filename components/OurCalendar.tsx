@@ -805,7 +805,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                   <textarea value={draft.note} onChange={e => setDraft(d => ({ ...d, note: e.target.value }))}
                     placeholder={"Write about this day…\n\nHow did it feel? What do you want to remember? 🌸"}
                     rows={6}
-                    style={{ width: "100%", padding: "1rem 1rem 1rem 1.4rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(var(--pink-deep-rgb),.16)", borderRadius: 12, resize: "vertical", fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)", color: "rgba(var(--pink-light-rgb),.85)", outline: "none", boxSizing: "border-box", lineHeight: 1.9, caretColor: "var(--pink)", letterSpacing: "0.01em" }} />
+                    style={{ width: "100%", padding: "1rem 1rem 1rem 1.4rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(var(--pink-deep-rgb),.16)", borderRadius: 12, resize: "vertical", fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)", color: "var(--text)", outline: "none", boxSizing: "border-box", lineHeight: 1.9, caretColor: "var(--pink)", letterSpacing: "0.01em" }} />
                 </div>
 
                 {/* Special */}
@@ -814,7 +814,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                     <div style={{ width: 20, height: 20, borderRadius: 5, flexShrink: 0, border: `2px solid ${draft.special ? "var(--pink-deep)" : "rgba(var(--pink-deep-rgb),.28)"}`, background: draft.special ? "linear-gradient(135deg,var(--pink-deep),var(--pink-deep))" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
                       {draft.special && <span style={{ color: "#fff", fontSize: "0.7rem" }}>✓</span>}
                     </div>
-                    <span style={{ fontFamily: SANS, fontSize: "0.92rem", color: "rgba(var(--pink-light-rgb),.72)" }}>Mark as a special day ⭐</span>
+                    <span style={{ fontFamily: SANS, fontSize: "0.92rem", color: "var(--text)" }}>Mark as a special day ⭐</span>
                   </label>
                   <AnimatePresence>
                     {draft.special && (
@@ -888,6 +888,63 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
 }
 
 /* ─── one-time swipe hint ─── */
+/** First-time "how to journal" guide — three quick steps, dismissible (shown
+ *  once, ever). Helps newcomers who wouldn't otherwise know the calendar is
+ *  tap-to-add. */
+function JournalGuide() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    try { if (localStorage.getItem("ann_journal_guide_v1")) return; } catch {}
+    setShow(true);
+  }, []);
+  if (!show) return null;
+  const dismiss = () => {
+    try { localStorage.setItem("ann_journal_guide_v1", "seen"); } catch {}
+    setShow(false);
+  };
+  const steps = [
+    { e: "📅", t: "tap any date", d: "open it on the calendar below" },
+    { e: "✍️", t: "add your moment", d: "a photo, a note, and how the day felt" },
+    { e: "⭐", t: "star the big ones", d: "mark anniversaries & favourite days special" },
+  ];
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+      style={{ position: "relative", zIndex: 2, maxWidth: 720, margin: "0 auto 1.6rem",
+        background: "var(--cream)", border: "1px solid rgba(var(--pink-rgb),.3)", borderRadius: 20,
+        padding: "clamp(1.1rem,3vw,1.5rem)", boxShadow: "0 10px 36px rgba(var(--pink-deep-rgb),.1)" }}>
+      <button onClick={dismiss} aria-label="dismiss guide"
+        style={{ position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: "50%",
+          border: "1px solid rgba(var(--pink-mid-rgb),.4)", background: "transparent", color: "var(--muted)",
+          cursor: "pointer", fontSize: "0.8rem", lineHeight: 1 }}>✕</button>
+      <p style={{ fontFamily: SCRIPT, fontSize: "1.15rem", color: "var(--pink-deep)", textAlign: "center", margin: "0 0 1rem" }}>
+        new here? here&apos;s how to journal together 📔
+      </p>
+      <div style={{ display: "grid", gap: "0.7rem", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))" }}>
+        {steps.map((s, i) => (
+          <div key={i} style={{ display: "flex", gap: "0.7rem", alignItems: "flex-start",
+            background: "rgba(var(--pink-rgb),.07)", border: "1px solid rgba(var(--pink-rgb),.18)",
+            borderRadius: 14, padding: "0.8rem 0.9rem" }}>
+            <span style={{ fontSize: "1.4rem", lineHeight: 1 }}>{s.e}</span>
+            <div>
+              <p style={{ fontFamily: SANS, fontSize: "0.84rem", fontWeight: 700, color: "var(--pink-deep)", margin: "0 0 0.15rem" }}>
+                {i + 1}. {s.t}
+              </p>
+              <p style={{ fontFamily: SANS, fontSize: "0.74rem", color: "var(--muted)", margin: 0, lineHeight: 1.4 }}>{s.d}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <button onClick={dismiss} style={{ fontFamily: SANS, fontSize: "0.82rem", fontWeight: 700, border: "none",
+          borderRadius: 50, padding: "0.5rem 1.4rem", cursor: "pointer",
+          background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff" }}>
+          got it ✨
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
 function SwipeHint() {
   const [show, setShow] = useState(false);
   useEffect(() => {
@@ -1018,7 +1075,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
           <div style={{ width: 60, height: 1, background: "linear-gradient(90deg,rgba(var(--pink-deep-rgb),.4),transparent)" }} />
         </div>
         <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--pink-deep)", margin: "0 0 0.5rem", fontWeight: 400, textShadow: "0 2px 16px rgba(var(--pink-deep-rgb),.15)" }}>our days together</h2>
-        <p style={{ fontFamily: SANS, fontSize: "clamp(0.88rem,2vw,1rem)", color: "rgba(var(--pink-deep-rgb),.55)", margin: "0 0 1.2rem", lineHeight: 1.6 }}>every day logged, every moment saved 🌸</p>
+        <p style={{ fontFamily: SANS, fontSize: "clamp(0.88rem,2vw,1rem)", color: "rgba(var(--pink-deep-rgb),.6)", margin: "0 0 1.2rem", lineHeight: 1.6 }}>tap any date to add a photo, note or mood 🌸</p>
         <div style={{ display: "flex", gap: "0.6rem", justifyContent: "center", flexWrap: "wrap" }}>
           {[{ label: `${totalMem} memories`, e: "📖" }, { label: `${specialCnt} special days`, e: "⭐" }, { label: `Day ${todayDayNumber(getUser()?.startDate)} of us`, e: "🌸" }].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
@@ -1029,6 +1086,8 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
           ))}
         </div>
       </motion.div>
+
+      <JournalGuide />
 
       <div style={{ position: "relative", zIndex: 2, maxWidth: 780, margin: "0 auto" }}>
         <SwipeHint />
