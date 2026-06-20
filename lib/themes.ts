@@ -19,6 +19,10 @@ export interface CoupleSettings {
   /** Optional custom accent hex (e.g. "#ff77aa"). When set it overrides the
    *  `theme` palette via derived CSS variables. Empty/undefined = use `theme`. */
   customAccent?: string;
+  /** Optional second accent hex. When set alongside `customAccent`, the UI's
+   *  accent gradients (`var(--pink) → var(--pink-deep)`) blend the two colours
+   *  into a premium two-tone gradient theme. Empty/undefined = single colour. */
+  customAccent2?: string;
   coupleName: string;
   spotifyPlaylistId: string;
   loveNotes: string[];
@@ -114,6 +118,29 @@ export const THEMES: ThemeDefinition[] = [
   { id: "blue",   name: "Ocean",    emoji: "🩵", swatch: "#0284c7" },
   { id: "green",  name: "Forest",   emoji: "🌿", swatch: "#059669" },
   { id: "gold",   name: "Golden",   emoji: "✨", swatch: "#d97706" },
+];
+
+export interface GradientTheme {
+  id: string;
+  name: string;
+  emoji: string;
+  /** Primary accent — drives surfaces + the start of accent gradients. */
+  from: string;
+  /** Secondary accent — the end of accent gradients (sets --pink-deep). */
+  to: string;
+}
+
+/** Curated premium two-tone gradient themes. Picking one sets
+ *  customAccent = from and customAccent2 = to. */
+export const GRADIENT_THEMES: GradientTheme[] = [
+  { id: "sunset",    name: "Sunset",    emoji: "🌅", from: "#ff5f6d", to: "#ffc371" },
+  { id: "rosegold",  name: "Rosé Gold", emoji: "🥂", from: "#e0598b", to: "#f6c19c" },
+  { id: "lavender",  name: "Lavender",  emoji: "💜", from: "#a18cd1", to: "#fbc2eb" },
+  { id: "lagoon",    name: "Lagoon",    emoji: "🌊", from: "#36d1dc", to: "#5b86e5" },
+  { id: "peach",     name: "Peachy",    emoji: "🍑", from: "#ff9a9e", to: "#fad0c4" },
+  { id: "goldhour",  name: "Gold Hour", emoji: "🌇", from: "#f6d365", to: "#fda085" },
+  { id: "berry",     name: "Berry",     emoji: "🫐", from: "#c471ed", to: "#f64f59" },
+  { id: "flamingo",  name: "Flamingo",  emoji: "🦩", from: "#ee9ca7", to: "#ff6a88" },
 ];
 
 export function sectionVisible(

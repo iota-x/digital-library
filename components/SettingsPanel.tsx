@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
-import { THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
+import { THEMES, GRADIENT_THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 import { resolvePlaylistId } from "@/lib/spotify";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
@@ -38,6 +38,22 @@ function applyThemeClass(themeId: string) {
   const root = document.documentElement;
   root.classList.remove(...ALL_THEME_CLASSES);
   if (themeId !== "pink") root.classList.add(`theme-${themeId}`);
+}
+
+/** Shared style for the small hex text inputs; turns the border red on an
+ *  incomplete/invalid value. */
+function hexFieldStyle(raw: string): React.CSSProperties {
+  const t = raw.trim();
+  const norm = t && !t.startsWith("#") ? `#${t}` : t;
+  const bad = !!t && !isValidHex(norm);
+  return {
+    width: 84, boxSizing: "border-box",
+    padding: "0.4rem 0.55rem", borderRadius: 8,
+    border: `1.5px solid ${bad ? "#ef4444" : "rgba(var(--pink-mid-rgb,249,168,212),.5)"}`,
+    background: "rgba(var(--pink-light-rgb,252,231,243),.4)",
+    color: "var(--pink-deep)", fontFamily: "var(--font-lato),monospace", fontSize: "0.78rem", fontWeight: 600,
+    letterSpacing: "0.03em", textTransform: "lowercase", outline: "none",
+  };
 }
 
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
@@ -97,9 +113,11 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [zipErr,      setZipErr]      = useState("");
   const [migrateBusy, setMigrateBusy] = useState(false);
   const [migrateMsg,  setMigrateMsg]  = useState("");
-  // Raw text in the hex field — kept separate so partially-typed values (e.g.
+  // Raw text in the hex fields — kept separate so partially-typed values (e.g.
   // "#99") don't get reverted while applying only completed, valid hexes.
+  // hexInput = primary accent; hexInput2 = optional gradient partner colour.
   const [hexInput,    setHexInput]    = useState("");
+  const [hexInput2,   setHexInput2]   = useState("");
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
@@ -155,6 +173,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       };
       setDraft(merged);
       setHexInput(merged.customAccent ?? "");
+      setHexInput2(merged.customAccent2 ?? "");
       setStartDate(user.startDate ?? "");
       initialDraftRef.current = JSON.stringify(merged);
       initialDateRef.current  = user.startDate ?? "";
@@ -185,35 +204,45 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   // Live theme preview — applies instantly without saving. Picking a built-in
   // swatch also clears any custom accent so the swatch actually shows.
   const handleThemeClick = useCallback((themeId: string) => {
-    setDraft(d => ({ ...d, theme: themeId, customAccent: "" }));
+    setDraft(d => ({ ...d, theme: themeId, customAccent: "", customAccent2: "" }));
+    setHexInput("");
+    setHexInput2("");
     applyThemeClass(themeId);
     applyAccent(null);
   }, []);
 
-  // Live custom-accent preview. A custom accent replaces the theme entirely, so
-  // drop any built-in theme class — otherwise that theme's HARDCODED section/nav
-  // backgrounds keep painting over the accent's variables (the "backgrounds stay
-  // blue but text follows my colour" bug).
-  const handleAccentChange = useCallback((hex: string) => {
-    setDraft(d => ({ ...d, customAccent: hex, theme: "pink" }));
+  // Normalise a typed hex (allow with/without leading '#').
+  const normHex = (v: string) => { const t = v.trim(); return t && !t.startsWith("#") ? `#${t}` : t; };
+
+  /**
+   * Live preview of a custom colour (optionally a two-tone gradient). A custom
+   * accent replaces the theme entirely, so we drop any built-in theme class —
+   * otherwise that theme's HARDCODED section/nav backgrounds keep painting over
+   * the accent's variables. `raw2` empty = single colour; set = gradient theme.
+   * Defined as a plain function (not useCallback) so it always sees the latest
+   * hexInput/hexInput2.
+   */
+  const setColors = (raw1: string, raw2: string) => {
+    setHexInput(raw1);
+    setHexInput2(raw2);
+    const c1 = normHex(raw1), c2 = normHex(raw2);
+    const v1ok = isValidHex(c1), v2ok = isValidHex(c2);
+    setDraft(d => ({
+      ...d,
+      customAccent:  v1ok ? c1 : d.customAccent,
+      customAccent2: v2ok ? c2 : (raw2.trim() === "" ? "" : d.customAccent2),
+      theme: "pink",
+    }));
     applyThemeClass("pink");
-    if (isValidHex(hex)) applyAccent(hex);
-  }, []);
+    if (v1ok) applyAccent(c1, v2ok ? c2 : null);
+  };
 
   const clearAccent = useCallback(() => {
-    setDraft(d => ({ ...d, customAccent: "" }));
+    setDraft(d => ({ ...d, customAccent: "", customAccent2: "" }));
     setHexInput("");
+    setHexInput2("");
     applyAccent(null);
   }, []);
-
-  // Hex text field: apply only when the typed value is a complete valid hex,
-  // but always reflect what's typed so editing feels natural.
-  const handleHexInput = useCallback((raw: string) => {
-    setHexInput(raw);
-    const v = raw.trim();
-    const norm = v && !v.startsWith("#") ? `#${v}` : v;
-    if (isValidHex(norm)) handleAccentChange(norm);
-  }, [handleAccentChange]);
 
   // Close without saving — effect above handles the revert
   const handleClose = useCallback(() => { onClose(); }, [onClose]);
@@ -509,52 +538,90 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 })}
               </div>
 
-              {/* Custom accent — overrides the swatches above with any colour */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", marginTop: "0.9rem" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
-                  <span style={{
-                    width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-                    background: draft.customAccent && isValidHex(draft.customAccent) ? draft.customAccent : "var(--pink)",
-                    boxShadow: draft.customAccent ? "0 0 0 3px rgba(var(--pink-rgb),.35)" : "0 2px 8px rgba(0,0,0,.15)",
-                    border: "2px solid #fff",
-                  }} />
-                  <input
-                    type="color"
-                    value={draft.customAccent && isValidHex(draft.customAccent) ? draft.customAccent : "#ec4899"}
-                    onChange={e => { setHexInput(e.target.value); handleAccentChange(e.target.value); }}
-                    aria-label="custom accent colour"
-                    style={{ width: 0, height: 0, opacity: 0, position: "absolute" }}
-                  />
-                  <span style={{ fontFamily: SANS, fontSize: "0.8rem", color: "var(--pink-deep)", fontWeight: 600 }}>
-                    custom colour
-                  </span>
+              {/* ── Custom colour / gradient ── */}
+              <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "1.1rem 0 0.5rem", fontWeight: 700 }}>
+                or make your own — one colour, or two for a gradient
+              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                {/* Primary colour */}
+                {(() => {
+                  const c1bad = !!hexInput && !isValidHex(normHex(hexInput));
+                  return (
+                    <label style={{ position: "relative", cursor: "pointer", lineHeight: 0 }} title="primary colour">
+                      <span style={{ display: "block", width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+                        background: isValidHex(draft.customAccent || "") ? draft.customAccent : "var(--pink)",
+                        boxShadow: "inset 0 0 0 2px #fff, 0 2px 8px rgba(0,0,0,.18)" }} />
+                      <input type="color"
+                        value={draft.customAccent && /^#[0-9a-fA-F]{6}$/.test(draft.customAccent) ? draft.customAccent : "#ec4899"}
+                        onChange={e => setColors(e.target.value, hexInput2)}
+                        aria-label="primary accent colour"
+                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }} />
+                      {c1bad && <span style={{ position: "absolute", inset: -2, borderRadius: "50%", boxShadow: "0 0 0 2px #ef4444" }} />}
+                    </label>
+                  );
+                })()}
+                <input type="text" value={hexInput} onChange={e => setColors(e.target.value, hexInput2)}
+                  placeholder="#993357" maxLength={7} spellCheck={false} autoCapitalize="off" autoCorrect="off"
+                  aria-label="primary hex code" style={hexFieldStyle(hexInput)} />
+
+                <span style={{ color: "var(--muted)", fontSize: "1rem", opacity: 0.7 }}>→</span>
+
+                {/* Gradient partner colour (optional) */}
+                <label style={{ position: "relative", cursor: "pointer", lineHeight: 0 }} title="second colour for a gradient (optional)">
+                  <span style={{ display: "block", width: 34, height: 34, borderRadius: "50%", flexShrink: 0,
+                    background: isValidHex(draft.customAccent2 || "") ? draft.customAccent2
+                      : "repeating-conic-gradient(rgba(var(--pink-deep-rgb),.2) 0% 25%, transparent 0% 50%) 50% / 10px 10px",
+                    boxShadow: "inset 0 0 0 2px #fff, 0 2px 8px rgba(0,0,0,.18)" }} />
+                  <input type="color"
+                    value={draft.customAccent2 && /^#[0-9a-fA-F]{6}$/.test(draft.customAccent2) ? draft.customAccent2 : "#ffc371"}
+                    onChange={e => setColors(hexInput || draft.customAccent || "#ec4899", e.target.value)}
+                    aria-label="gradient second colour"
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }} />
                 </label>
-                {/* Hex code field — type any colour like #993357 */}
-                <input
-                  type="text"
-                  value={hexInput}
-                  onChange={e => handleHexInput(e.target.value)}
-                  placeholder="#993357"
-                  maxLength={7}
-                  spellCheck={false}
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  aria-label="custom theme hex code"
-                  style={{
-                    width: 96, boxSizing: "border-box",
-                    padding: "0.4rem 0.6rem", borderRadius: 8,
-                    border: `1.5px solid ${hexInput && !isValidHex(hexInput.startsWith("#") ? hexInput : "#" + hexInput) ? "#ef4444" : "rgba(var(--pink-mid-rgb,249,168,212),.5)"}`,
-                    background: "rgba(var(--pink-light-rgb,252,231,243),.4)",
-                    color: "var(--pink-deep)", fontFamily: "var(--font-lato),monospace", fontSize: "0.8rem", fontWeight: 600,
-                    letterSpacing: "0.04em", textTransform: "lowercase", outline: "none",
-                  }}
-                />
+                <input type="text" value={hexInput2} onChange={e => setColors(hexInput || draft.customAccent || "", e.target.value)}
+                  placeholder="optional" maxLength={7} spellCheck={false} autoCapitalize="off" autoCorrect="off"
+                  aria-label="gradient second hex code" style={hexFieldStyle(hexInput2)} />
+
                 {draft.customAccent && (
                   <button onClick={clearAccent}
                     style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontFamily: SANS, fontSize: "0.74rem", textDecoration: "underline" }}>
                     clear
                   </button>
                 )}
+              </div>
+
+              {/* Live preview bar */}
+              {isValidHex(draft.customAccent || "") && (
+                <div style={{ height: 10, borderRadius: 8, marginTop: "0.6rem",
+                  background: isValidHex(draft.customAccent2 || "")
+                    ? `linear-gradient(90deg, ${draft.customAccent}, ${draft.customAccent2})`
+                    : draft.customAccent,
+                  boxShadow: "inset 0 0 0 1px rgba(0,0,0,.06), 0 2px 10px rgba(0,0,0,.12)" }} />
+              )}
+
+              {/* ── Premium gradient presets ── */}
+              <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "1.1rem 0 0.5rem", fontWeight: 700 }}>
+                ✨ gradient themes
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.55rem" }}>
+                {GRADIENT_THEMES.map(g => {
+                  const active = (draft.customAccent || "").toLowerCase() === g.from.toLowerCase()
+                    && (draft.customAccent2 || "").toLowerCase() === g.to.toLowerCase();
+                  return (
+                    <motion.button key={g.id} onClick={() => setColors(g.from, g.to)}
+                      whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.95 }} title={g.name}
+                      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem",
+                        background: "none", border: "none", cursor: "pointer", padding: "0.15rem" }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 12,
+                        background: `linear-gradient(135deg, ${g.from}, ${g.to})`,
+                        boxShadow: active ? `0 0 0 2.5px var(--cream), 0 0 0 4.5px ${g.from}, 0 4px 14px ${g.to}66`
+                          : "0 2px 10px rgba(0,0,0,.2)", transition: "box-shadow .2s" }} />
+                      <span style={{ fontFamily: SANS, fontSize: "0.58rem", color: "var(--muted)", fontWeight: active ? 700 : 500, textAlign: "center", lineHeight: 1.2 }}>
+                        {g.emoji} {g.name}
+                      </span>
+                    </motion.button>
+                  );
+                })}
               </div>
 
               {/* ─── Couple name ─── */}

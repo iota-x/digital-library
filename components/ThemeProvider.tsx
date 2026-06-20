@@ -18,6 +18,7 @@ export default function ThemeProvider() {
   const user    = useUserData();
   const themeId = user?.settings?.theme ?? "pink";
   const accent  = user?.settings?.customAccent ?? "";
+  const accent2 = user?.settings?.customAccent2 ?? "";
 
   useEffect(() => {
     // Until we actually know the user, leave the theme the anti-FOUC inline
@@ -33,13 +34,13 @@ export default function ThemeProvider() {
     // only the foreground followed the custom accent. So a custom accent always
     // uses the base palette (no theme class) and drives everything via variables.
     if (themeId !== "pink" && !accent) root.classList.add(`theme-${themeId}`);
-    applyAccent(accent || null);
+    applyAccent(accent || null, accent2 || null);
     try { localStorage.setItem("ann_color_theme", themeId); } catch {}
 
     // Sync browser theme-color meta tag — the custom accent wins when present.
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
-  }, [user, themeId, accent]);
+  }, [user, themeId, accent, accent2]);
 
   // A custom accent derives different shades for light vs dark — so when dark
   // mode is toggled (fires `annapp:theme`), re-derive it for the new mode.

@@ -146,11 +146,23 @@ function deriveVars(base: RGB, dark: boolean): Record<string, string> {
   };
 }
 
-/** Apply (or clear) a custom accent colour on the document root. */
-export function applyAccent(hex: string | null | undefined): void {
+// Second accent (gradient theme partner colour), remembered for re-derivation.
+let currentHex2: string | null = null;
+
+/**
+ * Apply (or clear) a custom accent colour on the document root.
+ *
+ * `hex2` (optional) turns it into a two-tone **gradient theme**: the vivid
+ * `--pink-deep` (and its rgb) is overridden to `hex2`, so every accent gradient
+ * in the UI — `linear-gradient(…, var(--pink), var(--pink-deep))` on buttons,
+ * pills, hearts — blends `hex → hex2`. Surfaces still derive from the primary
+ * `hex`, so backgrounds stay coherent.
+ */
+export function applyAccent(hex: string | null | undefined, hex2?: string | null): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
   currentHex = hex || null;
+  currentHex2 = hex2 || null;
 
   // Always clear first so no stale (wrong-mode) override lingers.
   VARS.forEach((v) => root.style.removeProperty(v));
@@ -163,7 +175,16 @@ export function applyAccent(hex: string | null | undefined): void {
   if (!base) return;
 
   const dark = root.classList.contains("dark");
-  const vars = deriveVars(base, dark);
+  const vars = { ...deriveVars(base, dark) };
+
+  // Gradient theme: override the deep accent with the second colour so the
+  // app's two-stop accent gradients become a real two-colour blend.
+  const second = hex2 ? hexToRgb(hex2) : null;
+  if (second) {
+    vars["--pink-deep"] = rgbCss(second);
+    vars["--pink-deep-rgb"] = rgbStr(second);
+  }
+
   for (const [k, val] of Object.entries(vars)) root.style.setProperty(k, val);
   try { localStorage.setItem(ACCENT_CACHE_KEY, JSON.stringify(vars)); } catch {}
 }
@@ -171,7 +192,7 @@ export function applyAccent(hex: string | null | undefined): void {
 /** Re-derive the current accent for the active light/dark mode — call after the
  *  mode is toggled so a custom accent stays correct. No-op if none is set. */
 export function reapplyAccent(): void {
-  if (currentHex) applyAccent(currentHex);
+  if (currentHex) applyAccent(currentHex, currentHex2);
 }
 
 /** A valid 3- or 6-digit hex (with or without leading #). */
