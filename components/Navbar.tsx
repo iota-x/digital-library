@@ -18,6 +18,12 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [copied,       setCopied]       = useState(false);
   const [rotating,     setRotating]     = useState(false);
+  // Show the right shortcut hint per-platform (set after mount to avoid an SSR
+  // mismatch). Mac → ⌘K, everyone else → Ctrl K.
+  const [isMac,        setIsMac]        = useState(false);
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent));
+  }, []);
   const toaster = useToast();
   const confirm = useConfirm();
 
@@ -140,8 +146,9 @@ export default function Navbar() {
             {dark ? "☀️" : "🌙"}
           </motion.button>
 
-          {/* ⌘K — desktop only */}
-          <button className="nav-cmdK" onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
+          {/* ⌘K / Ctrl K — desktop only */}
+          <button className="nav-cmdK" aria-label="Open command palette"
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key:"k", ctrlKey:true, bubbles:true }))}
             style={{
               display:"flex", alignItems:"center", gap:"0.35rem",
               background: dark ? "rgba(255,255,255,0.1)" : `rgba(var(--pink-light-rgb,252,231,243),.55)`,
@@ -150,7 +157,7 @@ export default function Navbar() {
               fontFamily:"var(--font-lato),'Inter',system-ui,sans-serif", fontSize:"0.62rem", fontWeight:700,
               color: dark ? "rgba(255,255,255,0.5)" : `rgba(var(--pink-deep-rgb,190,24,93),.5)`, letterSpacing:"0.06em",
             }}>
-            <span>⌘K</span>
+            <span>{isMac ? "⌘K" : "Ctrl K"}</span>
           </button>
 
           {/* User pill + dropdown */}

@@ -145,10 +145,12 @@ export default function CommandPalette() {
   ];
   const totalItems = allResults.length;
 
-  // Ctrl+K / Cmd+K
+  // Ctrl+K (Windows/Linux) / Cmd+K (Mac). Match the key case-insensitively and
+  // via e.code so layouts/shift/caps-lock don't break the shortcut.
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      const isK = e.key.toLowerCase() === "k" || e.code === "KeyK";
+      if ((e.metaKey || e.ctrlKey) && isK) {
         e.preventDefault();
         setOpen(o => { if (!o) { setQuery(""); setSel(0); } return !o; });
       }

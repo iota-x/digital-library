@@ -511,39 +511,64 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   const hasContent  = !!(draft.note || (draft.photos?.length ?? 0) > 0);
   const hasMedia    = (draft.photos?.length ?? 0) > 0;
 
-  /* Upload each file to Cloudinary, append returned URL to draft.
-     Each successful upload is appended immediately (progressive feedback), and
-     once the batch finishes we force a save right away rather than relying on
-     the debounced autosave — on mobile the page can be backgrounded/reloaded
-     seconds later, so freshly added photos must be persisted now. */
+  // ── Autosave state + single persistence path ──────────────────────────────
+  // `persist` is the ONLY thing that writes an entry. It never closes the
+  // modal — closing is a separate, explicit action. Conflating the two is what
+  // made the journal slam shut after every upload/autosave.
+  const [autoState, setAutoState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
+  const [savedAt,   setSavedAt]   = useState<Date | null>(null);
+  const lastSerialised = useRef<string>("");
+  const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Always-current view of the draft, so async callbacks (uploads, close) can
+  // read the latest state without waiting on the 1.4s debounce.
+  const draftRef = useRef(draft);
+  useEffect(() => { draftRef.current = draft; });
+
+  const persist = useCallback(async (d: DraftEntry): Promise<boolean> => {
+    if (autoTimer.current) clearTimeout(autoTimer.current);
+    setAutoState("saving");
+    try {
+      await onSave(d);
+      lastSerialised.current = JSON.stringify(d);
+      setSavedAt(new Date());
+      setAutoState("saved");
+      setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
+      return true;
+    } catch {
+      setAutoState("error");
+      return false;
+    }
+  }, [onSave]);
+
+  /* Upload each file to Cloudinary, appending each returned URL as it lands
+     (progressive feedback). When the batch finishes we persist immediately with
+     a freshly-built draft — not the passive ref, whose effect may not have run
+     yet — so a mobile reload can't lose the new photos. The modal stays open. */
   const handleFiles = useCallback(async (files: File[]) => {
     setUploadErr(null);
     setUploading(true);
-    let added = 0;
+    const uploaded: string[] = [];
     try {
       for (const file of files) {
         const url = await uploadToCloudinary(file);
+        uploaded.push(url);
         setDraft(d => ({ ...d, photos: [...(d.photos || []), url] }));
-        added++;
       }
     } catch (err: any) {
       setUploadErr(err?.message || "Upload failed — please try again.");
     } finally {
       setUploading(false);
     }
-    if (added > 0) {
-      if (autoTimer.current) clearTimeout(autoTimer.current);
-      try {
-        await onSave(draftRef.current);
-        lastSerialised.current = JSON.stringify(draftRef.current);
-        setSavedAt(new Date());
-        setAutoState("saved");
-        setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
-      } catch {
-        setAutoState("error");
-      }
+    if (uploaded.length) {
+      const base = draftRef.current;
+      const photos = [...(base.photos || [])];
+      for (const url of uploaded) if (!photos.includes(url)) photos.push(url);
+      // Fire-and-forget: queuedFetch + cache write happen even if the modal is
+      // closed right after, so the photos are safe regardless.
+      void persist({ ...base, photos });
     }
-  }, [onSave]);
+  }, [persist]);
 
   const removeMedia = (i: number) => setDraft(d => {
     const droppedUrl = (d.photos || [])[i];
@@ -558,60 +583,43 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
     setDraft(d => ({ ...d, photoStickers: { ...(d.photoStickers || {}), [url]: next } }));
   }, []);
 
-  // Track autosave state for an inline indicator
-  const [autoState, setAutoState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
-  const [savedAt,   setSavedAt]   = useState<Date | null>(null);
-  const lastSerialised = useRef<string>("");
-  const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Always-current view of the draft, so async callbacks (uploads) can persist
-  // the very latest state without waiting on the 1.4s debounce.
-  const draftRef = useRef(draft);
-  useEffect(() => { draftRef.current = draft; });
-
   // Init the baseline on mount so opening an entry doesn't flag it dirty
   useEffect(() => {
     lastSerialised.current = JSON.stringify(draft);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debounced autosave — 1.4s of inactivity
+  // Debounced autosave — 1.4s of inactivity. Persists in the background; never
+  // closes the modal.
   useEffect(() => {
     const current = JSON.stringify(draft);
     if (current === lastSerialised.current) return;
     setAutoState("dirty");
     if (autoTimer.current) clearTimeout(autoTimer.current);
-    autoTimer.current = setTimeout(async () => {
-      setAutoState("saving");
-      try {
-        await onSave(draft);
-        lastSerialised.current = JSON.stringify(draft);
-        setSavedAt(new Date());
-        setAutoState("saved");
-        setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
-      } catch {
-        setAutoState("error");
-      }
-    }, 1400);
+    autoTimer.current = setTimeout(() => { void persist(draftRef.current); }, 1400);
     return () => { if (autoTimer.current) clearTimeout(autoTimer.current); };
-  }, [draft, onSave]);
+  }, [draft, persist]);
 
+  // Explicit "Save memory" button — persist, then close on success.
   const save = async () => {
-    if (autoTimer.current) clearTimeout(autoTimer.current);
-    setSaving(true); setAutoState("saving");
-    try {
-      await onSave(draft);
-      lastSerialised.current = JSON.stringify(draft);
-      setSavedAt(new Date());
-      setAutoState("saved");
-      setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
-    } catch { setAutoState("error"); }
-    finally { setSaving(false); }
+    setSaving(true);
+    const ok = await persist(draftRef.current);
+    setSaving(false);
+    if (ok) onClose();
   };
 
   // Don't let the modal close while an upload is in flight — tearing it down
-  // mid-upload is exactly what dropped photos before they could be saved.
-  const requestClose = useCallback(() => { if (!uploading) onClose(); }, [uploading, onClose]);
+  // mid-upload is exactly what dropped photos before they could be saved. On a
+  // genuine close, flush any pending edit first (fire-and-forget: queuedFetch +
+  // cache write run to completion even after the modal unmounts) so closing
+  // within the autosave debounce window never loses the last change.
+  const requestClose = useCallback(() => {
+    if (uploading) return;
+    if (JSON.stringify(draftRef.current) !== lastSerialised.current) {
+      void persist(draftRef.current);
+    }
+    onClose();
+  }, [uploading, onClose, persist]);
 
   // ESC closes the day view, but only when the lightbox isn't open (lightbox
   // handles its own ESC) and nothing is uploading.
@@ -1058,14 +1066,16 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
     setSelected(key);
   };
 
+  // Persist only — never closes the modal. The DayView owns when to close
+  // (explicit Save button / backdrop / ESC), so autosave and post-upload saves
+  // can run silently in the background without slamming the journal shut.
   const handleSave = useCallback(async (draft: DraftEntry) => {
     if (!selected) return;
     const payload: CalEntry = { date: selected, note: draft.note || "", photos: draft.photos || [], photoStickers: draft.photoStickers || {}, reactions: draft.reactions || {}, special: draft.special || false, specialLabel: draft.specialLabel || "", mood: draft.mood || "", pinnedNote: draft.pinnedNote || "" };
-    // queuedFetch persists offline — local cache updates either way so the
-    // entry shows immediately; replay happens when the browser comes back
-    await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });
+    // Update the local cache first so the entry shows immediately, then queue
+    // the network write (queuedFetch replays offline saves when back online).
     updateCalendarCache(payload);
-    setSelected(null);
+    await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });
   }, [selected]);
 
   const handleDelete = useCallback(async () => {
