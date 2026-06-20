@@ -221,14 +221,16 @@ export default function Wrapped() {
   const last = idx === cards.length - 1;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+    <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+      {/* Glow halo so the phone sits on the backdrop intentionally */}
+      <div aria-hidden style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: "min(120vw, 560px)", height: "min(120vw, 560px)", borderRadius: "50%", background: "radial-gradient(circle, rgba(var(--pink-rgb),0.35), rgba(var(--pink-rgb),0) 65%)", filter: "blur(20px)", zIndex: 0, pointerEvents: "none" }} />
       <div
         onMouseDown={() => setPaused(true)} onMouseUp={() => setPaused(false)}
         onTouchStart={() => setPaused(true)} onTouchEnd={() => setPaused(false)}
         style={{
-          position: "relative", width: "min(94vw, 420px)", aspectRatio: "9 / 16",
+          position: "relative", zIndex: 1, width: "min(94vw, 420px)", aspectRatio: "9 / 16",
           borderRadius: 28, overflow: "hidden", userSelect: "none",
-          boxShadow: "0 24px 70px rgba(var(--pink-deep-rgb), .28)",
+          boxShadow: "0 24px 70px rgba(var(--pink-deep-rgb), .3)",
         }}
       >
         {/* Progress bars */}
