@@ -260,19 +260,40 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
     }
   }, [snapshotBlob, toaster]);
 
-  const clearBoard = async () => {
-    // Auto-save the finished canvas to the gallery before wiping it, so a
-    // completed drawing is never lost to a clear. Best-effort + silent.
-    if (strokesRef.current.length > 0) { await saveToGallery(true); }
+  const clearBoard = () => {
+    // Snapshot the current canvas *synchronously* (snapshotBlob's drawImage runs
+    // immediately) BEFORE wiping, so the auto-save still captures the drawing —
+    // but we don't await the upload.
+    const hadStrokes = strokesRef.current.length > 0;
+    const pendingSnapshot = hadStrokes ? snapshotBlob() : null;
+
+    // Wipe the board instantly — this is the only thing the user waits on.
     strokesRef.current = [];
     currentRef.current = null;
     redraw();
     buzz("med");
-    await fetch("/api/doodle", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clear: true }),
-    }).catch(() => {});
+
+    // Everything else (auto-save to gallery + telling the server/partner) runs
+    // in the background, so the clear feels snappy.
+    void (async () => {
+      try {
+        const blob = pendingSnapshot ? await pendingSnapshot : null;
+        if (blob) {
+          const file = new File([blob], "doodle.png", { type: "image/png" });
+          const url = await uploadToCloudinary(file, { folder: "doodles" });
+          await fetch("/api/doodle/gallery", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ imageUrl: url }),
+          });
+        }
+      } catch {}
+      fetch("/api/doodle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clear: true }),
+      }).catch(() => {});
+    })();
   };
 
   return (
