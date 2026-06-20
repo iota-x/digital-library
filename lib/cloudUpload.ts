@@ -26,10 +26,74 @@ const DEFAULT_LIMITS = {
 
 export class UploadError extends Error {}
 
+/**
+ * Downscale + recompress a large image in the browser before upload.
+ *
+ * This is essential on iOS/iPadOS: a straight-from-the-camera HEIC/JPEG is
+ * often 4-12 MB, and holding several of those (plus their FormData copies) in
+ * memory makes mobile Safari reload the whole WebView mid-upload — which looked
+ * like "the page just closes and nothing saves". Shrinking each photo first
+ * keeps memory tiny, gets every file safely under the size cap, and uploads
+ * fast enough to finish before anything is interrupted.
+ *
+ * Also draws with `imageOrientation: "from-image"` so EXIF-rotated phone photos
+ * arrive upright instead of sideways ("it uploaded the wrong photo").
+ *
+ * Returns the original file unchanged on any failure or for formats we must not
+ * rasterise (video, animated GIF, SVG) — never throws.
+ */
+export async function downscaleImage(file: File, maxEdge = 2200, quality = 0.82): Promise<File> {
+  if (!file.type.startsWith("image/")) return file;
+  // Leave these untouched: GIFs would lose animation, SVGs are vector, and PNGs
+  // (e.g. doodles) usually carry transparency that JPEG can't preserve.
+  if (file.type === "image/gif" || file.type === "image/svg+xml" || file.type === "image/png") return file;
+  if (typeof document === "undefined" || typeof createImageBitmap !== "function") return file;
+
+  let bitmap: ImageBitmap | null = null;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" } as ImageBitmapOptions);
+    const { width, height } = bitmap;
+    const scale = Math.min(1, maxEdge / Math.max(width, height));
+
+    // Already small in both dimensions and bytes — nothing worth doing.
+    if (scale === 1 && file.size < 1_200_000) return file;
+
+    const w = Math.max(1, Math.round(width * scale));
+    const h = Math.max(1, Math.round(height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, w, h);
+
+    const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/jpeg", quality));
+    // Release the canvas backing store promptly (matters on memory-tight iOS).
+    canvas.width = 0;
+    canvas.height = 0;
+
+    // If recompression didn't actually help, keep the original.
+    if (!blob || blob.size >= file.size) return file;
+
+    const name = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+    return new File([blob], name, { type: "image/jpeg", lastModified: Date.now() });
+  } catch {
+    return file;
+  } finally {
+    bitmap?.close?.();
+  }
+}
+
 export async function uploadToCloudinary(file: File, opts: Options = {}): Promise<string> {
   const resourceType = opts.resourceType ?? (file.type.startsWith("video/") ? "video" : "image");
   const folder = opts.folder ?? "us";
   const maxSize = opts.maxSize ?? DEFAULT_LIMITS[resourceType];
+
+  // Shrink images *before* the size check, so a big iPhone photo that would
+  // otherwise be rejected (and would strain mobile Safari) sails through.
+  if (resourceType === "image") {
+    file = await downscaleImage(file);
+  }
 
   if (file.size > maxSize) {
     throw new UploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max ${(maxSize / 1024 / 1024)} MB.`);

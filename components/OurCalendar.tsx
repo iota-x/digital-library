@@ -511,21 +511,39 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   const hasContent  = !!(draft.note || (draft.photos?.length ?? 0) > 0);
   const hasMedia    = (draft.photos?.length ?? 0) > 0;
 
-  /* Upload each file to Cloudinary, append returned URL to draft */
+  /* Upload each file to Cloudinary, append returned URL to draft.
+     Each successful upload is appended immediately (progressive feedback), and
+     once the batch finishes we force a save right away rather than relying on
+     the debounced autosave — on mobile the page can be backgrounded/reloaded
+     seconds later, so freshly added photos must be persisted now. */
   const handleFiles = useCallback(async (files: File[]) => {
     setUploadErr(null);
     setUploading(true);
+    let added = 0;
     try {
       for (const file of files) {
         const url = await uploadToCloudinary(file);
         setDraft(d => ({ ...d, photos: [...(d.photos || []), url] }));
+        added++;
       }
     } catch (err: any) {
       setUploadErr(err?.message || "Upload failed — please try again.");
     } finally {
       setUploading(false);
     }
-  }, []);
+    if (added > 0) {
+      if (autoTimer.current) clearTimeout(autoTimer.current);
+      try {
+        await onSave(draftRef.current);
+        lastSerialised.current = JSON.stringify(draftRef.current);
+        setSavedAt(new Date());
+        setAutoState("saved");
+        setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
+      } catch {
+        setAutoState("error");
+      }
+    }
+  }, [onSave]);
 
   const removeMedia = (i: number) => setDraft(d => {
     const droppedUrl = (d.photos || [])[i];
@@ -545,6 +563,11 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   const [savedAt,   setSavedAt]   = useState<Date | null>(null);
   const lastSerialised = useRef<string>("");
   const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Always-current view of the draft, so async callbacks (uploads) can persist
+  // the very latest state without waiting on the 1.4s debounce.
+  const draftRef = useRef(draft);
+  useEffect(() => { draftRef.current = draft; });
 
   // Init the baseline on mount so opening an entry doesn't flag it dirty
   useEffect(() => {
@@ -586,8 +609,13 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
     finally { setSaving(false); }
   };
 
-  // ESC closes the day view, but only when the lightbox isn't open (lightbox handles its own ESC)
-  useEscKey(onClose, lbIdx === null);
+  // Don't let the modal close while an upload is in flight — tearing it down
+  // mid-upload is exactly what dropped photos before they could be saved.
+  const requestClose = useCallback(() => { if (!uploading) onClose(); }, [uploading, onClose]);
+
+  // ESC closes the day view, but only when the lightbox isn't open (lightbox
+  // handles its own ESC) and nothing is uploading.
+  useEscKey(requestClose, lbIdx === null && !uploading);
 
   const ox = originRect ? originRect.left + originRect.width  / 2 - window.innerWidth  / 2 : 0;
   const oy = originRect ? originRect.top  + originRect.height / 2 - window.innerHeight / 2 : 0;
@@ -596,7 +624,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
     <>
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
-        onClick={onClose}
+        onClick={requestClose}
         style={{ position: "fixed", inset: 0, zIndex: 3000, background: "rgba(6,1,4,.88)" }}
       />
 
@@ -679,7 +707,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
               </div>
             )}
             <Tip label="close" placement="left" style={{ flexShrink: 0 }}>
-              <motion.button onClick={onClose} aria-label="close memory editor" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+              <motion.button onClick={requestClose} aria-label="close memory editor" whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
                 style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.4)", borderRadius: "50%", width: 34, height: 34, cursor: "pointer", color: "#fff", fontSize: "0.95rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</motion.button>
             </Tip>
           </div>
