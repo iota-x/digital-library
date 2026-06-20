@@ -84,12 +84,13 @@ function hslToRgb(h: number, s: number, l: number): RGB {
     Math.round(hue2rgb(p, q, h - 1 / 3) * 255),
   ];
 }
-/** A dark surface that keeps the accent's hue + visible saturation at the given
- *  lightness (0–1). Saturation is clamped so very dull or neon inputs both land
- *  on a tasteful, clearly-hued dark surface. */
-function surface(base: RGB, lightness: number): RGB {
+/** A dark surface tinted by the accent. The background should read mostly
+ *  neutral-dark (so the accent lives in text/buttons, not the whole page) — so
+ *  we keep the accent's hue but use only a *fraction* of its saturation. A pure
+ *  mix-to-black would instead desaturate unevenly and look muddy. */
+function surface(base: RGB, lightness: number, sat = 0.18): RGB {
   const [h, s] = rgbToHsl(base);
-  return hslToRgb(h, Math.min(0.62, Math.max(0.32, s)), lightness);
+  return hslToRgb(h, Math.min(sat, Math.max(0.06, s * 0.4)), lightness);
 }
 
 const ACCENT_CACHE_KEY = "ann_accent_vars";
@@ -99,10 +100,12 @@ let currentHex: string | null = null;
 
 function deriveVars(base: RGB, dark: boolean): Record<string, string> {
   if (!dark) {
+    // Light mode: backgrounds stay near-white (the accent shows in text/buttons,
+    // not as a wash over the whole page), so the surfaces sit very close to white.
     const deep  = mix(base, BLACK, 0.22);
     const mid   = mix(base, WHITE, 0.55);
-    const light = mix(base, WHITE, 0.86);
-    const rose  = mix(base, WHITE, 0.92);
+    const light = mix(base, WHITE, 0.93);
+    const rose  = mix(base, WHITE, 0.965);
     return {
       "--pink": rgbCss(base),
       "--pink-deep": rgbCss(deep),
@@ -115,13 +118,15 @@ function deriveVars(base: RGB, dark: boolean): Record<string, string> {
       "--pink-light-rgb": rgbStr(light),
     };
   }
-  // Dark mode: keep the accent vivid, and derive the surfaces in HSL so they
-  // stay clearly the chosen hue (a deep plum, not a muddy near-black).
+  // Dark mode: keep the accent vivid for text/buttons, but the surfaces are
+  // mostly neutral-dark with only a faint accent tint (so the page doesn't read
+  // as a saturated purple/blue wash). Cards carry slightly more tint than the
+  // page background so panels still separate from the page.
   const deep  = mix(base, WHITE, 0.10);   // slightly brighter so it pops on dark
-  const mid   = surface(base, 0.20);      // card / mid surface
-  const light = surface(base, 0.13);      // raised panel
-  const rose  = surface(base, 0.09);      // near-page tint
-  const cream = surface(base, 0.07);      // page background
+  const mid   = surface(base, 0.19, 0.24); // card / mid surface — a touch warmer
+  const light = surface(base, 0.13, 0.20); // raised panel
+  const rose  = surface(base, 0.09, 0.16); // near-page tint
+  const cream = surface(base, 0.07, 0.14); // page background — most neutral
   const text  = mix(base, WHITE, 0.86);
   const muted = mix(base, WHITE, 0.55);
   return {
