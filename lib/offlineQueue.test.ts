@@ -86,6 +86,13 @@ describe("offlineQueue", () => {
     expect(pendingCount()).toBe(0);
   });
 
+  it("queues on a 429 (rate-limited — retry later, never drop)", async () => {
+    mockFetch([429]);
+    const res = await queuedFetch({ url: "/api/x", method: "POST" });
+    expect(res).toMatchObject({ ok: true, queued: true });
+    expect(pendingCount()).toBe(1);
+  });
+
   it("queues on a network error (offline shape)", async () => {
     (globalThis as Record<string, unknown>).fetch = vi.fn(async () => { throw new Error("network down"); });
     const res = await queuedFetch({ url: "/api/x", method: "PUT" });

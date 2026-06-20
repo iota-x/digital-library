@@ -517,6 +517,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
   // made the journal slam shut after every upload/autosave.
   const [autoState, setAutoState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
   const [savedAt,   setSavedAt]   = useState<Date | null>(null);
+  const [saveErr,   setSaveErr]   = useState<string | null>(null);
   const lastSerialised = useRef<string>("");
   const autoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -532,10 +533,12 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
       await onSave(d);
       lastSerialised.current = JSON.stringify(d);
       setSavedAt(new Date());
+      setSaveErr(null);
       setAutoState("saved");
       setTimeout(() => setAutoState(s => s === "saved" ? "idle" : s), 2500);
       return true;
-    } catch {
+    } catch (err: any) {
+      setSaveErr(err?.message || "Save failed.");
       setAutoState("error");
       return false;
     }
@@ -887,7 +890,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                   {autoState === "error" && (
                     <>
                       <span style={{ color: "#ef4444" }}>⚠</span>
-                      <span style={{ color: "#ef4444" }}>save failed — retry?</span>
+                      <span style={{ color: "#ef4444", textAlign: "right", maxWidth: "92%" }}>{saveErr || "save failed — retry?"}</span>
                     </>
                   )}
                 </div>
@@ -1076,9 +1079,16 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
     // the network write (queuedFetch replays offline saves when back online).
     updateCalendarCache(payload);
     const res = await queuedFetch({ url: "/api/calendar", method: "POST", body: payload, id: `cal:save:${selected}` });
-    // A genuine rejection (4xx) is dropped by the offline queue and won't
-    // replay — surface it instead of silently pretending the save worked.
-    if (!res.ok) throw new Error(`Save rejected by server (${res.status})`);
+    // 5xx/429/offline are queued (res.ok) and will replay. A genuine 4xx is
+    // dropped and won't retry — surface the real status + server message so the
+    // cause is visible (e.g. 401 → re-login, 400 → which field) instead of a
+    // silent "saved" that vanishes on the next refetch.
+    if (!res.ok) {
+      const hint = res.status === 401 || res.status === 403
+        ? "Your session expired — please log in again."
+        : res.message || "the server rejected the request.";
+      throw new Error(`Save failed (${res.status}): ${hint}`);
+    }
   }, [selected]);
 
   const handleDelete = useCallback(async () => {

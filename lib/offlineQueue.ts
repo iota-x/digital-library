@@ -60,10 +60,24 @@ let listenersInstalled = false;
  * error), persist it and resolve `{ queued: true }` — the optimistic caller
  * can update its UI assuming success and let us drain later.
  */
+/** A non-2xx that we should keep retrying rather than drop: server errors
+ *  (5xx) and rate limiting (429, "slow down and come back"). */
+function isRetryableStatus(status: number): boolean {
+  return status >= 500 || status === 429;
+}
+
+/** Best-effort extraction of a human-readable error from a failed response. */
+async function readError(res: Response): Promise<string> {
+  try {
+    const text = await res.text();
+    try { return (JSON.parse(text)?.error as string) || text; } catch { return text; }
+  } catch { return ""; }
+}
+
 export async function queuedFetch(req: Omit<QueuedRequest, "id" | "queuedAt"> & { id?: string }): Promise<
   | { ok: true; queued: false; response: Response }
   | { ok: true; queued: true;  id: string }
-  | { ok: false; queued: false; status: number }
+  | { ok: false; queued: false; status: number; message: string }
 > {
   installListeners();
   const id = req.id ?? makeId();
@@ -79,11 +93,12 @@ export async function queuedFetch(req: Omit<QueuedRequest, "id" | "queuedAt"> & 
       headers: req.body !== undefined ? { "Content-Type": "application/json" } : undefined,
       body:    req.body !== undefined ? JSON.stringify(req.body) : undefined,
     });
-    if (res.status >= 500) {
+    // 5xx + 429 are transient — queue and replay rather than lose the write.
+    if (isRetryableStatus(res.status)) {
       enqueue({ ...req, id, queuedAt: new Date().toISOString() });
       return { ok: true, queued: true, id };
     }
-    if (!res.ok) return { ok: false, queued: false, status: res.status };
+    if (!res.ok) return { ok: false, queued: false, status: res.status, message: await readError(res) };
     return { ok: true, queued: false, response: res };
   } catch {
     // Network error — typical offline shape
@@ -113,13 +128,14 @@ export async function flushQueue(): Promise<void> {
           headers: item.body !== undefined ? { "Content-Type": "application/json" } : undefined,
           body:    item.body !== undefined ? JSON.stringify(item.body) : undefined,
         });
-        if (res.status >= 500) {
-          // Server still sick — stop, keep order
-          log.warn({ msg: "offline:flush stopped (5xx)", url: item.url, status: res.status });
+        if (isRetryableStatus(res.status)) {
+          // Server still sick (5xx) or rate-limited (429) — stop, keep order,
+          // retry on the next online/focus event.
+          log.warn({ msg: "offline:flush stopped (retryable)", url: item.url, status: res.status });
           break;
         }
-        // 2xx, 3xx, 4xx all consume the item — 4xx means the request itself
-        // is rejected, and retrying it won't help
+        // 2xx, 3xx, and other 4xx consume the item — a 4xx means the request
+        // itself is rejected, and retrying it won't help
         q = q.slice(1);
         save(q);
         if (!res.ok) {
