@@ -12,6 +12,20 @@ export interface SideNavItem { id: string; label: string }
  */
 export default function SideNav({ items }: { items: SideNavItem[] }) {
   const [active, setActive] = useState(items[0]?.id ?? "");
+  const [hint, setHint] = useState(false);
+
+  // First-visit coachmark: reveal all labels for a few seconds so people learn
+  // the rail is a jump-nav, then collapse to hover. Shown once, ever.
+  useEffect(() => {
+    if (items.length < 2) return;
+    try { if (localStorage.getItem("ann_sidenav_seen")) return; } catch {}
+    setHint(true);
+    const t = setTimeout(() => {
+      setHint(false);
+      try { localStorage.setItem("ann_sidenav_seen", "1"); } catch {}
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [items.length]);
 
   useEffect(() => {
     const els = items.map((i) => document.getElementById(i.id)).filter((e): e is HTMLElement => !!e);
@@ -34,7 +48,9 @@ export default function SideNav({ items }: { items: SideNavItem[] }) {
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <nav className="side-nav" aria-label="on this page">
+    <nav className="side-nav" data-hint={hint ? "true" : "false"} aria-label="on this page"
+      onMouseEnter={() => { if (hint) { setHint(false); try { localStorage.setItem("ann_sidenav_seen", "1"); } catch {} } }}>
+      {hint && <span className="sn-hint" aria-hidden>jump to a section ↓</span>}
       {items.map((it) => {
         const on = active === it.id;
         return (

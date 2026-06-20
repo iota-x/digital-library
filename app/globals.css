@@ -172,25 +172,41 @@ html.dark section {
 }
 .side-nav-item .sn-label {
   font-family: var(--font-lato), "Inter", system-ui, sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.74rem;
+  font-weight: 700;
   letter-spacing: 0.01em;
   color: var(--pink-deep);
-  background: rgba(var(--cream-rgb, 255, 245, 248), 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(var(--pink-mid-rgb, 249, 168, 212), 0.4);
-  border-radius: 50px;
-  padding: 0.26rem 0.72rem;
+  /* transparent — just the words, with a soft shadow for legibility */
+  background: transparent;
+  text-shadow: 0 1px 8px rgba(var(--cream-rgb, 255, 245, 248), 0.9), 0 1px 3px rgba(0, 0, 0, 0.25);
+  padding: 0.1rem 0.2rem;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
   transform: translateX(8px);
   transition: opacity .22s ease, transform .22s ease;
-  box-shadow: 0 4px 16px rgba(var(--pink-deep-rgb), 0.12);
 }
 .side-nav-item:hover .sn-label,
-.side-nav-item[data-active="true"] .sn-label { opacity: 1; transform: translateX(0); }
+.side-nav-item[data-active="true"] .sn-label,
+.side-nav[data-hint="true"] .sn-label { opacity: 1; transform: translateX(0); }
+.sn-hint {
+  font-family: var(--font-lato), "Inter", system-ui, sans-serif;
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--pink-deep);
+  white-space: nowrap;
+  margin-bottom: 0.35rem;
+  text-shadow: 0 1px 8px rgba(var(--cream-rgb, 255, 245, 248), 0.9), 0 1px 3px rgba(0, 0, 0, 0.25);
+  animation: sn-bob 1.5s ease-in-out infinite;
+}
+@keyframes sn-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+/* gently pulse the active dot during the first-visit hint to draw the eye */
+.side-nav[data-hint="true"] .side-nav-item[data-active="true"] .sn-dot {
+  animation: sn-pulse 1.4s ease-in-out infinite;
+}
+@keyframes sn-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(var(--pink-rgb), 0.2); }
+  50%      { box-shadow: 0 0 0 8px rgba(var(--pink-rgb), 0.1); }
+}
 .side-nav-item .sn-dot {
   width: 9px; height: 9px;
   border-radius: 50%;
