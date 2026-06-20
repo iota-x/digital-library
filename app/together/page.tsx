@@ -1,16 +1,19 @@
 "use client";
+import { motion } from "framer-motion";
 import PasswordGate  from "@/components/PasswordGate";
 import LongDistance  from "@/components/LongDistance";
 import WatchTogether from "@/components/WatchTogether";
+import TogetherBackdrop from "@/components/TogetherBackdrop";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { SERIF, SCRIPT } from "@/lib/typography";
 
 function TogetherHero() {
   return (
     <div style={{
-      textAlign: "center",
+      position: "relative", textAlign: "center", overflow: "hidden",
       padding: "clamp(3rem,7vh,4.5rem) clamp(1rem,4vw,2rem) clamp(1rem,3vh,1.8rem)",
-      background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 60%,rgba(var(--pink-light-rgb),0) 100%)",
+      // fades into the page's flow wash — no hard header seam
+      background: "radial-gradient(120% 90% at 50% -10%, rgba(var(--pink-rgb),.22), transparent 60%)",
     }}>
       <p style={{ fontFamily: SCRIPT, fontSize: "clamp(1rem,2.5vw,1.2rem)", color: "var(--muted)", margin: "0 0 0.5rem" }}>
         close, even when you&apos;re far ✦
@@ -25,17 +28,44 @@ function TogetherHero() {
   );
 }
 
+/** Soft theme-coloured orbs for depth behind the night-sky canvas. */
+function Orbs() {
+  const orbs = [
+    { l: "10%", t: "16%", s: 340, c: "rgba(var(--pink-rgb),0.16)" },
+    { l: "78%", t: "30%", s: 320, c: "rgba(var(--pink-deep-rgb),0.13)" },
+    { l: "50%", t: "78%", s: 380, c: "rgba(var(--pink-rgb),0.12)" },
+  ];
+  return (
+    <div aria-hidden style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
+      {orbs.map((o, i) => (
+        <motion.div key={i}
+          animate={{ scale: [1, 1.16, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ repeat: Infinity, duration: 8 + i, delay: i * 1.2, ease: "easeInOut" }}
+          style={{ position: "absolute", left: o.l, top: o.t, width: o.s, height: o.s, borderRadius: "50%", background: o.c, filter: "blur(64px)" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Band({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ width: "100%", padding: "clamp(2rem,4.5vh,3rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: 760 }}>{children}</div>
+    </div>
+  );
+}
+
 export default function TogetherPage() {
   return (
     <PasswordGate>
-      <main>
+      <Orbs />
+      <TogetherBackdrop />
+      <main className="together-page" style={{ position: "relative", zIndex: 1 }}>
         <TogetherHero />
-        <section style={{ padding: "clamp(1.5rem,4vh,2.5rem) clamp(1rem,4vw,2rem) 0", display: "flex", justifyContent: "center" }}>
-          <ErrorBoundary><LongDistance /></ErrorBoundary>
-        </section>
-        <section style={{ padding: "clamp(1.5rem,4vh,2.5rem) clamp(1rem,4vw,2rem) clamp(3rem,7vh,5rem)" }}>
-          <ErrorBoundary><WatchTogether /></ErrorBoundary>
-        </section>
+        <Band><ErrorBoundary><LongDistance /></ErrorBoundary></Band>
+        <ErrorBoundary><WatchTogether /></ErrorBoundary>
+        <div style={{ height: "clamp(2rem,5vh,4rem)" }} />
       </main>
     </PasswordGate>
   );

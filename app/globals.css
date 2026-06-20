@@ -149,6 +149,14 @@ html.dark section {
   scroll-margin-top: 72px;
 }
 
+/* /together — transparent section so the night-sky canvas shows through (no
+   per-theme `section` background band). Triple-classed to out-specify the
+   `html.dark.theme-X section` rules. */
+.together-page.together-page.together-page section {
+  background: transparent !important;
+  min-height: 0 !important;
+}
+
 /* ── Side dot-nav (in-page section jump rail) ── */
 .side-nav {
   position: fixed;

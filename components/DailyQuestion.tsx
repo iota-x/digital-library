@@ -190,11 +190,7 @@ export default function DailyQuestion() {
       <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 640 }}>
         {/* Heading */}
         <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
-          <p style={{ fontFamily: SANS, fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.18em",
-            textTransform: "uppercase", color: "rgba(var(--pink-deep-rgb), .5)", margin: "0 0 0.3rem" }}>
-            question of the day
-          </p>
-          <p style={{ fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--muted)", margin: 0 }}>
+          <p style={{ fontFamily: SCRIPT, fontSize: "1.05rem", color: "var(--muted)", margin: 0 }}>
             {view.revealed ? "you both answered 💞" : "answer privately — it unlocks when you both do"}
           </p>
           {view.streak > 0 && (

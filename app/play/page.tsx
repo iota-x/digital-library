@@ -40,7 +40,7 @@ function PlayHero() {
  *  with the same equal top/bottom spacing as the flow-page sections. */
 function Band({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
-    <div id={id} style={{ width: "100%", padding: "clamp(6rem,15vh,10rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center", scrollMarginTop: 72 }}>
+    <div id={id} style={{ width: "100%", padding: "clamp(2.5rem,5.5vh,3.5rem) clamp(1rem,4vw,2rem)", display: "flex", justifyContent: "center", scrollMarginTop: 72 }}>
       <div style={{ width: "100%", maxWidth: 760 }}>{children}</div>
     </div>
   );
@@ -64,7 +64,7 @@ function PlayContent() {
         <Band id="rather"><ErrorBoundary><WouldYouRather /></ErrorBoundary></Band>
         <Band id="checkin"><ErrorBoundary><WeeklyCheckin /></ErrorBoundary></Band>
         <div id="ideas" style={{ scrollMarginTop: 72 }}>
-          <ErrorBoundary><Ideas flat mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
+          <ErrorBoundary><Ideas flat tight mode="reconnect" emoji="🤍" heading="feeling a little distant?" sub="tiny ways to reconnect today" /></ErrorBoundary>
         </div>
       </main>
       <SideNav items={PLAY_NAV} />

@@ -12,8 +12,8 @@ function DailyHeader() {
   return (
     <div style={{
       padding: "2.5rem clamp(1rem,3vw,2rem) 0.5rem",
-      background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 100%)",
-      borderBottom: "1px solid rgba(var(--pink-rgb),.18)",
+      // fades into the page's flow wash — no hard header seam/border
+      background: "radial-gradient(120% 90% at 50% -10%, rgba(var(--pink-rgb),.22), transparent 60%)",
       textAlign: "center",
     }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem", marginBottom: "0.7rem" }}>
@@ -71,7 +71,7 @@ function DailyContent() {
   const solo = !!user && !user.partnerName;
 
   return (
-    <main>
+    <main className="flow-page">
       <DailyHeader />
       {solo ? (
         <SoloNote inviteCode={user?.inviteCode} />

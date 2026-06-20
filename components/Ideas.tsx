@@ -13,6 +13,8 @@ interface Props {
   /** Render as a plain <div> instead of a <section> — used on pages with one
    *  continuous flowing background so it doesn't paint its own section band. */
   flat?: boolean;
+  /** Tighter vertical spacing (used on the games page, which packs more in). */
+  tight?: boolean;
 }
 
 const CARD: React.CSSProperties = {
@@ -23,7 +25,7 @@ const CARD: React.CSSProperties = {
   boxShadow: "0 12px 40px rgba(var(--pink-deep-rgb), .1)",
 };
 
-export default function Ideas({ mode, heading, sub, emoji, flat = false }: Props) {
+export default function Ideas({ mode, heading, sub, emoji, flat = false, tight = false }: Props) {
   const [ideas, setIdeas] = useState<Idea[] | null>(null);
   const [source, setSource] = useState<"ai" | "library">("library");
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,7 @@ export default function Ideas({ mode, heading, sub, emoji, flat = false }: Props
   const Wrap = flat ? "div" : "section";
   // `flat` is used on flow pages, where every component shares this equal
   // top/bottom spacing; the plain <section> form keeps its own page padding.
-  const pad = flat ? "clamp(6rem,15vh,10rem)" : "clamp(1.5rem,4vh,2.5rem)";
+  const pad = tight ? "clamp(2.5rem,5.5vh,3.5rem)" : flat ? "clamp(6rem,15vh,10rem)" : "clamp(1.5rem,4vh,2.5rem)";
   return (
     <Wrap style={{ width: "100%", padding: `${pad} clamp(1rem,4vw,2rem)`, display: "flex", justifyContent: "center" }}>
       <div style={{ width: "100%", maxWidth: 680 }}>
