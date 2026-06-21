@@ -325,6 +325,22 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
   const [verifyPending,   setVerifyPending] = useState<UserInfo | null>(initialVerify ?? null);
   const [verifyInvite,    setVerifyInvite]  = useState<string | null>(null);
 
+  // Deep-link handling: ?invite=CODE opens the join form prefilled; ?ref=CODE is
+  // stashed so a brand-new couple can be attributed to the referrer on register.
+  useEffect(() => {
+    if (typeof window === "undefined" || initialVerify) return;
+    const params = new URLSearchParams(window.location.search);
+    const invite = params.get("invite");
+    if (invite) {
+      setJoinCode(invite.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 8));
+      setMode("join");
+    }
+    const ref = params.get("ref");
+    if (ref) {
+      try { localStorage.setItem("ann_ref", ref.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 12)); } catch {}
+    }
+  }, [initialVerify]);
+
   const switchMode = (m: Mode) => {
     setMode(m);
     setError("");
@@ -354,6 +370,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           email: createEmail.trim(),
           password: createPassword,
           startDate: createStartDate,
+          ref: (() => { try { return localStorage.getItem("ann_ref") || undefined; } catch { return undefined; } })(),
         }),
       });
       const data = await res.json();
@@ -361,6 +378,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
         setError(data.error || "Registration failed");
         return;
       }
+      try { localStorage.removeItem("ann_ref"); } catch {}
       // Fetch user info, then route to verification step
       const meRes = await fetch("/api/auth/me");
       const meData = await meRes.json();

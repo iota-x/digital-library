@@ -24,6 +24,26 @@ async function getUniqueInviteCode(): Promise<string> {
   throw new Error("Could not generate unique invite code");
 }
 
+// Referral codes are longer (8 chars) so they never collide with 6-char invite
+// codes and are easy to share in a link.
+function generateReferralCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+async function getUniqueReferralCode(): Promise<string> {
+  const couples = await getCol("couples");
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const code = generateReferralCode();
+    const existing = await couples.findOne({ referralCode: code });
+    if (!existing) return code;
+  }
+  // Non-fatal: fall back to a timestamp-suffixed code rather than blocking signup
+  return generateReferralCode() + Date.now().toString(36).slice(-3).toUpperCase();
+}
+
 const DATA_COLLECTIONS = ["calendar", "capsules", "voicenotes", "bucketlist", "watchlist"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -34,11 +54,12 @@ export async function POST(req: NextRequest) {
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many sign-up attempts. Try again later.");
 
     const body = await req.json();
-    const { name, email, password, startDate } = body as {
+    const { name, email, password, startDate, ref } = body as {
       name?: string;
       email?: string;
       password?: string;
       startDate?: string;
+      ref?: string;
     };
 
     if (!name?.trim() || !email?.trim() || !password || !startDate) {
@@ -60,16 +81,39 @@ export async function POST(req: NextRequest) {
     }
 
     const inviteCode = await getUniqueInviteCode();
+    const referralCode = await getUniqueReferralCode();
 
     const couples = await getCol("couples");
     const coupleResult = await couples.insertOne({
       inviteCode,
+      referralCode,
+      referralCount: 0,
       person1Name: name.trim(),
       person1Email: emailLower,
       startDate,
       createdAt: new Date().toISOString(),
     });
     const coupleId = coupleResult.insertedId.toString();
+
+    // Referral attribution — fully optional and isolated so a bad/expired code
+    // can never fail a signup. Credits the referrer and stamps this couple.
+    if (ref && typeof ref === "string") {
+      try {
+        const refCode = ref.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 12);
+        if (refCode && refCode !== referralCode) {
+          const referrer = await couples.findOne({ referralCode: refCode });
+          if (referrer && referrer._id.toString() !== coupleId) {
+            await couples.updateOne({ _id: referrer._id }, { $inc: { referralCount: 1 } });
+            await couples.updateOne(
+              { _id: coupleResult.insertedId },
+              { $set: { referredBy: referrer._id.toString(), referredAt: new Date().toISOString() } },
+            );
+          }
+        }
+      } catch (e) {
+        console.error("Referral attribution failed (non-fatal):", e);
+      }
+    }
 
     const passwordHash = await bcrypt.hash(password, 12);
     const userResult = await users.insertOne({

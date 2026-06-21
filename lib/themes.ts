@@ -239,6 +239,22 @@ export const GRADIENT_THEMES: GradientTheme[] = [
   { id: "flamingo",  name: "Flamingo",  emoji: "🦩", from: "#ee9ca7", to: "#ff6a88" },
 ];
 
+/** Exclusive gradient themes unlocked by referring other couples. `unlockAt` is
+ *  the number of successful referrals required. Purely cosmetic — gated on the
+ *  client against the couple's referralCount. */
+export interface RewardTheme extends GradientTheme {
+  unlockAt: number;
+}
+export const REWARD_THEMES: RewardTheme[] = [
+  { id: "aurora",    name: "Aurora",    emoji: "🌌", from: "#7f5fff", to: "#23d5ab", unlockAt: 1 },
+  { id: "galaxy",    name: "Galaxy",    emoji: "✨", from: "#654ea3", to: "#eaafc8", unlockAt: 3 },
+  { id: "eclipse",   name: "Eclipse",   emoji: "🌑", from: "#ff0844", to: "#1f1c2c", unlockAt: 5 },
+  { id: "celestial", name: "Celestial", emoji: "💫", from: "#fceabb", to: "#7f7fd5", unlockAt: 10 },
+];
+
+/** Milestones surfaced in the "spread the love" progress bar. */
+export const REFERRAL_MILESTONES = REWARD_THEMES.map((t) => t.unlockAt);
+
 export function sectionVisible(
   settings: CoupleSettings | undefined | null,
   page: keyof CoupleSettings["sections"],

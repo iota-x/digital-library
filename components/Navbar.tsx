@@ -67,6 +67,26 @@ export default function Navbar() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Shareable invite link — opens the join form with the code prefilled, and
+  // previews as the OG card when shared (iMessage / WhatsApp / socials).
+  const inviteUrl = () =>
+    typeof window !== "undefined" ? `${window.location.origin}/?invite=${user?.inviteCode ?? ""}` : "";
+  const shareInvite = async () => {
+    if (!user?.inviteCode) return;
+    const url = inviteUrl();
+    const text = "join me on Us 💗 — our own private little world. tap to come in:";
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "Us 💗", text, url });
+        return;
+      }
+    } catch { return; /* user dismissed the share sheet */ }
+    // No native share → copy the link instead.
+    navigator.clipboard.writeText(url).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const rotateInviteCode = async () => {
     if (!user || rotating) return;
     const ok = await confirm({
@@ -202,6 +222,13 @@ export default function Navbar() {
                             <button onClick={rotateInviteCode} disabled={rotating} title="generate a new code if you accidentally shared the old one" style={{ background: "transparent", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.4)", borderRadius: 6, padding: "0.2rem 0.5rem", cursor: rotating ? "wait" : "pointer", fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.65rem", color: "var(--muted)" }}>{rotating ? "…" : "rotate"}</button>
                           )}
                         </div>
+                        <button onClick={shareInvite}
+                          style={{ width: "100%", marginTop: "0.55rem", padding: "0.55rem", borderRadius: 10, border: "none", cursor: "pointer",
+                            background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff",
+                            fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", fontWeight: 700,
+                            boxShadow: "0 4px 16px rgba(var(--pink-deep-rgb),.3)" }}>
+                          💌 share invite link
+                        </button>
                       </div>
                     )}
                     <div style={{ borderTop: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)", paddingTop: "0.6rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>

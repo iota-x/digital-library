@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
-import { THEMES, GRADIENT_THEMES, FONT_PAIRINGS, CURSOR_CHOICES, cursorCss, BG_GRADIENTS, PAGE_ACCENT_LABELS, pageAccentKey, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme, type PageAccentKey } from "@/lib/themes";
+import { THEMES, GRADIENT_THEMES, REWARD_THEMES, FONT_PAIRINGS, CURSOR_CHOICES, cursorCss, BG_GRADIENTS, PAGE_ACCENT_LABELS, pageAccentKey, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme, type PageAccentKey } from "@/lib/themes";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { usePathname } from "next/navigation";
 import { HOME_SECTIONS, orderedKeys } from "@/lib/sections";
@@ -173,7 +173,19 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   // Tabbed navigation + search across all settings.
   const [tab,         setTab]         = useState<SettingsTab>("appearance");
   const [search,      setSearch]      = useState("");
+  // Referral / "spread the love" state — code + how many couples brought in.
+  const [referral,    setReferral]    = useState<{ code: string; count: number } | null>(null);
+  const [refCopied,   setRefCopied]   = useState(false);
   useEffect(() => { setCalmMode(getReduceMotion()); setNoAmbient(getHideAmbient()); }, []);
+  useEffect(() => {
+    if (!open || referral) return;
+    let cancelled = false;
+    fetch("/api/couples/referral")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled && d?.referralCode) setReferral({ code: d.referralCode, count: d.referralCount ?? 0 }); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [open, referral]);
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
@@ -321,6 +333,29 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
     setHexInput2("");
     applyAccent(null);
   }, []);
+
+  // ── Referral / spread-the-love ──
+  const referralUrl = () => referral && typeof window !== "undefined"
+    ? `${window.location.origin}/?ref=${referral.code}` : "";
+  const copyReferral = () => {
+    const url = referralUrl();
+    if (!url) return;
+    navigator.clipboard.writeText(url).catch(() => {});
+    setRefCopied(true);
+    setTimeout(() => setRefCopied(false), 2000);
+  };
+  const shareReferral = async () => {
+    const url = referralUrl();
+    if (!url) return;
+    const text = "i made our own private little world on Us 💗 — you and your person should have one too. start yours free:";
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title: "Us 💗", text, url });
+        return;
+      }
+    } catch { return; }
+    copyReferral();
+  };
 
   // ── Saved-theme library ──
   const saveCurrentTheme = () => {
@@ -797,6 +832,89 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                           : "0 2px 10px rgba(0,0,0,.2)", transition: "box-shadow .2s" }} />
                       <span style={{ fontFamily: SANS, fontSize: "0.58rem", color: "var(--muted)", fontWeight: active ? 700 : 500, textAlign: "center", lineHeight: 1.2 }}>
                         {g.emoji} {g.name}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* ── Spread the love (referral) ── */}
+              <div style={{ marginTop: "1.3rem", padding: "0.95rem 1rem", borderRadius: 14,
+                background: "linear-gradient(135deg, rgba(var(--pink-rgb),.14), rgba(var(--pink-deep-rgb),.1))",
+                border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)" }}>
+                <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--pink-deep)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 0.3rem", fontWeight: 700 }}>
+                  💞 spread the love
+                </p>
+                <p style={{ fontFamily: SANS, fontSize: "0.74rem", color: "var(--muted)", margin: "0 0 0.75rem", lineHeight: 1.45 }}>
+                  Share your link with other couples. Each one that starts their own space unlocks an exclusive theme below — forever.
+                </p>
+                {referral ? (() => {
+                  const count = referral.count;
+                  const next = REWARD_THEMES.find(t => t.unlockAt > count);
+                  const top = REWARD_THEMES[REWARD_THEMES.length - 1].unlockAt;
+                  const pct = Math.min(100, Math.round((count / top) * 100));
+                  return (
+                    <>
+                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "0.35rem" }}>
+                        <span style={{ fontFamily: SERIF, fontSize: "1.05rem", color: "var(--pink-deep)", fontWeight: 700 }}>
+                          {count} {count === 1 ? "couple" : "couples"} invited 💗
+                        </span>
+                        <span style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)" }}>
+                          {next ? `${next.unlockAt - count} more → ${next.emoji} ${next.name}` : "all themes unlocked! 🎉"}
+                        </span>
+                      </div>
+                      <div style={{ height: 7, borderRadius: 99, background: "rgba(var(--pink-mid-rgb,249,168,212),.3)", overflow: "hidden", marginBottom: "0.8rem" }}>
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: "easeOut" }}
+                          style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, var(--pink), var(--pink-deep))" }} />
+                      </div>
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+                        <code style={{ flex: "1 1 150px", minWidth: 0, padding: "0.45rem 0.6rem", borderRadius: 8,
+                          background: "rgba(var(--pink-light-rgb,252,231,243),.5)", border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.5)",
+                          fontFamily: "ui-monospace,monospace", fontSize: "0.72rem", color: "var(--pink-deep)",
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{referralUrl()}</code>
+                        <motion.button onClick={copyReferral} whileTap={{ scale: 0.96 }}
+                          style={{ padding: "0.45rem 0.7rem", borderRadius: 8, border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.6)",
+                            background: "transparent", color: "var(--pink-deep)", cursor: "pointer", fontFamily: SANS, fontSize: "0.74rem", fontWeight: 600 }}>
+                          {refCopied ? "✓ copied" : "copy"}
+                        </motion.button>
+                        <motion.button onClick={shareReferral} whileTap={{ scale: 0.96 }}
+                          style={{ padding: "0.45rem 0.8rem", borderRadius: 8, border: "none", cursor: "pointer",
+                            background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff",
+                            fontFamily: SANS, fontSize: "0.74rem", fontWeight: 700 }}>
+                          💌 share
+                        </motion.button>
+                      </div>
+                    </>
+                  );
+                })() : (
+                  <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: 0 }}>preparing your link…</p>
+                )}
+              </div>
+
+              {/* ── Reward (referral-unlocked) themes ── */}
+              <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "1.1rem 0 0.5rem", fontWeight: 700 }}>
+                🎁 reward themes
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.55rem" }}>
+                {REWARD_THEMES.map(g => {
+                  const unlocked = (referral?.count ?? 0) >= g.unlockAt;
+                  const active = unlocked && (draft.customAccent || "").toLowerCase() === g.from.toLowerCase()
+                    && (draft.customAccent2 || "").toLowerCase() === g.to.toLowerCase();
+                  return (
+                    <motion.button key={g.id} onClick={() => unlocked && setColors(g.from, g.to)} disabled={!unlocked}
+                      whileHover={unlocked ? { scale: 1.06, y: -2 } : undefined} whileTap={unlocked ? { scale: 0.95 } : undefined}
+                      title={unlocked ? g.name : `unlock by inviting ${g.unlockAt} ${g.unlockAt === 1 ? "couple" : "couples"}`}
+                      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem",
+                        background: "none", border: "none", cursor: unlocked ? "pointer" : "not-allowed", padding: "0.15rem" }}>
+                      <div style={{ position: "relative", width: 42, height: 42, borderRadius: 12,
+                        background: `linear-gradient(135deg, ${g.from}, ${g.to})`,
+                        filter: unlocked ? "none" : "grayscale(0.9)", opacity: unlocked ? 1 : 0.5,
+                        boxShadow: active ? `0 0 0 2.5px var(--cream), 0 0 0 4.5px ${g.from}, 0 4px 14px ${g.to}66`
+                          : "0 2px 10px rgba(0,0,0,.2)", transition: "box-shadow .2s" }}>
+                        {!unlocked && <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem" }}>🔒</span>}
+                      </div>
+                      <span style={{ fontFamily: SANS, fontSize: "0.58rem", color: "var(--muted)", fontWeight: active ? 700 : 500, textAlign: "center", lineHeight: 1.2 }}>
+                        {g.emoji} {g.name}{!unlocked && ` · ${g.unlockAt}`}
                       </span>
                     </motion.button>
                   );

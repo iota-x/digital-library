@@ -34,11 +34,47 @@ const lato = Lato({
   weight: ["300", "400", "700"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://wearesocuteomg.vercel.app";
+const SITE_NAME = "Us 💗";
+const SITE_DESC =
+  "A free, private little world for two — shared journal & calendar, photo memories, love notes, time capsules, watch movies in sync, daily questions, and long-distance widgets. Make your own space together. 💞";
+
 export const metadata: Metadata = {
-  title: "Us 💗",
-  description: "made with way too much love",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Us — a free private app for couples 💗",
+    template: "%s · Us 💗",
+  },
+  description: SITE_DESC,
+  applicationName: SITE_NAME,
+  keywords: [
+    "couples app", "free couples app", "app for couples", "long distance relationship app",
+    "LDR app", "couples journal", "relationship app", "shared calendar for couples",
+    "love notes", "anniversary app", "couple goals", "private space for couples",
+    "watch movies together", "couples bucket list", "memory journal",
+  ],
+  authors: [{ name: "Us" }],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: "Us — a free private app for couples 💗",
+    description: SITE_DESC,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Us — a free private app for couples 💗",
+    description: SITE_DESC,
+  },
+  robots: {
+    index: true, follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
   icons: { icon: "/favicon.svg", apple: "/favicon.svg" },
   manifest: "/manifest.json",
+  category: "lifestyle",
 };
 
 export const viewport = {
