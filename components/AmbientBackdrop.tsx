@@ -25,7 +25,7 @@ const HEARTS = ["💗","🩷","✨","💕","🌸","💞","🩷","✨","💗","�
 
 export default function AmbientBackdrop() {
   return (
-    <div aria-hidden style={{ position: "fixed", inset: 0, zIndex: -1, overflow: "hidden", pointerEvents: "none" }}>
+    <div aria-hidden className="ambient-orb" style={{ position: "fixed", inset: 0, zIndex: -1, overflow: "hidden", pointerEvents: "none" }}>
       {ORBS.map((o, i) => (
         <motion.div key={`o${i}`}
           animate={{ scale: [1, 1.16, 1], opacity: [0.5, 0.85, 0.5] }}

@@ -15,6 +15,7 @@ import Final         from "@/components/Final";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useUserData } from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
+import { HOME_SECTIONS, orderedKeys } from "@/lib/sections";
 
 function HomeContent() {
   const user = useUserData();
@@ -22,20 +23,30 @@ function HomeContent() {
 
   useEffect(() => { fetchCalendarData(); }, []);
 
+  // Map each section key to its rendered node. Order + visibility are driven by
+  // the couple's settings (lib/sections.ts canonical order as the fallback).
+  const nodes: Record<string, React.ReactNode> = {
+    reminders:   <DateReminders />,
+    hero:        <Polaroids />,
+    timer:       <LiveTimer />,
+    onthisday:   <div style={{ padding: "0 clamp(1rem,3vw,2rem)" }}><OnThisDay /></div>,
+    memorycards: <MemoryCards />,
+    explore:     <Explore />,
+    buttons:     <ButtonSection />,
+    voice:       <VoiceNote />,
+    capsule:     <CapsuleTeaser />,
+    final:       <Final />,
+  };
+  const order = orderedKeys(HOME_SECTIONS.map(s => s.key), user?.settings?.sectionOrder?.home);
+
   return (
     <main>
-      <ErrorBoundary><DateReminders /></ErrorBoundary>
-      <ErrorBoundary><Polaroids /></ErrorBoundary>
-      {sv("showTimer") && <ErrorBoundary><LiveTimer /></ErrorBoundary>}
-      <div style={{ padding: "0 clamp(1rem,3vw,2rem)" }}>
-        <ErrorBoundary><OnThisDay /></ErrorBoundary>
-      </div>
-      {sv("showMemoryCards") && <ErrorBoundary><MemoryCards /></ErrorBoundary>}
-      <ErrorBoundary><Explore /></ErrorBoundary>
-      <ErrorBoundary><ButtonSection /></ErrorBoundary>
-      {sv("showVoiceNotes") && <ErrorBoundary><VoiceNote /></ErrorBoundary>}
-      {sv("showCapsuleTeaser") && <ErrorBoundary><CapsuleTeaser /></ErrorBoundary>}
-      {sv("showFinal") && <ErrorBoundary><Final /></ErrorBoundary>}
+      {order.map(key => {
+        const meta = HOME_SECTIONS.find(s => s.key === key);
+        if (!meta || !nodes[key]) return null;
+        if (meta.toggle && !sv(meta.toggle)) return null;
+        return <ErrorBoundary key={key}>{nodes[key]}</ErrorBoundary>;
+      })}
     </main>
   );
 }

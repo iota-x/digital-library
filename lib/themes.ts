@@ -23,6 +23,11 @@ export interface CoupleSettings {
    *  accent gradients (`var(--pink) → var(--pink-deep)`) blend the two colours
    *  into a premium two-tone gradient theme. Empty/undefined = single colour. */
   customAccent2?: string;
+  /** Couple's personal library of saved colour/gradient themes. */
+  savedThemes?: SavedTheme[];
+  /** Custom section render order per page (arrays of section keys from
+   *  lib/sections.ts). Missing/unknown keys fall back to the canonical order. */
+  sectionOrder?: { home?: string[]; journal?: string[]; shared?: string[] };
   coupleName: string;
   spotifyPlaylistId: string;
   loveNotes: string[];
@@ -128,6 +133,36 @@ export interface GradientTheme {
   from: string;
   /** Secondary accent — the end of accent gradients (sets --pink-deep). */
   to: string;
+}
+
+/** A user-saved colour/gradient theme in the couple's personal library. */
+export interface SavedTheme {
+  id: string;
+  name: string;
+  /** Primary accent hex. */
+  accent: string;
+  /** Optional second hex — present = gradient theme. */
+  accent2?: string;
+}
+
+/** Max saved themes per couple. */
+export const MAX_SAVED_THEMES = 12;
+
+/** Encode a theme into a short shareable code, e.g. "us-631235" or
+ *  "us-ff5f6d-ffc371" (no '#', lowercased). */
+export function encodeThemeCode(accent: string, accent2?: string): string {
+  const h = (s: string) => s.replace(/^#/, "").toLowerCase();
+  return accent2 ? `us-${h(accent)}-${h(accent2)}` : `us-${h(accent)}`;
+}
+
+/** Parse a shared theme code back into hex colours. Tolerates a raw "#aabbcc"
+ *  or "aabbcc-ddeeff" too. Returns null if no valid primary hex is found. */
+export function decodeThemeCode(code: string): { accent: string; accent2?: string } | null {
+  const hex = /^[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
+  const parts = code.trim().toLowerCase().replace(/^us-/, "").split("-").map(p => p.replace(/^#/, ""));
+  const valid = parts.filter(p => hex.test(p));
+  if (valid.length === 0) return null;
+  return { accent: `#${valid[0]}`, accent2: valid[1] ? `#${valid[1]}` : undefined };
 }
 
 /** Curated premium two-tone gradient themes. Picking one sets

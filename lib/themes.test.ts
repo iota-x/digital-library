@@ -6,6 +6,8 @@ import {
   sectionVisible,
   getLoveNotes,
   getMemoryCards,
+  encodeThemeCode,
+  decodeThemeCode,
   type CoupleSettings,
 } from "./themes";
 
@@ -106,5 +108,24 @@ describe("getMemoryCards", () => {
   it("returns user cards when present", () => {
     const custom = [{ title: "x", body: "y" }];
     expect(getMemoryCards({ ...DEFAULT_SETTINGS, memoryCards: custom })).toEqual(custom);
+  });
+});
+
+describe("theme share codes", () => {
+  it("encodes a single colour and a gradient", () => {
+    expect(encodeThemeCode("#631235")).toBe("us-631235");
+    expect(encodeThemeCode("#FF5F6D", "#ffc371")).toBe("us-ff5f6d-ffc371");
+  });
+
+  it("round-trips through decode", () => {
+    expect(decodeThemeCode(encodeThemeCode("#631235"))).toEqual({ accent: "#631235", accent2: undefined });
+    expect(decodeThemeCode(encodeThemeCode("#ff5f6d", "#ffc371"))).toEqual({ accent: "#ff5f6d", accent2: "#ffc371" });
+  });
+
+  it("tolerates raw hex / missing prefix and rejects junk", () => {
+    expect(decodeThemeCode("ff5f6d-ffc371")).toEqual({ accent: "#ff5f6d", accent2: "#ffc371" });
+    expect(decodeThemeCode("#a1b2c3")).toEqual({ accent: "#a1b2c3", accent2: undefined });
+    expect(decodeThemeCode("not-a-color")).toBeNull();
+    expect(decodeThemeCode("")).toBeNull();
   });
 });

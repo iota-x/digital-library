@@ -1,8 +1,10 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
-import { THEMES, GRADIENT_THEMES, DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
+import { THEMES, GRADIENT_THEMES, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme } from "@/lib/themes";
+import { HOME_SECTIONS, orderedKeys } from "@/lib/sections";
+import { getReduceMotion, getHideAmbient, setReduceMotion, setHideAmbient } from "@/lib/uiPrefs";
 import { resolvePlaylistId } from "@/lib/spotify";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
@@ -118,6 +120,14 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   // hexInput = primary accent; hexInput2 = optional gradient partner colour.
   const [hexInput,    setHexInput]    = useState("");
   const [hexInput2,   setHexInput2]   = useState("");
+  // Saved-theme library helpers.
+  const [themeName,   setThemeName]   = useState("");
+  const [importCode,  setImportCode]  = useState("");
+  const [codeCopied,  setCodeCopied]  = useState(false);
+  // Per-device motion/effects prefs (apply instantly, not part of the save).
+  const [calmMode,    setCalmMode]    = useState(false);
+  const [noAmbient,   setNoAmbient]   = useState(false);
+  useEffect(() => { setCalmMode(getReduceMotion()); setNoAmbient(getHideAmbient()); }, []);
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
@@ -243,6 +253,31 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
     setHexInput2("");
     applyAccent(null);
   }, []);
+
+  // ── Saved-theme library ──
+  const saveCurrentTheme = () => {
+    const accent = draft.customAccent;
+    if (!accent || !isValidHex(accent)) return;
+    setDraft(d => {
+      const lib = d.savedThemes ?? [];
+      const name = themeName.trim() || `theme ${lib.length + 1}`;
+      const entry: SavedTheme = { id: `t-${Date.now().toString(36)}`, name, accent, accent2: d.customAccent2 || undefined };
+      return { ...d, savedThemes: [...lib, entry].slice(-MAX_SAVED_THEMES) };
+    });
+    setThemeName("");
+  };
+  const applySaved = (t: SavedTheme) => setColors(t.accent, t.accent2 ?? "");
+  const deleteSaved = (id: string) =>
+    setDraft(d => ({ ...d, savedThemes: (d.savedThemes ?? []).filter(t => t.id !== id) }));
+  const copyThemeCode = async () => {
+    if (!draft.customAccent || !isValidHex(draft.customAccent)) return;
+    const code = encodeThemeCode(draft.customAccent, draft.customAccent2 || undefined);
+    try { await navigator.clipboard.writeText(code); setCodeCopied(true); setTimeout(() => setCodeCopied(false), 1600); } catch {}
+  };
+  const applyImportCode = () => {
+    const parsed = decodeThemeCode(importCode);
+    if (parsed) { setColors(parsed.accent, parsed.accent2 ?? ""); setImportCode(""); }
+  };
 
   // Close without saving — effect above handles the revert
   const handleClose = useCallback(() => { onClose(); }, [onClose]);
@@ -624,6 +659,88 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 })}
               </div>
 
+              {/* ── My saved themes ── */}
+              <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "1.1rem 0 0.5rem", fontWeight: 700 }}>
+                💾 my themes
+              </p>
+              {(draft.savedThemes?.length ?? 0) > 0 && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.55rem", marginBottom: "0.7rem" }}>
+                  {draft.savedThemes!.map(t => {
+                    const active = (draft.customAccent || "").toLowerCase() === t.accent.toLowerCase()
+                      && (draft.customAccent2 || "").toLowerCase() === (t.accent2 || "").toLowerCase();
+                    return (
+                      <div key={t.id} style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3rem" }}>
+                        <motion.button onClick={() => applySaved(t)} whileHover={{ scale: 1.06, y: -2 }} whileTap={{ scale: 0.95 }} title={`apply ${t.name}`}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 0 }}>
+                          <div style={{ width: 42, height: 42, borderRadius: 12,
+                            background: t.accent2 ? `linear-gradient(135deg, ${t.accent}, ${t.accent2})` : t.accent,
+                            boxShadow: active ? `0 0 0 2.5px var(--cream), 0 0 0 4.5px ${t.accent}, 0 4px 14px ${(t.accent2 || t.accent)}66`
+                              : "0 2px 10px rgba(0,0,0,.2)", transition: "box-shadow .2s" }} />
+                        </motion.button>
+                        <button onClick={() => deleteSaved(t.id)} aria-label={`delete ${t.name}`} title="delete"
+                          style={{ position: "absolute", top: -6, right: "calc(50% - 28px)", width: 18, height: 18, borderRadius: "50%",
+                            border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.6)", background: "var(--cream)", color: "var(--muted)",
+                            cursor: "pointer", fontSize: "0.62rem", lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                        <span style={{ fontFamily: SANS, fontSize: "0.58rem", color: "var(--muted)", fontWeight: active ? 700 : 500, textAlign: "center", lineHeight: 1.2, maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {t.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {/* save current + share code */}
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+                <input value={themeName} onChange={e => setThemeName(e.target.value)} placeholder="name it" maxLength={20}
+                  aria-label="theme name"
+                  style={{ flex: "1 1 90px", minWidth: 0, padding: "0.4rem 0.6rem", borderRadius: 8, outline: "none",
+                    border: "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.5)", background: "rgba(var(--pink-light-rgb,252,231,243),.4)",
+                    color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.78rem" }} />
+                <motion.button onClick={saveCurrentTheme} disabled={!draft.customAccent || !isValidHex(draft.customAccent) || (draft.savedThemes?.length ?? 0) >= MAX_SAVED_THEMES}
+                  whileTap={{ scale: 0.96 }}
+                  style={{ padding: "0.42rem 0.8rem", borderRadius: 8, border: "none", cursor: "pointer",
+                    background: "linear-gradient(135deg,var(--pink),var(--pink-deep))", color: "#fff", fontFamily: SANS, fontSize: "0.76rem", fontWeight: 700,
+                    opacity: (!draft.customAccent || !isValidHex(draft.customAccent || "") || (draft.savedThemes?.length ?? 0) >= MAX_SAVED_THEMES) ? 0.5 : 1 }}>
+                  💾 save current
+                </motion.button>
+              </div>
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", marginTop: "0.5rem" }}>
+                <button onClick={copyThemeCode} disabled={!draft.customAccent || !isValidHex(draft.customAccent || "")}
+                  style={{ padding: "0.42rem 0.7rem", borderRadius: 8, cursor: "pointer",
+                    border: "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.5)", background: "transparent",
+                    color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.76rem", fontWeight: 600,
+                    opacity: (!draft.customAccent || !isValidHex(draft.customAccent || "")) ? 0.5 : 1 }}>
+                  {codeCopied ? "✓ copied" : "🔗 copy code"}
+                </button>
+                <input value={importCode} onChange={e => setImportCode(e.target.value)} placeholder="paste a theme code"
+                  aria-label="import theme code"
+                  style={{ flex: "1 1 110px", minWidth: 0, padding: "0.4rem 0.6rem", borderRadius: 8, outline: "none",
+                    border: "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.5)", background: "rgba(var(--pink-light-rgb,252,231,243),.4)",
+                    color: "var(--pink-deep)", fontFamily: "var(--font-lato),monospace", fontSize: "0.74rem" }} />
+                {importCode.trim() && (
+                  <button onClick={applyImportCode}
+                    style={{ padding: "0.42rem 0.7rem", borderRadius: 8, border: "none", cursor: "pointer",
+                      background: "var(--pink-deep)", color: "#fff", fontFamily: SANS, fontSize: "0.76rem", fontWeight: 700 }}>
+                    apply
+                  </button>
+                )}
+              </div>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.5rem 0 0", lineHeight: 1.45 }}>
+                save looks you love, switch anytime, or share a code with your partner 💞
+              </p>
+
+              {/* ─── Motion & effects (per-device, instant) ─── */}
+              <GroupLabel>✨ motion &amp; effects</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.5rem", lineHeight: 1.5 }}>
+                Just for this device — applies instantly, no need to save.
+              </p>
+              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+                <SectionRow label="🧘 Calm mode (less motion)" on={calmMode}
+                  onChange={() => { const v = !calmMode; setCalmMode(v); setReduceMotion(v); }} />
+                <SectionRow label="🌸 Floating decorations" on={!noAmbient}
+                  onChange={() => { const v = !noAmbient; setNoAmbient(v); setHideAmbient(v); }} />
+              </div>
+
               {/* ─── Couple name ─── */}
               <GroupLabel>💑 couple name</GroupLabel>
               <input
@@ -657,15 +774,34 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 }}
               />
 
-              {/* ─── Home page sections ─── */}
+              {/* ─── Home page sections (drag to reorder) ─── */}
               <GroupLabel>🏠 home page</GroupLabel>
-              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
-                <SectionRow label="⏱ Live timer"       on={s.home.showTimer}         onChange={() => setSec("home","showTimer",!s.home.showTimer)}/>
-                <SectionRow label="💌 Memory cards"    on={s.home.showMemoryCards}   onChange={() => setSec("home","showMemoryCards",!s.home.showMemoryCards)}/>
-                <SectionRow label="🎙 Voice notes"     on={s.home.showVoiceNotes}    onChange={() => setSec("home","showVoiceNotes",!s.home.showVoiceNotes)}/>
-                <SectionRow label="🔒 Capsule teaser"  on={s.home.showCapsuleTeaser} onChange={() => setSec("home","showCapsuleTeaser",!s.home.showCapsuleTeaser)}/>
-                <SectionRow label="📖 Love letters"    on={s.home.showFinal}         onChange={() => setSec("home","showFinal",!s.home.showFinal)}/>
-              </div>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.5rem", lineHeight: 1.5 }}>
+                Drag <span aria-hidden>⠿</span> to reorder · toggle to show/hide. Changes apply to your home page.
+              </p>
+              <Reorder.Group axis="y"
+                values={orderedKeys(HOME_SECTIONS.map(x => x.key), draft.sectionOrder?.home)}
+                onReorder={(next: string[]) => setDraft(d => ({ ...d, sectionOrder: { ...d.sectionOrder, home: next } }))}
+                style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                {orderedKeys(HOME_SECTIONS.map(x => x.key), draft.sectionOrder?.home).map(key => {
+                  const meta = HOME_SECTIONS.find(x => x.key === key)!;
+                  const on = meta.toggle ? !!(s.home as Record<string, boolean>)[meta.toggle] : true;
+                  return (
+                    <Reorder.Item key={key} value={key}
+                      style={{ display: "flex", alignItems: "center", gap: "0.55rem", padding: "0.55rem 0.7rem", borderRadius: 10,
+                        background: "var(--pink-light)", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.3)" }}>
+                      <span aria-hidden title="drag to reorder" style={{ cursor: "grab", color: "var(--muted)", fontSize: "1.05rem", lineHeight: 1, userSelect: "none", touchAction: "none" }}>⠿</span>
+                      <span style={{ flex: 1, fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
+                        color: on ? "var(--text)" : "var(--muted)", opacity: on ? 1 : 0.6 }}>
+                        {meta.emoji} {meta.label}
+                      </span>
+                      {meta.toggle
+                        ? <Toggle on={on} onChange={() => setSec("home", meta.toggle!, !on)} />
+                        : <span style={{ fontFamily: SANS, fontSize: "0.6rem", color: "var(--muted)", opacity: 0.6, letterSpacing: "0.05em" }}>always</span>}
+                    </Reorder.Item>
+                  );
+                })}
+              </Reorder.Group>
 
               {/* ─── Journal sections ─── */}
               <GroupLabel>📓 journal page</GroupLabel>

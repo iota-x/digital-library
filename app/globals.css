@@ -957,6 +957,28 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
   .occ-heart, .occ-icon-bounce, .occ-fire-icon { animation: none !important; transform: none !important; }
 }
 
+/* In-app "calm mode" toggle (html.reduce-motion) — same effect as the media
+   query above, but driven by the per-device UI preference. */
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+html.reduce-motion .occ-petal, html.reduce-motion .occ-star, html.reduce-motion .occ-deco { display: none !important; }
+html.reduce-motion .occ-heart, html.reduce-motion .occ-icon-bounce, html.reduce-motion .occ-fire-icon { animation: none !important; transform: none !important; }
+
+/* In-app "hide ambient decorations" toggle (html.no-ambient) — removes the
+   floating petals, sparkles, hearts and the AmbientBackdrop orbs, but keeps
+   all motion/transitions intact. */
+html.no-ambient .occ-petal,
+html.no-ambient .occ-star,
+html.no-ambient .occ-deco,
+html.no-ambient .occ-heart,
+html.no-ambient .occ-icon-bounce,
+html.no-ambient .occ-fire-icon,
+html.no-ambient .ambient-orb { display: none !important; }
+
 /* ══════════════════════════════════════════════════════════════════
    TOUCH TARGETS
    ══════════════════════════════════════════════════════════════════
