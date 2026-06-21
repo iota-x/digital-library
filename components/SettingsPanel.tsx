@@ -350,9 +350,16 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
     else document.documentElement.style.removeProperty("--app-cursor");
   };
 
-  // Per-page accent override (applies on save + when you visit that page).
-  const setPageAccent = (page: PageAccentKey, hex: string) =>
+  // Per-page accent override. Live-previews instantly when you're editing the
+  // page you're currently viewing; for other pages it applies on save / when you
+  // visit them (they can't preview here since they're not on screen).
+  const setPageAccent = (page: PageAccentKey, hex: string) => {
     setDraft(d => ({ ...d, pageAccents: { ...d.pageAccents, [page]: hex || undefined } }));
+    if (pageAccentKey(pathname) === page) {
+      if (hex) applyAccent(hex, null);
+      else applyAccent(draft.customAccent || null, draft.customAccent2 || null); // back to the global theme
+    }
+  };
 
   // Custom page background — gradient preset, uploaded photo, or none (live).
   const setPageBg = (pb: CoupleSettings["pageBackground"]) => {
@@ -847,7 +854,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 })}
               </div>
               <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.4rem 0 0", lineHeight: 1.45 }}>
-                Applies when you save, and as you visit each page.
+                The page you&apos;re on previews instantly; others show when you visit them. Save to keep.
               </p>
 
               {/* ─── Typography ─── */}
