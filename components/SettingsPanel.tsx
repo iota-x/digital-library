@@ -131,6 +131,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
+  const originalAccent2Ref = useRef("");
   const didSaveRef       = useRef(false);
   const initialDraftRef  = useRef<string>("");
   const initialDateRef   = useRef<string>("");
@@ -191,6 +192,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       if (!didSaveRef.current) {
         originalThemeRef.current = user.settings.theme ?? "pink";
         originalAccentRef.current = user.settings.customAccent ?? "";
+        originalAccent2Ref.current = user.settings.customAccent2 ?? "";
       }
     }
   }, [open, user?.settings, user?.startDate]);
@@ -200,7 +202,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
     if (!open) {
       if (!didSaveRef.current) {
         applyThemeClass(originalThemeRef.current);
-        applyAccent(originalAccentRef.current || null);
+        applyAccent(originalAccentRef.current || null, originalAccent2Ref.current || null);
       }
     }
   }, [open]);

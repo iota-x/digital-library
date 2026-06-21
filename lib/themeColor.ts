@@ -93,6 +93,34 @@ function surface(base: RGB, lightness: number, sat = 0.18): RGB {
   return hslToRgb(h, Math.min(sat, Math.max(0.06, s * 0.4)), lightness);
 }
 
+/** WCAG relative luminance (0 = black, 1 = white). */
+function luminance([r, g, b]: RGB): number {
+  const f = (c: number) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+
+/**
+ * "Theme intelligence": an accent that's legible as TEXT and can carry white
+ * text on a button. On light pages the accent must be dark enough; on dark
+ * pages light enough. Hue is preserved (we scale HSL lightness + nudge
+ * saturation). Mid-tone accents pass through unchanged — only extreme picks
+ * (e.g. a pale peach in light mode, or a near-black in dark mode) get nudged.
+ */
+function readableAccent(base: RGB, dark: boolean): RGB {
+  const [h, s, l] = rgbToHsl(base);
+  if (dark) {
+    if (luminance(base) >= 0.22) return base;          // already pops on dark
+    return hslToRgb(h, Math.max(s, 0.45), Math.max(l, 0.58));
+  }
+  if (luminance(base) <= 0.30) return base;            // already legible on white
+  let L = l, out = base;                                // darken until readable
+  for (let i = 0; i < 16 && luminance(out) > 0.30; i++) {
+    L = Math.max(0.2, L - 0.05);
+    out = hslToRgb(h, Math.min(0.92, s + 0.04), L);
+  }
+  return out;
+}
+
 const ACCENT_CACHE_KEY = "ann_accent_vars";
 
 // Remember the chosen hex so we can re-derive when the light/dark mode flips.
@@ -102,17 +130,20 @@ function deriveVars(base: RGB, dark: boolean): Record<string, string> {
   if (!dark) {
     // Light mode: backgrounds stay near-white (the accent shows in text/buttons,
     // not as a wash over the whole page), so the surfaces sit very close to white.
-    const deep  = mix(base, BLACK, 0.22);
+    // --pink/--pink-deep carry text + button labels, so they're contrast-guarded
+    // (a pale pick is darkened so it stays readable on white).
+    const accent = readableAccent(base, false);
+    const deep  = readableAccent(mix(base, BLACK, 0.22), false);
     const mid   = mix(base, WHITE, 0.55);
     const light = mix(base, WHITE, 0.93);
     const rose  = mix(base, WHITE, 0.965);
     return {
-      "--pink": rgbCss(base),
+      "--pink": rgbCss(accent),
       "--pink-deep": rgbCss(deep),
       "--pink-mid": rgbCss(mid),
       "--pink-light": rgbCss(light),
       "--rose": rgbCss(rose),
-      "--pink-rgb": rgbStr(base),
+      "--pink-rgb": rgbStr(accent),
       "--pink-deep-rgb": rgbStr(deep),
       "--pink-mid-rgb": rgbStr(mid),
       "--pink-light-rgb": rgbStr(light),
@@ -122,7 +153,8 @@ function deriveVars(base: RGB, dark: boolean): Record<string, string> {
   // mostly neutral-dark with only a faint accent tint (so the page doesn't read
   // as a saturated purple/blue wash). Cards carry slightly more tint than the
   // page background so panels still separate from the page.
-  const deep  = mix(base, WHITE, 0.10);   // slightly brighter so it pops on dark
+  const accent = readableAccent(base, true);          // legible on dark
+  const deep  = readableAccent(mix(base, WHITE, 0.10), true); // pops on dark
   const mid   = surface(base, 0.19, 0.24); // card / mid surface — a touch warmer
   const light = surface(base, 0.13, 0.20); // raised panel
   const rose  = surface(base, 0.09, 0.16); // near-page tint
@@ -130,7 +162,7 @@ function deriveVars(base: RGB, dark: boolean): Record<string, string> {
   const text  = mix(base, WHITE, 0.86);
   const muted = mix(base, WHITE, 0.55);
   return {
-    "--pink": rgbCss(base),
+    "--pink": rgbCss(accent),
     "--pink-deep": rgbCss(deep),
     "--pink-mid": rgbCss(mid),
     "--pink-light": rgbCss(light),
@@ -138,7 +170,7 @@ function deriveVars(base: RGB, dark: boolean): Record<string, string> {
     "--cream": rgbCss(cream),
     "--text": rgbCss(text),
     "--muted": rgbCss(muted),
-    "--pink-rgb": rgbStr(base),
+    "--pink-rgb": rgbStr(accent),
     "--pink-deep-rgb": rgbStr(deep),
     "--pink-mid-rgb": rgbStr(mid),
     "--pink-light-rgb": rgbStr(light),
@@ -181,8 +213,12 @@ export function applyAccent(hex: string | null | undefined, hex2?: string | null
   // app's two-stop accent gradients become a real two-colour blend.
   const second = hex2 ? hexToRgb(hex2) : null;
   if (second) {
-    vars["--pink-deep"] = rgbCss(second);
-    vars["--pink-deep-rgb"] = rgbStr(second);
+    // --pink-deep also carries text + white-on-button labels, so contrast-guard
+    // the second colour just like the primary (a pale gradient stop won't make
+    // text vanish on white). The gradient still reads as two-tone.
+    const deep2 = readableAccent(second, dark);
+    vars["--pink-deep"] = rgbCss(deep2);
+    vars["--pink-deep-rgb"] = rgbStr(deep2);
   }
 
   for (const [k, val] of Object.entries(vars)) root.style.setProperty(k, val);
