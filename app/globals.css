@@ -176,6 +176,14 @@ html.dark section {
   min-height: 0 !important;
 }
 
+/* /wrapped — transparent section so the WrappedParticles canvas shows through
+   the full page in dark mode (matching light mode), not just behind the hero.
+   Triple-classed to out-specify the per-theme `html.dark.theme-X section`/
+   `html.dark section` background rules. */
+.wrapped-page.wrapped-page.wrapped-page section {
+  background: transparent !important;
+}
+
 /* ── Side dot-nav (in-page section jump rail) ── */
 .side-nav {
   position: fixed;

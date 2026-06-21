@@ -56,7 +56,7 @@ export default function WrappedPage() {
     <PasswordGate>
       <Backdrop />
       <WrappedParticles />
-      <main style={{ position: "relative", zIndex: 1 }}>
+      <main className="wrapped-page" style={{ position: "relative", zIndex: 1 }}>
         <WrappedHero />
         <section style={{ padding: "clamp(1rem,3vh,2rem) clamp(1rem,4vw,2rem) clamp(3rem,7vh,5rem)", display: "flex", justifyContent: "center" }}>
           <ErrorBoundary><Wrapped /></ErrorBoundary>
