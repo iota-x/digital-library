@@ -38,6 +38,21 @@ function applyAppearance(pairing: string, immersive: boolean) {
   root.classList.toggle("immersive", immersive);
 }
 
+type SettingsTab = "appearance" | "sections" | "account" | "data";
+const SETTINGS_TABS: { id: SettingsTab; label: string; emoji: string }[] = [
+  { id: "appearance", label: "Look",     emoji: "🎨" },
+  { id: "sections",   label: "Sections", emoji: "🧩" },
+  { id: "account",    label: "Account",  emoji: "💑" },
+  { id: "data",       label: "Data",     emoji: "📦" },
+];
+/** Shows its children when its tab is active, OR when a non-empty search query
+ *  matches its keywords (search spans all tabs). */
+function TabSection({ tab, active, q, kw, children }: { tab: SettingsTab; active: SettingsTab; q: string; kw: string; children: React.ReactNode }) {
+  const query = q.trim().toLowerCase();
+  const show = query ? kw.toLowerCase().includes(query) : active === tab;
+  return show ? <>{children}</> : null;
+}
+
 /** Computed `--page-bg-image` value for a pageBackground setting ("" = none). */
 function pageBgImageOf(pb: CoupleSettings["pageBackground"]): string {
   if (!pb?.value) return "";
@@ -155,6 +170,9 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [noAmbient,   setNoAmbient]   = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
   const [bgErr,       setBgErr]       = useState("");
+  // Tabbed navigation + search across all settings.
+  const [tab,         setTab]         = useState<SettingsTab>("appearance");
+  const [search,      setSearch]      = useState("");
   useEffect(() => { setCalmMode(getReduceMotion()); setNoAmbient(getHideAmbient()); }, []);
 
   const originalThemeRef  = useRef("pink");
@@ -582,35 +600,64 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
               overflowY: "auto",
             }}
           >
-            {/* Header */}
+            {/* Header — title row + search + tabs (all sticky) */}
             <div style={{
-              padding: "1.4rem 1.6rem 1rem",
+              padding: "1.2rem 1.6rem 0.7rem",
               borderBottom: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.35)",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              position: "sticky", top: 0, background: "var(--cream)", zIndex: 1,
+              position: "sticky", top: 0, background: "var(--cream)", zIndex: 2,
             }}>
-              <div>
-                <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.4rem", color: "var(--pink-deep)", margin: 0 }}>
-                  customize your space
-                </h2>
-                <p style={{ fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--muted)", margin: "0.1rem 0 0" }}>
-                  make it yours 🌸
-                </p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.4rem", color: "var(--pink-deep)", margin: 0 }}>
+                    customize your space
+                  </h2>
+                  <p style={{ fontFamily: SCRIPT, fontSize: "0.95rem", color: "var(--muted)", margin: "0.1rem 0 0" }}>
+                    make it yours 🌸
+                  </p>
+                </div>
+                <motion.button onClick={handleClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
+                  style={{
+                    background: "var(--pink-light)", border: "1px solid var(--pink-mid)",
+                    borderRadius: "50%", width: 34, height: 34, cursor: "pointer",
+                    color: "var(--pink-deep)", fontSize: "0.9rem",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                  ✕
+                </motion.button>
               </div>
-              <motion.button onClick={handleClose} whileHover={{ scale: 1.1, rotate: 90 }} whileTap={{ scale: 0.9 }}
-                style={{
-                  background: "var(--pink-light)", border: "1px solid var(--pink-mid)",
-                  borderRadius: "50%", width: 34, height: 34, cursor: "pointer",
-                  color: "var(--pink-deep)", fontSize: "0.9rem",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                ✕
-              </motion.button>
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 search settings…"
+                aria-label="search settings"
+                style={{ width: "100%", boxSizing: "border-box", marginTop: "0.7rem", padding: "0.5rem 0.8rem", borderRadius: 10, outline: "none",
+                  border: "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.5)", background: "var(--pink-light)",
+                  fontFamily: SANS, fontSize: "0.82rem", color: "var(--text)" }} />
+              {!search.trim() && (
+                <div style={{ display: "flex", gap: "0.3rem", marginTop: "0.55rem" }}>
+                  {SETTINGS_TABS.map(t => {
+                    const active = tab === t.id;
+                    return (
+                      <button key={t.id} onClick={() => setTab(t.id)}
+                        style={{ flex: 1, padding: "0.4rem 0.2rem", borderRadius: 8, cursor: "pointer", border: "none",
+                          fontFamily: SANS, fontSize: "0.7rem", fontWeight: active ? 700 : 500,
+                          background: active ? "linear-gradient(135deg,var(--pink),var(--pink-deep))" : "var(--pink-light)",
+                          color: active ? "#fff" : "var(--pink-deep)", transition: "background .15s" }}>
+                        {t.emoji} {t.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Body */}
             <div style={{ padding: "0 1.6rem 7rem", flex: 1 }}>
 
+              {search.trim() && (
+                <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "1rem 0 0.2rem", fontStyle: "italic" }}>
+                  results for &ldquo;{search.trim()}&rdquo;
+                </p>
+              )}
+
+              <TabSection tab="appearance" active={tab} q={search} kw="photo avatar picture profile colour color theme gradient accent hex saved per-page per page typography font fonts immersive background page wallpaper signature cursor greeting tagline motion effects calm reduce decorations animation">
               {/* ─── Your photo ─── */}
               <GroupLabel>📸 your photo</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.6rem", lineHeight: 1.5 }}>
@@ -962,6 +1009,9 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                   onChange={() => { const v = !noAmbient; setNoAmbient(v); setHideAmbient(v); }} />
               </div>
 
+              </TabSection>
+
+              <TabSection tab="account" active={tab} q={search} kw="couple name title relationship start date anniversary">
               {/* ─── Couple name ─── */}
               <GroupLabel>💑 couple name</GroupLabel>
               <input
@@ -995,6 +1045,9 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 }}
               />
 
+              </TabSection>
+
+              <TabSection tab="sections" active={tab} q={search} kw="sections home journal shared reorder drag show hide page">
               {/* ─── Home page sections (drag to reorder) ─── */}
               <GroupLabel>🏠 home page</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.5rem", lineHeight: 1.5 }}>
@@ -1041,6 +1094,9 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 <SectionRow label="🎬 Watchlist"   on={s.shared.showWatchlist}  onChange={() => setSec("shared","showWatchlist",!s.shared.showWatchlist)}/>
               </div>
 
+              </TabSection>
+
+              <TabSection tab="account" active={tab} q={search} kw="spotify playlist music love notes push notifications alerts">
               {/* ─── Spotify playlist ─── */}
               <GroupLabel>🎵 spotify playlist</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.3rem 0 0.5rem", lineHeight: 1.5 }}>
@@ -1131,6 +1187,9 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 </>
               )}
 
+              </TabSection>
+
+              <TabSection tab="data" active={tab} q={search} kw="data export download backup migrate photos reset defaults">
               {/* ─── Your data ─── */}
               <GroupLabel>📦 your data</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.5rem", lineHeight: 1.5 }}>
@@ -1206,6 +1265,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 }}>
                 reset sections &amp; theme to defaults
               </motion.button>
+              </TabSection>
             </div>
 
             {/* Sticky save button */}

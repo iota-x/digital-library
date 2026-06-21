@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEscKey } from "@/lib/useEscKey";
 import Tip from "@/components/Tip";
+import EmptyState from "@/components/EmptyState";
 import { WatchlistStore } from "@/lib/resourceStores";
 import { cldImg, cldSrcSet } from "@/lib/cldImg";
 import { useSoftDelete } from "@/lib/softDelete";
@@ -325,15 +326,12 @@ export default function WatchlistSection() {
             loading… 🌸
           </div>
         ) : visible.length===0 ? (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}}
-            style={{textAlign:"center",padding:"5rem 2rem"}}>
-            <div style={{fontSize:"3rem",marginBottom:"0.9rem"}}>🎞️</div>
-            <p style={{fontFamily:SERIF,fontStyle:"italic",fontSize:"1.25rem",
-              color:"rgba(var(--pink-deep-rgb),.38)",margin:"0 0 0.3rem"}}>nothing here yet</p>
-            <p style={{fontFamily:SCRIPT,fontSize:"1.05rem",color:"rgba(var(--pink-deep-rgb),.3)",margin:0}}>
-              add something to watch together ✨
-            </p>
-          </motion.div>
+          <EmptyState
+            emoji="🎬"
+            title="nothing on the list yet"
+            hint="Add a film, show, or anime you want to watch together — and track it from 'plan' all the way to 'watched'. ✨"
+            action={{ label: "+ add your first", onClick: () => setShowForm(true) }}
+          />
         ) : (
           <div style={{
             display:"grid",

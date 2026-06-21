@@ -2,9 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { THEMES, DEFAULT_SETTINGS } from "@/lib/themes";
 import AvatarEditor from "@/components/AvatarEditor";
 
 
@@ -21,9 +22,18 @@ interface Step {
   dispatch?: string;
   /** When set, the CTA opens the avatar editor instead of navigating. */
   avatar?: boolean;
+  /** When set, the step renders the name/anniversary/theme setup form. */
+  setup?: boolean;
 }
 
 const STEPS: Step[] = [
+  {
+    emoji: "💞",
+    title: "make this yours",
+    body: "Two quick things so it feels like home from the start — you can change everything later.",
+    cta: "continue",
+    setup: true,
+  },
   {
     emoji: "📸",
     title: "add your photo",
@@ -60,7 +70,39 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [visible, setVisible] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  // Setup-step fields (couple name / anniversary / theme).
+  const [name, setName] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [themeId, setThemeId] = useState("pink");
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    setName(user.settings?.coupleName ?? "");
+    setThemeId(user.settings?.theme ?? "pink");
+    setStartDate(user.startDate ?? "");
+  }, [user]);
+
+  // Live-preview a built-in theme while picking it in setup.
+  const previewTheme = (id: string) => {
+    setThemeId(id);
+    const root = document.documentElement;
+    THEMES.forEach(t => root.classList.remove(`theme-${t.id}`));
+    if (id !== "pink") root.classList.add(`theme-${id}`);
+  };
+
+  // Persist the setup fields (best-effort; local store updates immediately).
+  const saveSetup = () => {
+    const settings = { ...(user?.settings ?? DEFAULT_SETTINGS), coupleName: name.trim(), theme: themeId };
+    updateSettings(settings);
+    if (startDate) updateUserData({ startDate });
+    try {
+      fetch("/api/couples/settings", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings, startDate: startDate || undefined }),
+      }).catch(() => {});
+    } catch {}
+  };
   // Don't trap focus in the onboarding card while the avatar editor (a nested
   // dialog) is open — it runs its own trap.
   useFocusTrap(dialogRef, { active: visible && !avatarOpen, onEscape: () => setVisible(false) });
@@ -88,6 +130,8 @@ export default function Onboarding() {
   };
 
   const act = () => {
+    // Setup step: save name/anniversary/theme, then advance.
+    if (cur.setup) { saveSetup(); next(); return; }
     // Avatar step opens the editor in place and keeps onboarding open so the
     // user can continue to the next step afterward.
     if (cur.avatar) { setAvatarOpen(true); return; }
@@ -141,6 +185,33 @@ export default function Onboarding() {
             <p id="onboard-body" style={{ fontFamily: SANS, fontSize: "0.92rem", color: "var(--text)", margin: "0 0 1.5rem", lineHeight: 1.55 }}>
               {cur.body}
             </p>
+
+            {cur.setup && (
+              <div style={{ textAlign: "left", margin: "0 0 1.4rem", display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+                <label style={{ display: "block" }}>
+                  <span style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>what should we call your space?</span>
+                  <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. us 🌸" maxLength={40}
+                    style={{ width: "100%", boxSizing: "border-box", marginTop: "0.35rem", padding: "0.65rem 0.9rem", borderRadius: 10, outline: "none",
+                      border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)", fontFamily: SCRIPT, fontSize: "1.05rem", color: "var(--text)" }} />
+                </label>
+                <label style={{ display: "block" }}>
+                  <span style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>when did your story start?</span>
+                  <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} max={new Date().toISOString().slice(0, 10)}
+                    style={{ width: "100%", boxSizing: "border-box", marginTop: "0.35rem", padding: "0.6rem 0.9rem", borderRadius: 10, outline: "none",
+                      border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)", fontFamily: SANS, fontSize: "0.9rem", color: "var(--text)" }} />
+                </label>
+                <div>
+                  <span style={{ fontFamily: SANS, fontSize: "0.7rem", fontWeight: 700, color: "var(--muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>pick a colour</span>
+                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.45rem", flexWrap: "wrap" }}>
+                    {THEMES.map(t => (
+                      <button key={t.id} onClick={() => previewTheme(t.id)} title={t.name} aria-label={t.name}
+                        style={{ width: 34, height: 34, borderRadius: "50%", cursor: "pointer", background: t.swatch, border: "none",
+                          boxShadow: themeId === t.id ? `0 0 0 3px var(--cream), 0 0 0 5px ${t.swatch}` : "0 2px 6px rgba(0,0,0,.18)", transition: "box-shadow .15s" }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Progress dots */}
             <div style={{ display: "flex", justifyContent: "center", gap: "0.4rem", marginBottom: "1.2rem" }}>
