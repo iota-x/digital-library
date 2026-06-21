@@ -38,6 +38,9 @@ export interface CoupleSettings {
   /** Custom page backdrop: an uploaded photo or a full-page gradient. A
    *  readability scrim is layered over it automatically. */
   pageBackground?: { type: "photo" | "gradient"; value: string };
+  /** Optional per-page accent overrides (hex). When set for the active page,
+   *  that colour is used instead of the global theme/accent. */
+  pageAccents?: { home?: string; journal?: string; shared?: string };
   coupleName: string;
   spotifyPlaylistId: string;
   loveNotes: string[];
@@ -163,6 +166,20 @@ export const MAX_SAVED_THEMES = 12;
  *  default — no class, original fonts. */
 /** Emoji cursor choices for the couple "signature" (""=default arrow). */
 export const CURSOR_CHOICES = ["", "💗", "🩷", "✨", "🌸", "⭐", "🦋", "🌙"];
+
+/** Pages that can carry their own accent override, with display labels. */
+export type PageAccentKey = "home" | "journal" | "shared";
+export const PAGE_ACCENT_LABELS: Record<PageAccentKey, string> = {
+  home: "🏠 home", journal: "📓 journal", shared: "🌍 shared",
+};
+/** Map a pathname to its per-page-accent key (null = no override applies). */
+export function pageAccentKey(pathname: string | null | undefined): PageAccentKey | null {
+  if (!pathname) return null;
+  if (pathname === "/") return "home";
+  if (pathname.startsWith("/journal")) return "journal";
+  if (pathname.startsWith("/shared")) return "shared";
+  return null;
+}
 
 /** Full-page gradient backdrops (used with pageBackground.type="gradient"). */
 export interface BgGradient { id: string; name: string; value: string }

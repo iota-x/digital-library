@@ -1,7 +1,8 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useUserData } from "@/lib/userStore";
-import { THEMES, FONT_PAIRINGS, cursorCss } from "@/lib/themes";
+import { THEMES, FONT_PAIRINGS, cursorCss, pageAccentKey } from "@/lib/themes";
 import { applyAccent, reapplyAccent } from "@/lib/themeColor";
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
@@ -17,9 +18,16 @@ const THEME_COLORS: Record<string, string> = {
 
 export default function ThemeProvider() {
   const user    = useUserData();
+  const pathname = usePathname();
   const themeId = user?.settings?.theme ?? "pink";
-  const accent  = user?.settings?.customAccent ?? "";
-  const accent2 = user?.settings?.customAccent2 ?? "";
+  const globalAccent  = user?.settings?.customAccent ?? "";
+  const globalAccent2 = user?.settings?.customAccent2 ?? "";
+  // Per-page accent overrides the global colour for the active page (single
+  // colour, so it drops the gradient's second stop). Falls back to global.
+  const pageKey = pageAccentKey(pathname);
+  const pageAccent = pageKey ? (user?.settings?.pageAccents?.[pageKey] ?? "") : "";
+  const accent  = pageAccent || globalAccent;
+  const accent2 = pageAccent ? "" : globalAccent2;
   const pairing = user?.settings?.fontPairing ?? "";
   const immersive = user?.settings?.immersive ?? false;
   const cursor = user?.settings?.signature?.cursor ?? "";
@@ -63,7 +71,7 @@ export default function ThemeProvider() {
     // Sync browser theme-color meta tag — the custom accent wins when present.
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
-  }, [user, themeId, accent, accent2, pairing, immersive, cursor, pageBgImage]);
+  }, [user, themeId, accent, accent2, pairing, immersive, cursor, pageBgImage, pathname]);
 
   // A custom accent derives different shades for light vs dark — so when dark
   // mode is toggled (fires `annapp:theme`), re-derive it for the new mode.

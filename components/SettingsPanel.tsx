@@ -2,8 +2,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
-import { THEMES, GRADIENT_THEMES, FONT_PAIRINGS, CURSOR_CHOICES, cursorCss, BG_GRADIENTS, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme } from "@/lib/themes";
+import { THEMES, GRADIENT_THEMES, FONT_PAIRINGS, CURSOR_CHOICES, cursorCss, BG_GRADIENTS, PAGE_ACCENT_LABELS, pageAccentKey, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme, type PageAccentKey } from "@/lib/themes";
 import { uploadToCloudinary } from "@/lib/cloudUpload";
+import { usePathname } from "next/navigation";
 import { HOME_SECTIONS, orderedKeys } from "@/lib/sections";
 import { getReduceMotion, getHideAmbient, setReduceMotion, setHideAmbient } from "@/lib/uiPrefs";
 import { resolvePlaylistId } from "@/lib/spotify";
@@ -123,6 +124,7 @@ interface Props { open: boolean; onClose: () => void; focusField?: string | null
 
 export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const user = useUserData();
+  const pathname = usePathname();
   const spotifyInputRef = useRef<HTMLInputElement>(null);
   const [saving,  setSaving]  = useState(false);
   const [saved,   setSaved]   = useState(false);
@@ -221,15 +223,22 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       // Only update originalTheme from server data when we haven't saved yet
       if (!didSaveRef.current) {
         originalThemeRef.current = user.settings.theme ?? "pink";
-        originalAccentRef.current = user.settings.customAccent ?? "";
-        originalAccent2Ref.current = user.settings.customAccent2 ?? "";
+        // Capture the EFFECTIVE accent for the current route (a per-page accent
+        // overrides the global one), so reverting on close restores what was
+        // actually showing rather than forcing the global colour.
+        {
+          const pk = pageAccentKey(pathname);
+          const pageAcc = pk ? (user.settings.pageAccents?.[pk] ?? "") : "";
+          originalAccentRef.current = pageAcc || (user.settings.customAccent ?? "");
+          originalAccent2Ref.current = pageAcc ? "" : (user.settings.customAccent2 ?? "");
+        }
         originalFontRef.current = user.settings.fontPairing ?? "";
         originalImmersiveRef.current = !!user.settings.immersive;
         originalCursorRef.current = user.settings.signature?.cursor ?? "";
         originalPageBgRef.current = pageBgImageOf(user.settings.pageBackground);
       }
     }
-  }, [open, user?.settings, user?.startDate]);
+  }, [open, user?.settings, user?.startDate, pathname]);
 
   // When panel closes without saving, revert the live preview to the real saved theme
   useEffect(() => {
@@ -340,6 +349,10 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
     if (cur) document.documentElement.style.setProperty("--app-cursor", cur);
     else document.documentElement.style.removeProperty("--app-cursor");
   };
+
+  // Per-page accent override (applies on save + when you visit that page).
+  const setPageAccent = (page: PageAccentKey, hex: string) =>
+    setDraft(d => ({ ...d, pageAccents: { ...d.pageAccents, [page]: hex || undefined } }));
 
   // Custom page background — gradient preset, uploaded photo, or none (live).
   const setPageBg = (pb: CoupleSettings["pageBackground"]) => {
@@ -804,6 +817,37 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
               </div>
               <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.5rem 0 0", lineHeight: 1.45 }}>
                 save looks you love, switch anytime, or share a code with your partner 💞
+              </p>
+
+              {/* ─── Per-page colours ─── */}
+              <GroupLabel>🎨 per-page colours</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.4rem", lineHeight: 1.5 }}>
+                Give each page its own accent — or leave it on your main theme.
+              </p>
+              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.25rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+                {(Object.keys(PAGE_ACCENT_LABELS) as PageAccentKey[]).map(pg => {
+                  const val = draft.pageAccents?.[pg] || "";
+                  const valid = /^#[0-9a-fA-F]{6}$/.test(val);
+                  return (
+                    <div key={pg} style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.45rem 0" }}>
+                      <span style={{ flex: 1, fontFamily: SANS, fontSize: "0.84rem", color: "var(--text)", fontWeight: 600 }}>{PAGE_ACCENT_LABELS[pg]}</span>
+                      <label style={{ position: "relative", cursor: "pointer", lineHeight: 0 }} title="pick a colour">
+                        <span style={{ display: "block", width: 30, height: 30, borderRadius: "50%",
+                          background: valid ? val : "var(--pink)", opacity: val ? 1 : 0.4,
+                          boxShadow: "inset 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,.18)" }} />
+                        <input type="color" value={valid ? val : "#ec4899"} onChange={e => setPageAccent(pg, e.target.value)}
+                          aria-label={`${pg} page colour`}
+                          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }} />
+                      </label>
+                      {val
+                        ? <button onClick={() => setPageAccent(pg, "")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontFamily: SANS, fontSize: "0.72rem", textDecoration: "underline", width: 40, textAlign: "right" }}>reset</button>
+                        : <span style={{ fontFamily: SANS, fontSize: "0.62rem", color: "var(--muted)", opacity: 0.6, width: 40, textAlign: "right" }}>main</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.4rem 0 0", lineHeight: 1.45 }}>
+                Applies when you save, and as you visit each page.
               </p>
 
               {/* ─── Typography ─── */}
