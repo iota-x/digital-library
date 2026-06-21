@@ -2,7 +2,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { useUserData, updateSettings, updateUserData } from "@/lib/userStore";
-import { THEMES, GRADIENT_THEMES, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme } from "@/lib/themes";
+import { THEMES, GRADIENT_THEMES, FONT_PAIRINGS, CURSOR_CHOICES, cursorCss, BG_GRADIENTS, MAX_SAVED_THEMES, encodeThemeCode, decodeThemeCode, DEFAULT_SETTINGS, type CoupleSettings, type SavedTheme } from "@/lib/themes";
+import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { HOME_SECTIONS, orderedKeys } from "@/lib/sections";
 import { getReduceMotion, getHideAmbient, setReduceMotion, setHideAmbient } from "@/lib/uiPrefs";
 import { resolvePlaylistId } from "@/lib/spotify";
@@ -25,6 +26,29 @@ function urlBase64ToUint8Array(base64: string) {
 }
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
+const ALL_FONT_CLASSES = FONT_PAIRINGS.map(p => `font-${p.id}`);
+
+/** Live-apply the font pairing + immersive classes to <html> (used for preview
+ *  while editing and to revert when closing without saving). */
+function applyAppearance(pairing: string, immersive: boolean) {
+  const root = document.documentElement;
+  root.classList.remove(...ALL_FONT_CLASSES);
+  if (pairing && pairing !== "romantic") root.classList.add(`font-${pairing}`);
+  root.classList.toggle("immersive", immersive);
+}
+
+/** Computed `--page-bg-image` value for a pageBackground setting ("" = none). */
+function pageBgImageOf(pb: CoupleSettings["pageBackground"]): string {
+  if (!pb?.value) return "";
+  return pb.type === "photo" ? `url("${pb.value}")` : pb.value;
+}
+/** Live-apply a page background image string to <html>. */
+function applyPageBg(image: string) {
+  const root = document.documentElement;
+  root.classList.toggle("custom-bg", !!image);
+  if (image) root.style.setProperty("--page-bg-image", image);
+  else root.style.removeProperty("--page-bg-image");
+}
 
 /** Accept a full Spotify link, a spotify: URI, or a bare ID and return just the
  *  playlist ID. e.g. https://open.spotify.com/playlist/41Lu…?si=abc → 41Lu… */
@@ -127,11 +151,17 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   // Per-device motion/effects prefs (apply instantly, not part of the save).
   const [calmMode,    setCalmMode]    = useState(false);
   const [noAmbient,   setNoAmbient]   = useState(false);
+  const [bgUploading, setBgUploading] = useState(false);
+  const [bgErr,       setBgErr]       = useState("");
   useEffect(() => { setCalmMode(getReduceMotion()); setNoAmbient(getHideAmbient()); }, []);
 
   const originalThemeRef  = useRef("pink");
   const originalAccentRef = useRef("");
   const originalAccent2Ref = useRef("");
+  const originalFontRef   = useRef("");
+  const originalImmersiveRef = useRef(false);
+  const originalCursorRef = useRef("");
+  const originalPageBgRef = useRef("");
   const didSaveRef       = useRef(false);
   const initialDraftRef  = useRef<string>("");
   const initialDateRef   = useRef<string>("");
@@ -193,6 +223,10 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
         originalThemeRef.current = user.settings.theme ?? "pink";
         originalAccentRef.current = user.settings.customAccent ?? "";
         originalAccent2Ref.current = user.settings.customAccent2 ?? "";
+        originalFontRef.current = user.settings.fontPairing ?? "";
+        originalImmersiveRef.current = !!user.settings.immersive;
+        originalCursorRef.current = user.settings.signature?.cursor ?? "";
+        originalPageBgRef.current = pageBgImageOf(user.settings.pageBackground);
       }
     }
   }, [open, user?.settings, user?.startDate]);
@@ -203,6 +237,11 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       if (!didSaveRef.current) {
         applyThemeClass(originalThemeRef.current);
         applyAccent(originalAccentRef.current || null, originalAccent2Ref.current || null);
+        applyAppearance(originalFontRef.current, originalImmersiveRef.current);
+        const cur = cursorCss(originalCursorRef.current);
+        if (cur) document.documentElement.style.setProperty("--app-cursor", cur);
+        else document.documentElement.style.removeProperty("--app-cursor");
+        applyPageBg(originalPageBgRef.current);
       }
     }
   }, [open]);
@@ -279,6 +318,42 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const applyImportCode = () => {
     const parsed = decodeThemeCode(importCode);
     if (parsed) { setColors(parsed.accent, parsed.accent2 ?? ""); setImportCode(""); }
+  };
+
+  // Font pairing + immersive — live preview (revert handled on close).
+  const pickFont = (id: string) => {
+    setDraft(d => ({ ...d, fontPairing: id }));
+    applyAppearance(id, draft.immersive ?? false);
+  };
+  const toggleImmersive = () => {
+    const v = !draft.immersive;
+    setDraft(d => ({ ...d, immersive: v }));
+    applyAppearance(draft.fontPairing ?? "", v);
+  };
+
+  // Couple "signature": custom hero tagline + emoji cursor (live preview).
+  const setGreeting = (text: string) =>
+    setDraft(d => ({ ...d, signature: { ...d.signature, greeting: text } }));
+  const pickCursor = (emoji: string) => {
+    setDraft(d => ({ ...d, signature: { ...d.signature, cursor: emoji } }));
+    const cur = cursorCss(emoji);
+    if (cur) document.documentElement.style.setProperty("--app-cursor", cur);
+    else document.documentElement.style.removeProperty("--app-cursor");
+  };
+
+  // Custom page background — gradient preset, uploaded photo, or none (live).
+  const setPageBg = (pb: CoupleSettings["pageBackground"]) => {
+    setDraft(d => ({ ...d, pageBackground: pb }));
+    applyPageBg(pageBgImageOf(pb));
+  };
+  const uploadPageBg = async (file: File) => {
+    setBgUploading(true); setBgErr("");
+    try {
+      const url = await uploadToCloudinary(file, { folder: "backgrounds" });
+      setPageBg({ type: "photo", value: url });
+    } catch (e: any) {
+      setBgErr(e?.message || "Couldn't upload — try a smaller image.");
+    } finally { setBgUploading(false); }
   };
 
   // Close without saving — effect above handles the revert
@@ -730,6 +805,99 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
               <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.5rem 0 0", lineHeight: 1.45 }}>
                 save looks you love, switch anytime, or share a code with your partner 💞
               </p>
+
+              {/* ─── Typography ─── */}
+              <GroupLabel>🔤 typography</GroupLabel>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.5rem" }}>
+                {FONT_PAIRINGS.map(fp => {
+                  const active = (draft.fontPairing || "romantic") === fp.id;
+                  return (
+                    <motion.button key={fp.id} onClick={() => pickFont(fp.id)} whileTap={{ scale: 0.97 }}
+                      style={{ padding: "0.6rem 0.7rem", borderRadius: 10, cursor: "pointer", textAlign: "left",
+                        border: active ? "1.5px solid var(--pink-deep)" : "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                        background: active ? "rgba(var(--pink-rgb),.12)" : "var(--pink-light)", transition: "border .15s, background .15s" }}>
+                      <div style={{ fontFamily: fp.sample, fontSize: "1.05rem", color: "var(--pink-deep)", fontWeight: 600, lineHeight: 1.15 }}>{fp.name}</div>
+                      <div style={{ fontFamily: fp.sample, fontSize: "0.72rem", color: "var(--muted)" }}>{fp.emoji} Aa — our story</div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              {/* ─── Immersive background ─── */}
+              <GroupLabel>🌈 immersive background</GroupLabel>
+              <div style={{ background: "var(--pink-light)", borderRadius: 12, padding: "0.2rem 1rem", border: "1px solid rgba(var(--pink-mid-rgb,251,207,232),.25)" }}>
+                <SectionRow label="🌈 Wash the page with my theme" on={!!draft.immersive} onChange={toggleImmersive} />
+              </div>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.5rem 0 0", lineHeight: 1.45 }}>
+                Lets your colour or gradient flow across the backgrounds, not just the accents.
+              </p>
+
+              {/* ─── Page background ─── */}
+              <GroupLabel>🖼 page background</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.5rem", lineHeight: 1.5 }}>
+                A photo or gradient behind the whole app — a soft scrim keeps text readable.
+              </p>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center", marginBottom: "0.6rem" }}>
+                <button onClick={() => setPageBg(undefined)}
+                  style={{ padding: "0.42rem 0.8rem", borderRadius: 8, cursor: "pointer", fontFamily: SANS, fontSize: "0.78rem", fontWeight: 600,
+                    border: !draft.pageBackground ? "1.5px solid var(--pink-deep)" : "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                    background: !draft.pageBackground ? "rgba(var(--pink-rgb),.12)" : "var(--pink-light)", color: "var(--pink-deep)" }}>
+                  ✕ none
+                </button>
+                <label style={{ padding: "0.42rem 0.8rem", borderRadius: 8, cursor: bgUploading ? "wait" : "pointer", fontFamily: SANS, fontSize: "0.78rem", fontWeight: 600,
+                  border: draft.pageBackground?.type === "photo" ? "1.5px solid var(--pink-deep)" : "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                  background: draft.pageBackground?.type === "photo" ? "rgba(var(--pink-rgb),.12)" : "var(--pink-light)", color: "var(--pink-deep)", opacity: bgUploading ? 0.6 : 1 }}>
+                  {bgUploading ? "uploading…" : "📷 upload photo"}
+                  <input type="file" accept="image/*" disabled={bgUploading} style={{ display: "none" }}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) uploadPageBg(f); e.currentTarget.value = ""; }} />
+                </label>
+                {draft.pageBackground?.type === "photo" && (
+                  <span aria-hidden style={{ width: 34, height: 34, borderRadius: 8, backgroundImage: `url("${draft.pageBackground.value}")`, backgroundSize: "cover", backgroundPosition: "center", border: "1.5px solid var(--pink-mid)" }} />
+                )}
+              </div>
+              {bgErr && <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "#ef4444", margin: "0 0 0.5rem" }}>⚠️ {bgErr}</p>}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5rem" }}>
+                {BG_GRADIENTS.map(g => {
+                  const active = draft.pageBackground?.type === "gradient" && draft.pageBackground.value === g.value;
+                  return (
+                    <motion.button key={g.id} onClick={() => setPageBg({ type: "gradient", value: g.value })}
+                      whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.96 }} title={g.name}
+                      style={{ height: 42, borderRadius: 10, background: g.value, cursor: "pointer", padding: 0,
+                        border: active ? "2.5px solid var(--cream)" : "none",
+                        boxShadow: active ? "0 0 0 2.5px var(--pink-deep), 0 4px 12px rgba(0,0,0,.25)" : "0 2px 8px rgba(0,0,0,.2)" }} />
+                  );
+                })}
+              </div>
+
+              {/* ─── Couple signature ─── */}
+              <GroupLabel>💞 your signature</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.4rem", lineHeight: 1.5 }}>
+                A custom line on your home hero, and a little cursor that&apos;s yours.
+              </p>
+              <input
+                value={draft.signature?.greeting ?? ""}
+                onChange={e => setGreeting(e.target.value)}
+                placeholder="and somehow every single day gets better 💗"
+                maxLength={120}
+                aria-label="home hero tagline"
+                style={{ width: "100%", boxSizing: "border-box", padding: "0.7rem 1rem", borderRadius: 10,
+                  border: "1.5px solid var(--pink-mid)", outline: "none", background: "var(--pink-light)",
+                  fontFamily: SCRIPT, fontSize: "1rem", color: "var(--text)", caretColor: "var(--pink-deep)" }} />
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.6rem", alignItems: "center" }}>
+                <span style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", fontWeight: 600 }}>cursor</span>
+                {CURSOR_CHOICES.map(c => {
+                  const active = (draft.signature?.cursor ?? "") === c;
+                  return (
+                    <button key={c || "none"} onClick={() => pickCursor(c)} title={c ? `cursor ${c}` : "default cursor"}
+                      style={{ width: 34, height: 34, borderRadius: 8, cursor: "pointer", fontSize: "1.05rem", lineHeight: 1,
+                        border: active ? "1.5px solid var(--pink-deep)" : "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                        background: active ? "rgba(var(--pink-rgb),.14)" : "var(--pink-light)",
+                        display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {c || "✕"}
+                    </button>
+                  );
+                })}
+              </div>
 
               {/* ─── Motion & effects (per-device, instant) ─── */}
               <GroupLabel>✨ motion &amp; effects</GroupLabel>

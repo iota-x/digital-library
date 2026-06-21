@@ -28,6 +28,16 @@ export interface CoupleSettings {
   /** Custom section render order per page (arrays of section keys from
    *  lib/sections.ts). Missing/unknown keys fall back to the canonical order. */
   sectionOrder?: { home?: string[]; journal?: string[]; shared?: string[] };
+  /** Font pairing id (see FONT_PAIRINGS). Empty/"romantic" = the default look. */
+  fontPairing?: string;
+  /** When true, the accent gradient also washes the page backgrounds (immersive
+   *  look) instead of staying neutral. */
+  immersive?: boolean;
+  /** Couple "signature": a custom home-hero tagline + an optional emoji cursor. */
+  signature?: { greeting?: string; cursor?: string };
+  /** Custom page backdrop: an uploaded photo or a full-page gradient. A
+   *  readability scrim is layered over it automatically. */
+  pageBackground?: { type: "photo" | "gradient"; value: string };
   coupleName: string;
   spotifyPlaylistId: string;
   loveNotes: string[];
@@ -147,6 +157,40 @@ export interface SavedTheme {
 
 /** Max saved themes per couple. */
 export const MAX_SAVED_THEMES = 12;
+
+/** Curated font pairings. The actual font stacks live in the `html.font-*`
+ *  rules in globals.css (which remap the --ui-* vars). "romantic" is the
+ *  default — no class, original fonts. */
+/** Emoji cursor choices for the couple "signature" (""=default arrow). */
+export const CURSOR_CHOICES = ["", "💗", "🩷", "✨", "🌸", "⭐", "🦋", "🌙"];
+
+/** Full-page gradient backdrops (used with pageBackground.type="gradient"). */
+export interface BgGradient { id: string; name: string; value: string }
+export const BG_GRADIENTS: BgGradient[] = [
+  { id: "dawn",    name: "Dawn",    value: "linear-gradient(160deg,#ff9a9e,#fad0c4,#fbc2eb)" },
+  { id: "dusk",    name: "Dusk",    value: "linear-gradient(160deg,#5b247a,#1bcedf)" },
+  { id: "ember",   name: "Ember",   value: "linear-gradient(160deg,#f12711,#f5af19)" },
+  { id: "meadow",  name: "Meadow",  value: "linear-gradient(160deg,#43e97b,#38f9d7)" },
+  { id: "orchid",  name: "Orchid",  value: "linear-gradient(160deg,#a18cd1,#fbc2eb)" },
+  { id: "berry",   name: "Berry",   value: "linear-gradient(160deg,#c471ed,#f64f59)" },
+  { id: "night",   name: "Night",   value: "linear-gradient(160deg,#0f2027,#203a43,#2c5364)" },
+  { id: "cocoa",   name: "Cocoa",   value: "linear-gradient(160deg,#3e1e0f,#6b4226)" },
+];
+
+/** Build a CSS `cursor` value from an emoji (or null for the default). */
+export function cursorCss(emoji: string | undefined | null): string | null {
+  if (!emoji) return null;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="34"><text y="25" font-size="24">${emoji}</text></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 6 6, auto`;
+}
+
+export interface FontPairing { id: string; name: string; emoji: string; sample: string }
+export const FONT_PAIRINGS: FontPairing[] = [
+  { id: "romantic",    name: "Romantic",    emoji: "🌹", sample: 'var(--font-playfair),"Georgia",serif' },
+  { id: "modern",      name: "Modern",      emoji: "⚡", sample: 'var(--font-lato),system-ui,sans-serif' },
+  { id: "classic",     name: "Classic",     emoji: "📜", sample: '"Georgia","Times New Roman",serif' },
+  { id: "handwritten", name: "Handwritten", emoji: "✍️", sample: 'var(--font-caveat),cursive' },
+];
 
 /** Encode a theme into a short shareable code, e.g. "us-631235" or
  *  "us-ff5f6d-ffc371" (no '#', lowercased). */

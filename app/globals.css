@@ -965,6 +965,33 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
   .occ-heart, .occ-icon-bounce, .occ-fire-icon { animation: none !important; transform: none !important; }
 }
 
+/* Couple "signature" emoji cursor — set by ThemeProvider via --app-cursor.
+   Default (auto) when unset; element cursors (buttons/inputs) still win. */
+html { cursor: var(--app-cursor, auto); }
+
+/* ── Font pairings ──────────────────────────────────────────────────
+   Remap the --ui-* typography vars (see lib/typography.ts). "romantic" is the
+   default and needs no class. Built from the three loaded faces (Playfair,
+   Caveat, Lato) + system stacks, so no extra font downloads. */
+html.font-modern {
+  --ui-display: var(--font-lato), system-ui, sans-serif;
+  --ui-serif:   var(--font-lato), system-ui, sans-serif;
+  --ui-script:  var(--font-lato), system-ui, sans-serif;
+  --ui-sans:    var(--font-lato), system-ui, sans-serif;
+}
+html.font-classic {
+  --ui-display: var(--font-playfair), "Georgia", serif;
+  --ui-serif:   "Georgia", "Times New Roman", serif;
+  --ui-script:  var(--font-playfair), "Georgia", serif;
+  --ui-sans:    "Georgia", "Times New Roman", serif;
+}
+html.font-handwritten {
+  --ui-display: var(--font-caveat), cursive;
+  --ui-serif:   var(--font-caveat), cursive;
+  --ui-script:  var(--font-caveat), cursive;
+  --ui-sans:    var(--font-lato), system-ui, sans-serif; /* body stays readable */
+}
+
 /* In-app "calm mode" toggle (html.reduce-motion) — same effect as the media
    query above, but driven by the per-device UI preference. */
 html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
@@ -986,6 +1013,36 @@ html.no-ambient .occ-heart,
 html.no-ambient .occ-icon-bounce,
 html.no-ambient .occ-fire-icon,
 html.no-ambient .ambient-orb { display: none !important; }
+
+/* ── Immersive backgrounds (html.immersive) ─────────────────────────
+   The accent gradient washes the whole page instead of staying neutral. The
+   body carries a fixed two-tone wash; sections go transparent so it shows
+   through uniformly (flow pages already do this). The wash is a soft tint over
+   the base surface and accent text is contrast-guarded, so text stays legible. */
+html.immersive body {
+  background:
+    radial-gradient(130% 90% at 12% -5%,  rgba(var(--pink-rgb), .20), transparent 60%),
+    radial-gradient(120% 90% at 90% 105%, rgba(var(--pink-deep-rgb), .18), transparent 60%),
+    var(--cream) !important;
+  background-attachment: fixed !important;
+}
+html.immersive.immersive.immersive section { background: transparent !important; }
+
+/* ── Custom page background (html.custom-bg) ────────────────────────
+   An uploaded photo or a full-page gradient (set in --page-bg-image), with a
+   light/dark readability scrim layered on top so text stays legible. Sections
+   go transparent so the backdrop shows through the whole page. Placed after the
+   immersive rules so a custom backdrop wins if both are somehow set. */
+:root      { --bg-scrim: rgba(255, 255, 255, 0.5); }
+html.dark  { --bg-scrim: rgba(8, 4, 10, 0.58); }
+html.custom-bg body {
+  background-image: linear-gradient(var(--bg-scrim), var(--bg-scrim)), var(--page-bg-image, none) !important;
+  background-size: cover, cover !important;
+  background-position: center, center !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: fixed, fixed !important;
+}
+html.custom-bg.custom-bg.custom-bg section { background: transparent !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    TOUCH TARGETS

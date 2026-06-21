@@ -1,10 +1,11 @@
 "use client";
 import { useEffect } from "react";
 import { useUserData } from "@/lib/userStore";
-import { THEMES } from "@/lib/themes";
+import { THEMES, FONT_PAIRINGS, cursorCss } from "@/lib/themes";
 import { applyAccent, reapplyAccent } from "@/lib/themeColor";
 
 const ALL_THEME_CLASSES = THEMES.map(t => `theme-${t.id}`);
+const ALL_FONT_CLASSES = FONT_PAIRINGS.map(p => `font-${p.id}`);
 
 const THEME_COLORS: Record<string, string> = {
   pink:   "#ec4899",
@@ -19,6 +20,11 @@ export default function ThemeProvider() {
   const themeId = user?.settings?.theme ?? "pink";
   const accent  = user?.settings?.customAccent ?? "";
   const accent2 = user?.settings?.customAccent2 ?? "";
+  const pairing = user?.settings?.fontPairing ?? "";
+  const immersive = user?.settings?.immersive ?? false;
+  const cursor = user?.settings?.signature?.cursor ?? "";
+  const pageBg = user?.settings?.pageBackground;
+  const pageBgImage = pageBg?.value ? (pageBg.type === "photo" ? `url("${pageBg.value}")` : pageBg.value) : "";
 
   useEffect(() => {
     // Until we actually know the user, leave the theme the anti-FOUC inline
@@ -37,10 +43,27 @@ export default function ThemeProvider() {
     applyAccent(accent || null, accent2 || null);
     try { localStorage.setItem("ann_color_theme", themeId); } catch {}
 
+    // Font pairing ("romantic" = default, no class) + immersive-background flag.
+    root.classList.remove(...ALL_FONT_CLASSES);
+    if (pairing && pairing !== "romantic") root.classList.add(`font-${pairing}`);
+    root.classList.toggle("immersive", immersive);
+    const cur = cursorCss(cursor);
+    if (cur) root.style.setProperty("--app-cursor", cur);
+    else root.style.removeProperty("--app-cursor");
+    // Custom page backdrop (photo/gradient) + readability scrim.
+    root.classList.toggle("custom-bg", !!pageBgImage);
+    if (pageBgImage) root.style.setProperty("--page-bg-image", pageBgImage);
+    else root.style.removeProperty("--page-bg-image");
+    try {
+      localStorage.setItem("ann_font_pairing", pairing || "");
+      localStorage.setItem("ann_immersive", immersive ? "1" : "0");
+      localStorage.setItem("ann_page_bg", pageBgImage);
+    } catch {}
+
     // Sync browser theme-color meta tag — the custom accent wins when present.
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
-  }, [user, themeId, accent, accent2]);
+  }, [user, themeId, accent, accent2, pairing, immersive, cursor, pageBgImage]);
 
   // A custom accent derives different shades for light vs dark — so when dark
   // mode is toggled (fires `annapp:theme`), re-derive it for the new mode.

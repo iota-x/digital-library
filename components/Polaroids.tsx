@@ -367,7 +367,7 @@ export default function Polaroids() {
             initial={{ opacity:0 }} animate={{ opacity:1 }}
             transition={{ delay:1.05, duration:0.9 }}
           >
-            and somehow every single day gets better than the last right? 💗
+            {userData?.settings?.signature?.greeting?.trim() || "and somehow every single day gets better than the last right? 💗"}
           </motion.p>
 
           <ScrollIndicator />
