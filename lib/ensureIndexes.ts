@@ -52,6 +52,12 @@ const INDEXES: IndexDef[] = [
   { collection: "events", keys: { at: -1 } },
   { collection: "events", keys: { type: 1, at: -1 } },
   { collection: "events", keys: { coupleId: 1, at: -1 } },
+  // Page-view analytics — path aggregation + 90-day TTL reaping. The ascending
+  // `at` TTL index also serves the recent-first sort (Mongo walks it in reverse).
+  { collection: "pageviews", keys: { path: 1 } },
+  { collection: "pageviews", keys: { at: 1 }, options: { expireAfterSeconds: 90 * 86_400 } },
+  // Persisted errors — recent-first feed + 30-day TTL reaping.
+  { collection: "errors", keys: { at: 1 }, options: { expireAfterSeconds: 30 * 86_400 } },
   // OTPs — single pending code per (email, purpose) + TTL reaping on expiry.
   { collection: "otps", keys: { email: 1, purpose: 1 } },
   { collection: "otps", keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },

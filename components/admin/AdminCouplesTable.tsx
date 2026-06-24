@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { card, muted, th, td, pill, relativeTime, shortDate } from "./adminStyles";
-import AdminCoupleDetail from "./AdminCoupleDetail";
 
 interface Member {
   id: string; name: string; email: string; role: string;
@@ -14,13 +13,12 @@ interface CoupleRow {
 }
 interface Resp { ok: boolean; page: number; totalPages: number; total: number; couples: CoupleRow[]; error?: string }
 
-export default function AdminCouplesTable() {
+export default function AdminCouplesTable({ onOpenCouple }: { onOpenCouple: (id: string) => void }) {
   const [q, setQ] = useState("");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState<Resp | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
 
   // Debounce the search input into the actual query.
   useEffect(() => {
@@ -73,7 +71,7 @@ export default function AdminCouplesTable() {
                 {data.couples.map((c) => (
                   <tr
                     key={c.id}
-                    onClick={() => setSelected(c.id)}
+                    onClick={() => onOpenCouple(c.id)}
                     style={{ cursor: "pointer" }}
                   >
                     <td style={td}>
@@ -111,8 +109,6 @@ export default function AdminCouplesTable() {
           )}
         </>
       )}
-
-      {selected && <AdminCoupleDetail coupleId={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

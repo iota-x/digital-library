@@ -3,20 +3,26 @@ import { useEffect, useState } from "react";
 import AdminOverview from "@/components/admin/AdminOverview";
 import AdminCouplesTable from "@/components/admin/AdminCouplesTable";
 import AdminActivityFeed from "@/components/admin/AdminActivityFeed";
+import AdminAnalytics from "@/components/admin/AdminAnalytics";
+import AdminHealth from "@/components/admin/AdminHealth";
+import AdminCoupleDetail from "@/components/admin/AdminCoupleDetail";
 
 type Gate = "loading" | "ok" | "unauthorized" | "forbidden" | "error";
-type Tab = "overview" | "couples" | "activity";
+type Tab = "overview" | "couples" | "activity" | "analytics" | "health";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "couples", label: "Couples" },
   { id: "activity", label: "Activity" },
+  { id: "analytics", label: "Analytics" },
+  { id: "health", label: "Health" },
 ];
 
 export default function AdminPage() {
   const [gate, setGate] = useState<Gate>("loading");
   const [name, setName] = useState<string>("");
   const [tab, setTab] = useState<Tab>("overview");
+  const [couple, setCouple] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -71,9 +77,13 @@ export default function AdminPage() {
         ))}
       </nav>
 
-      {tab === "overview" && <AdminOverview />}
-      {tab === "couples" && <AdminCouplesTable />}
+      {tab === "overview" && <AdminOverview onOpenCouple={setCouple} />}
+      {tab === "couples" && <AdminCouplesTable onOpenCouple={setCouple} />}
       {tab === "activity" && <AdminActivityFeed />}
+      {tab === "analytics" && <AdminAnalytics />}
+      {tab === "health" && <AdminHealth />}
+
+      {couple && <AdminCoupleDetail coupleId={couple} onClose={() => setCouple(null)} />}
     </main>
   );
 }

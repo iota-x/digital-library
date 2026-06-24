@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession, type SessionPayload } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { log } from "@/lib/log";
+import { recordError } from "@/lib/errorLog";
 
 /**
  * Optional per-handler rate-limit config. Unlike the auth routes (keyed by
@@ -50,13 +51,10 @@ export function withAuth<Ctx = unknown>(
     try {
       return await handler(req, session, ctx);
     } catch (err) {
-      log.error({
-        msg: "api handler threw",
-        err,
-        path: new URL(req.url).pathname,
-        method: req.method,
-        coupleId: session.coupleId,
-      });
+      const path = new URL(req.url).pathname;
+      log.error({ msg: "api handler threw", err, path, method: req.method, coupleId: session.coupleId });
+      const e = err as Error;
+      void recordError({ message: e?.message ?? String(err), name: e?.name, stack: e?.stack, path, method: req.method, coupleId: session.coupleId, source: "api" });
       return NextResponse.json({ error: "internal error" }, { status: 500 });
     }
   };

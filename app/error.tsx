@@ -11,6 +11,16 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
   useEffect(() => {
     // Surface to the console (and any attached logging) so it's debuggable.
     console.error("App error boundary caught:", error);
+    // Report to the admin Health view (best-effort, never throws back into UI).
+    try {
+      const body = JSON.stringify({
+        message: error?.message ?? "Unknown client error",
+        stack: error?.stack,
+        digest: error?.digest,
+        path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      });
+      void fetch("/api/client-error", { method: "POST", body, headers: { "Content-Type": "application/json" }, keepalive: true });
+    } catch { /* ignore */ }
   }, [error]);
 
   return (

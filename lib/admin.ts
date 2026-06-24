@@ -4,6 +4,7 @@ import { getSession, type SessionPayload } from "@/lib/auth";
 import { getCol } from "@/lib/mongo";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/log";
+import { recordError } from "@/lib/errorLog";
 
 /**
  * Admin authorization — mirrors lib/apiHandler.ts's `withAuth`, but additionally
@@ -70,13 +71,10 @@ export function withAdmin<Ctx = unknown>(
     try {
       return await handler(req, session, ctx);
     } catch (err) {
-      log.error({
-        msg: "admin handler threw",
-        err,
-        path: new URL(req.url).pathname,
-        method: req.method,
-        userId: session.userId,
-      });
+      const path = new URL(req.url).pathname;
+      log.error({ msg: "admin handler threw", err, path, method: req.method, userId: session.userId });
+      const e = err as Error;
+      void recordError({ message: e?.message ?? String(err), name: e?.name, stack: e?.stack, path, method: req.method, coupleId: session.coupleId, source: "api" });
       return NextResponse.json({ error: "internal error" }, { status: 500 });
     }
   };

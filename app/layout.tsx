@@ -11,6 +11,7 @@ import DarkOverlay     from "@/components/DarkOverlay";
 import AppShell        from "@/components/AppShell";
 import MotionRoot     from "@/components/MotionRoot";
 import MobileTabBar   from "@/components/MobileTabBar";
+import PageviewTracker from "@/components/PageviewTracker";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { ToasterProvider } from "@/components/Toaster";
 import { Analytics } from "@vercel/analytics/next";
@@ -110,6 +111,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <SwipeNav />
               <PwaRegister />
               <MobileTabBar />
+              <PageviewTracker />
               {/* Keyboard skip link — visually hidden until focused */}
               <a href="#main" className="skip-link">skip to content</a>
               <div id="main"><PageTransition>{children}</PageTransition></div>
