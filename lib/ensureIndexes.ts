@@ -46,7 +46,12 @@ const INDEXES: IndexDef[] = [
   // Auth — lookups by email / invite code / couple membership.
   { collection: "users", keys: { email: 1 }, options: { unique: true } },
   { collection: "users", keys: { coupleId: 1 } },
+  { collection: "users", keys: { lastSeenAt: -1 } },
   { collection: "couples", keys: { inviteCode: 1 } },
+  // Admin event log — global feed, per-type feed, and per-couple history.
+  { collection: "events", keys: { at: -1 } },
+  { collection: "events", keys: { type: 1, at: -1 } },
+  { collection: "events", keys: { coupleId: 1, at: -1 } },
   // OTPs — single pending code per (email, purpose) + TTL reaping on expiry.
   { collection: "otps", keys: { email: 1, purpose: 1 } },
   { collection: "otps", keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },

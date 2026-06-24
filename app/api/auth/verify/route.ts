@@ -4,6 +4,7 @@ import { getCol } from "@/lib/mongo";
 import { getSession } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { verifyOtp, generateOtp, storeOtp, sendMail, verifyEmailTemplate } from "@/lib/email";
+import { logEvent, reqMeta } from "@/lib/events";
 
 // POST { code } — verify the OTP for the currently signed-in user
 export async function POST(req: NextRequest) {
@@ -25,6 +26,7 @@ export async function POST(req: NextRequest) {
     if (!result.ok) return NextResponse.json({ error: result.reason ?? "Invalid code" }, { status: 400 });
 
     await users.updateOne({ _id: user._id }, { $set: { emailVerified: true, emailVerifiedAt: new Date() } });
+    void logEvent("verify_email", { userId: session.userId, coupleId: session.coupleId, email: user.email, ...reqMeta(req) });
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Verify error:", e);

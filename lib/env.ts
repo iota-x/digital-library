@@ -42,6 +42,9 @@ export const serverEnv = {
   get SPOTIFY_CLIENT_SECRET(){ return optional("SPOTIFY_CLIENT_SECRET"); },
   get NOTIFY_EMAIL_1()       { return optional("NOTIFY_EMAIL_1"); },
   get NOTIFY_EMAIL_2()       { return optional("NOTIFY_EMAIL_2"); },
+  // Comma-separated list of emails granted access to the /admin dashboard.
+  // Empty → admin is fully disabled (the gate fails closed, denying everyone).
+  get ADMIN_EMAILS()         { return optional("ADMIN_EMAILS"); },
   get EMAIL_FROM()           { return optional("EMAIL_FROM", "Us <onboarding@resend.dev>"); },
   // Optional: enables cross-instance rate limiting. Falls back to in-memory when
   // unset. Accepts UPSTASH_REDIS_URL too — the rediss:// string Upstash exposes —

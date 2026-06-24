@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { getCol } from "@/lib/mongo";
 import { signSession, setSessionCookie } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { logEvent, reqMeta } from "@/lib/events";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,6 +28,7 @@ export async function POST(req: NextRequest) {
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
+      void logEvent("login_failed", { email: emailLower, coupleId: user.coupleId, ...reqMeta(req) });
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
@@ -41,6 +43,10 @@ export async function POST(req: NextRequest) {
       name: user.name,
       role: user.role,
     });
+
+    // Record the successful login and stamp last-seen (best-effort, non-blocking).
+    void logEvent("login", { userId, coupleId: user.coupleId, email: emailLower, ...reqMeta(req) });
+    void users.updateOne({ _id: user._id }, { $set: { lastSeenAt: new Date().toISOString() } });
 
     const res = NextResponse.json({ ok: true });
     setSessionCookie(res, token);

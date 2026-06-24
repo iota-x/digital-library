@@ -24,6 +24,18 @@ export async function GET(req: NextRequest) {
       // Legacy accounts predate the flag — treat a missing value as verified
       // so only explicitly-unverified users are gated.
       emailVerified = me?.emailVerified !== false;
+
+      // Debounced last-seen stamp powers the admin DAU/returning-user view.
+      // /me is hit on every app load, so only write when the stored value is
+      // stale (>5 min) — keeps this read endpoint from writing on every request.
+      const now = Date.now();
+      const last = me?.lastSeenAt ? Date.parse(me.lastSeenAt) : 0;
+      if (!last || now - last > 5 * 60_000) {
+        void users.updateOne(
+          { _id: new ObjectId(session.userId) },
+          { $set: { lastSeenAt: new Date(now).toISOString() } },
+        );
+      }
     } catch {}
 
     try {
