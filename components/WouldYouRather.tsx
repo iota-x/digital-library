@@ -1,7 +1,8 @@
 "use client";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WOULD_YOU_RATHER, pickFresh, type Dilemma } from "@/lib/playDecks";
+import { useUserData } from "@/lib/userStore";
+import { WOULD_YOU_RATHER, WOULD_YOU_RATHER_18, pickFresh, type Dilemma } from "@/lib/playDecks";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
 
@@ -14,14 +15,19 @@ const CARD: React.CSSProperties = {
 };
 
 export default function WouldYouRather() {
+  const user = useUserData();
   const [d, setD] = useState<Dilemma | null>(null);
   const [chose, setChose] = useState<"a" | "b" | null>(null);
   // Recent dilemmas, so the same one doesn't reappear just a couple cards later.
   const recentRef = useRef<Dilemma[]>([]);
+  // Shares the couple-level spicy toggle (set on the truth-or-dare card). When
+  // on, the dilemmas come ONLY from the explicit 18+ deck.
+  const spicy = user?.settings?.spicyMode === true;
 
   const next = () => {
     buzz("tap");
-    const { pick, recent } = pickFresh(WOULD_YOU_RATHER, recentRef.current);
+    const pool = spicy ? WOULD_YOU_RATHER_18 : WOULD_YOU_RATHER;
+    const { pick, recent } = pickFresh(pool, recentRef.current);
     recentRef.current = recent;
     setD(pick);
     setChose(null);
@@ -42,12 +48,12 @@ export default function WouldYouRather() {
   return (
     <div style={{ width: "100%", maxWidth: 640, margin: "0 auto" }}>
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-        <div style={{ fontSize: "1.6rem" }}>💌</div>
+        <div style={{ fontSize: "1.6rem" }}>{spicy ? "🔥" : "💌"}</div>
         <h2 style={{ fontFamily: SERIF, fontStyle: "italic", fontWeight: 400, fontSize: "clamp(1.4rem,4vw,1.8rem)", color: "var(--pink-deep)", margin: "0.1rem 0 0.2rem" }}>
           would you rather
         </h2>
         <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "var(--muted)", margin: 0 }}>
-          tiny dilemmas to laugh (and argue) over
+          {spicy ? "naughty dilemmas — pick your poison 🔞" : "tiny dilemmas to laugh (and argue) over"}
         </p>
       </div>
 
