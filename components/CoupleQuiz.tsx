@@ -219,6 +219,9 @@ export default function CoupleQuiz() {
   const showResults = view.revealed && !redo;
   const waiting = view.myComplete && !view.revealed && !redo;
   const answering = !view.myComplete || redo;
+  // view.partnerName only exists once the partner has answered; before that it's
+  // null, so fall back to the partner's name from the session (always set here).
+  const partnerName = view.partnerName ?? user.partnerName;
 
   return (
     <div style={{ maxWidth: 640, margin: "0 auto" }}>
@@ -231,7 +234,7 @@ export default function CoupleQuiz() {
             {view.title}
           </h3>
           <p style={{ fontFamily: SCRIPT, fontSize: "0.98rem", color: "var(--muted)", margin: 0 }}>
-            {showResults ? "here's how you matched 💞" : waiting ? `waiting for ${view.partnerName} to play` : view.blurb}
+            {showResults ? "here's how you matched 💞" : waiting ? `waiting for ${partnerName} to play` : view.blurb}
           </p>
         </div>
 
@@ -262,7 +265,7 @@ export default function CoupleQuiz() {
                       </p>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                         <span style={tag()}>{user.name}: {q.options[mineIdx] ?? "—"}</span>
-                        <span style={tag()}>{view.partnerName}: {typeof theirsIdx === "number" ? q.options[theirsIdx] : "—"}</span>
+                        <span style={tag()}>{partnerName}: {typeof theirsIdx === "number" ? q.options[theirsIdx] : "—"}</span>
                       </div>
                     </div>
                   );
@@ -280,7 +283,7 @@ export default function CoupleQuiz() {
               style={{ textAlign: "center" }}>
               <div style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>⏳</div>
               <p style={{ fontFamily: SCRIPT, fontSize: "1.1rem", color: "var(--muted)", margin: "0 0 1rem" }}>
-                you&apos;re done! it reveals the moment {view.partnerName} finishes 💌
+                you&apos;re done! it reveals the moment {partnerName} finishes 💌
               </p>
               <button onClick={() => setRedo(true)} style={linkBtn()}>change my answers</button>
             </motion.div>
@@ -288,7 +291,7 @@ export default function CoupleQuiz() {
             <motion.div key="answering" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {view.partnerComplete && (
                 <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "var(--pink-deep)", textAlign: "center", margin: "0 0 1rem" }}>
-                  {view.partnerName} already played — finish to reveal your score 💞
+                  {partnerName} already played — finish to reveal your score 💞
                 </p>
               )}
               <div style={{ display: "grid", gap: "1.1rem" }}>
