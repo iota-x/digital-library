@@ -1,10 +1,12 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
-import { TRUTHS, DARES } from "@/lib/playDecks";
+import { TRUTHS, DARES, TRUTHS_18, DARES_18, pickFresh } from "@/lib/playDecks";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
+
+const SPICY_KEY = "play:spicyMode";
 
 const CARD: React.CSSProperties = {
   background: "var(--cream)",
@@ -19,16 +21,41 @@ export default function TruthOrDare() {
   const [kind, setKind] = useState<"truth" | "dare" | null>(null);
   const [text, setText] = useState("");
   const [turn, setTurn] = useState(0); // 0 = you, 1 = partner
-  const lastRef = useRef("");
+  // Spicy mode mixes the explicit 18+ cards into the decks. Off by default and
+  // remembered on this device so it survives a refresh.
+  const [spicy, setSpicy] = useState(false);
+  // Track recently-drawn cards per pool so the same one doesn't come back around
+  // again so soon (it gets weird seeing it again two cards later).
+  const recentTruths = useRef<string[]>([]);
+  const recentDares = useRef<string[]>([]);
+
+  useEffect(() => {
+    try { if (localStorage.getItem(SPICY_KEY) === "1") setSpicy(true); } catch {}
+  }, []);
+
+  const toggleSpicy = () => {
+    if (!spicy) {
+      const ok = window.confirm(
+        "Spicy mode adds explicit 18+ cards (including consensual power-play) to truth or dare.\n\nOnly turn this on if you're both adults and good with it. Continue?",
+      );
+      if (!ok) return;
+    }
+    const next = !spicy;
+    setSpicy(next);
+    try { localStorage.setItem(SPICY_KEY, next ? "1" : "0"); } catch {}
+    buzz("tap");
+  };
 
   const names = [displayName(user) || "you", partnerDisplayName(user) || "them"];
 
   const draw = (k: "truth" | "dare") => {
     buzz(k === "dare" ? "double" : "tap");
-    const pool = k === "truth" ? TRUTHS : DARES;
-    let pick = pool[Math.floor(Math.random() * pool.length)];
-    if (pool.length > 1) while (pick === lastRef.current) pick = pool[Math.floor(Math.random() * pool.length)];
-    lastRef.current = pick;
+    const base = k === "truth" ? TRUTHS : DARES;
+    const explicit = k === "truth" ? TRUTHS_18 : DARES_18;
+    const pool = spicy ? [...base, ...explicit] : base;
+    const recentRef = k === "truth" ? recentTruths : recentDares;
+    const { pick, recent } = pickFresh(pool, recentRef.current);
+    recentRef.current = recent;
     setKind(k);
     setText(pick);
     setTurn((t) => (t + 1) % 2);
@@ -42,8 +69,25 @@ export default function TruthOrDare() {
           truth or dare
         </h2>
         <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "var(--muted)", margin: 0 }}>
-          take turns — soft, silly, just for you two
+          {spicy ? "take turns — and brace yourselves 🔞" : "take turns — soft, silly, just for you two"}
         </p>
+        <div style={{ marginTop: "0.7rem" }}>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={toggleSpicy}
+            aria-pressed={spicy}
+            style={{
+              fontFamily: SANS, fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.04em",
+              cursor: "pointer", borderRadius: 50, padding: "0.4rem 0.95rem",
+              border: `1.5px solid ${spicy ? "#be123c" : "rgba(var(--pink-rgb), .45)"}`,
+              background: spicy ? "linear-gradient(135deg,#fb7185,#be123c)" : "transparent",
+              color: spicy ? "#fff" : "var(--pink-deep)",
+              boxShadow: spicy ? "0 6px 18px rgba(190,18,60,.3)" : "none",
+            }}
+          >
+            {spicy ? "spicy mode: on 🔞" : "spicy mode: off 🌶️"}
+          </motion.button>
+        </div>
       </div>
 
       <div style={CARD}>

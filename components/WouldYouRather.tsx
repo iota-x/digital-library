@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { WOULD_YOU_RATHER, type Dilemma } from "@/lib/playDecks";
+import { WOULD_YOU_RATHER, pickFresh, type Dilemma } from "@/lib/playDecks";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
 
@@ -13,22 +13,17 @@ const CARD: React.CSSProperties = {
   boxShadow: "0 12px 40px rgba(var(--pink-deep-rgb), .1)",
 };
 
-function pickDilemma(last: Dilemma | null): Dilemma {
-  let d = WOULD_YOU_RATHER[Math.floor(Math.random() * WOULD_YOU_RATHER.length)];
-  while (last && d === last) d = WOULD_YOU_RATHER[Math.floor(Math.random() * WOULD_YOU_RATHER.length)];
-  return d;
-}
-
 export default function WouldYouRather() {
   const [d, setD] = useState<Dilemma | null>(null);
   const [chose, setChose] = useState<"a" | "b" | null>(null);
-  const lastRef = useRef<Dilemma | null>(null);
+  // Recent dilemmas, so the same one doesn't reappear just a couple cards later.
+  const recentRef = useRef<Dilemma[]>([]);
 
   const next = () => {
     buzz("tap");
-    const nd = pickDilemma(lastRef.current);
-    lastRef.current = nd;
-    setD(nd);
+    const { pick, recent } = pickFresh(WOULD_YOU_RATHER, recentRef.current);
+    recentRef.current = recent;
+    setD(pick);
     setChose(null);
   };
 
