@@ -35,12 +35,20 @@ async function coupleContext(coupleId: string, role: string, myName: string) {
     getCol("couples"), getCol("bucketlist"), getCol("watchlist"),
   ]);
   const couple = await couplesCol.findOne({ _id: new ObjectId(coupleId) });
-  const partnerName = (role === "creator" ? couple?.person2Name : couple?.person1Name) ?? "their partner";
+  // Refer to each person by their nickname (when switched on); a person's
+  // nickname lives on their own person slot of the couple doc.
+  const mySlot = role === "creator" ? "person1" : "person2";
+  const partnerSlot = role === "creator" ? "person2" : "person1";
+  const myDisplay = couple?.[`${mySlot}NicknameOn`] && couple?.[`${mySlot}Nickname`]
+    ? couple[`${mySlot}Nickname`] : myName;
+  const partnerName = couple?.[`${partnerSlot}NicknameOn`] && couple?.[`${partnerSlot}Nickname`]
+    ? couple[`${partnerSlot}Nickname`]
+    : ((role === "creator" ? couple?.person2Name : couple?.person1Name) ?? "their partner");
   const bucket = (await bucketCol.find({ coupleId, completed: { $ne: true } }).limit(6).toArray())
     .map((b) => (b as { text?: string }).text).filter(Boolean);
   const watch = (await watchCol.find({ coupleId, status: "plan-to-watch" }).limit(6).toArray())
     .map((w) => (w as { title?: string }).title).filter(Boolean);
-  return { names: [myName, partnerName], bucket, watch };
+  return { names: [myDisplay, partnerName], bucket, watch };
 }
 
 export const GET = withAuth(async (req, session) => {

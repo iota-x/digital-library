@@ -66,14 +66,23 @@ export const POST = withAuth(async (req, session) => {
   if (aiEnabled()) {
     const couplesCol = await getCol("couples");
     const couple = await couplesCol.findOne({ _id: new ObjectId(session.coupleId) });
-    const partnerName = (session.role === "creator" ? couple?.person2Name : couple?.person1Name) ?? "their partner";
+    // Address them by nickname (when switched on) — a person's nickname sits on
+    // their own person slot of the couple doc.
+    const isCreator = session.role === "creator";
+    const mySlot = isCreator ? "person1" : "person2";
+    const partnerSlot = isCreator ? "person2" : "person1";
+    const myName = couple?.[`${mySlot}NicknameOn`] && couple?.[`${mySlot}Nickname`]
+      ? couple[`${mySlot}Nickname`] : session.name;
+    const partnerName = couple?.[`${partnerSlot}NicknameOn`] && couple?.[`${partnerSlot}Nickname`]
+      ? couple[`${partnerSlot}Nickname`]
+      : ((isCreator ? couple?.person2Name : couple?.person1Name) ?? "their partner");
     const system =
       "You write playful 'how in sync are you?' quiz packs for a couple's private app. " +
       "Each question is light, warm, and answerable by both partners independently so they can compare. " +
       "Give exactly 6 questions, each with exactly 4 short multiple-choice options (each option ≤ 5 words with one tasteful emoji). " +
       "The title is ≤ 6 words with one emoji; the blurb is one short sentence.";
     const prompt =
-      `Write a fresh couple quiz pack for ${session.name} and ${partnerName}. ` +
+      `Write a fresh couple quiz pack for ${myName} and ${partnerName}. ` +
       `Make it feel new and a little different from a generic compatibility quiz — but keep it sweet and easy.`;
     const out = await aiGenerateJSON<RawPack>({ system, prompt, schema: PACK_SCHEMA, maxTokens: 1200 });
     const questions = out ? cleanQuestions(out.questions) : [];
