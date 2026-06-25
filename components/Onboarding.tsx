@@ -161,6 +161,11 @@ export default function Onboarding() {
               position: "fixed", zIndex: 9971,
               top: "50%", left: "50%", transform: "translate(-50%, -50%)",
               width: "min(440px, 92vw)",
+              // Never exceed the viewport — on short/desktop screens the taller
+              // steps (setup form) otherwise ran off-screen, forcing a zoom-out
+              // to reach the buttons. Cap the height and scroll inside instead.
+              maxHeight: "calc(100dvh - 2rem)",
+              overflowY: "auto",
               background: "var(--cream)",
               border: "1.5px solid var(--pink-mid)",
               borderRadius: 24, padding: "2rem 1.7rem 1.7rem",

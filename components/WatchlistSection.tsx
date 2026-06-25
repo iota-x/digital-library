@@ -42,6 +42,23 @@ async function fetchPoster(title:string,type:WatchType):Promise<string[]> {
   } catch { return []; }
 }
 
+/** Whether a string already points straight at an image (so it can render as-is). */
+function looksLikeImage(url:string):boolean {
+  return /^data:image\//i.test(url) || /\.(jpe?g|png|webp|gif|avif|bmp|svg)(\?|$)/i.test(url);
+}
+
+/** Turn a pasted *page* link (e.g. an IMDb title page) into its real poster
+ *  image via the server's og:image unfurl. Direct image URLs pass through. */
+async function resolvePosterUrl(url:string):Promise<string> {
+  const u = url.trim();
+  if(!u || !/^https?:\/\//i.test(u) || looksLikeImage(u)) return u;
+  try {
+    const r = await fetch(`/api/poster-search?url=${encodeURIComponent(u)}`);
+    const d = await r.json() as { url?: string };
+    return d.url || u;
+  } catch { return u; }
+}
+
 export default function WatchlistSection() {
   const softDelete = useSoftDelete<WatchItem>();
   const { data: items, loading } = WatchlistStore.useResource() as { data: WatchItem[]; loading: boolean };
@@ -53,6 +70,8 @@ export default function WatchlistSection() {
   const [editId, setEditId]  = useState<string|null>(null);
   const [posters,setPosters] = useState<string[]>([]);
   const [searching,setSearching] = useState(false);
+  const [resolving,setResolving] = useState(false);
+  const [coverBroken,setCoverBroken] = useState(false);
 
   const visible = tab==="all"?items:items.filter(i=>i.status===tab);
 
@@ -64,12 +83,26 @@ export default function WatchlistSection() {
     if(results[0]&&!form.coverImage) setForm(f=>({...f,coverImage:results[0]}));
   },[form.title,form.type,form.coverImage]);
 
+  // When the poster field holds a page link rather than an image, swap in the
+  // real poster (og:image). Runs on blur so a paste resolves once you click away.
+  const resolveCover = useCallback(async()=>{
+    const u = form.coverImage.trim();
+    if(!u||looksLikeImage(u)||!/^https?:\/\//i.test(u))return;
+    setResolving(true);
+    const resolved = await resolvePosterUrl(u);
+    setResolving(false);
+    if(resolved&&resolved!==u) setForm(f=>f.coverImage.trim()===u?{...f,coverImage:resolved}:f);
+  },[form.coverImage]);
+
   async function save() {
     if(!form.title.trim())return;
     setSaving(true);
+    // Resolve a pasted page link to its poster before saving (covers paste →
+    // straight to save without blurring the field first).
+    const cover = await resolvePosterUrl(form.coverImage);
     const body = {
       title:form.title.trim(),type:form.type,status:form.status,
-      ...(form.coverImage.trim()&&{coverImage:form.coverImage.trim()}),
+      ...(cover.trim()&&{coverImage:cover.trim()}),
       ...(form.notes.trim()&&{notes:form.notes.trim()}),
       ...(form.rating&&{rating:Number(form.rating)}),
     };
@@ -283,24 +316,39 @@ export default function WatchlistSection() {
                   </div>
                 )}
 
-                <input placeholder="or paste image URL"
+                <input placeholder="or paste an image or page link (e.g. IMDb)"
                   value={form.coverImage}
-                  onChange={e=>setForm(f=>({...f,coverImage:e.target.value}))}
+                  onChange={e=>{setCoverBroken(false);setForm(f=>({...f,coverImage:e.target.value}));}}
+                  onBlur={resolveCover}
                   className="wl-inp" style={{...INP,width:"100%",boxSizing:"border-box"}} />
 
                 {form.coverImage&&(
                   <div style={{marginTop:"0.55rem",display:"flex",alignItems:"center",gap:"0.65rem"}}>
                     <div style={{width:42,height:64,borderRadius:8,overflow:"hidden",flexShrink:0,
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      background:"rgba(var(--pink-deep-rgb),.06)",
                       border:"1.5px solid rgba(var(--pink-deep-rgb),.2)"}}>
-                      <img src={form.coverImage} alt="" loading="lazy" decoding="async"
-                        style={{width:"100%",height:"100%",objectFit:"cover"}} />
+                      {resolving?(
+                        <span style={{fontSize:"1rem"}}>⏳</span>
+                      ):coverBroken?(
+                        <span title="couldn't load this image" style={{fontSize:"1.1rem"}}>🖼️</span>
+                      ):(
+                        <img src={form.coverImage} alt="" loading="lazy" decoding="async"
+                          onError={()=>setCoverBroken(true)}
+                          style={{width:"100%",height:"100%",objectFit:"cover"}} />
+                      )}
                     </div>
-                    <button onClick={()=>setForm(f=>({...f,coverImage:""}))}
+                    <button onClick={()=>{setCoverBroken(false);setForm(f=>({...f,coverImage:""}));}}
                       style={{fontFamily:SANS,fontSize:"0.68rem",color:"var(--pink-deep)",
                         background:"rgba(var(--pink-deep-rgb),.08)",border:"none",
                         borderRadius:8,padding:"0.25rem 0.6rem",cursor:"pointer"}}>
                       remove
                     </button>
+                    {coverBroken&&!resolving&&(
+                      <span style={{fontFamily:SANS,fontSize:"0.66rem",color:"rgba(var(--pink-deep-rgb),.55)"}}>
+                        couldn&apos;t load — try “find poster” or a direct image link
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

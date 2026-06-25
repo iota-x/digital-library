@@ -184,6 +184,11 @@ export default function AvatarEditor({ open, onClose, currentUrl }: Props) {
               position: "fixed", zIndex: 9981, top: "50%", left: "50%", transform: "translate(-50%,-50%)",
               width: "min(380px, 94vw)", background: "var(--cream)", border: "1.5px solid var(--pink-mid)",
               borderRadius: 24, padding: "1.6rem 1.4rem", textAlign: "center",
+              // Cap to the viewport and scroll inside — the 300px crop window +
+              // slider + buttons otherwise overflowed short screens, forcing a
+              // zoom-out to reach "save".
+              maxHeight: "calc(100dvh - 2rem)",
+              overflowY: "auto",
               boxShadow: "0 32px 80px rgba(var(--pink-deep-rgb),.3)",
             }}
           >
