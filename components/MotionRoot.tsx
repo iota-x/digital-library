@@ -13,5 +13,20 @@ export default function MotionRoot({ children }: { children: ReactNode }) {
     window.addEventListener(UIPREFS_EVENT, sync);
     return () => window.removeEventListener(UIPREFS_EVENT, sync);
   }, []);
+
+  // Pause decorative CSS animations while the tab is backgrounded — there's no
+  // point compositing petals/orbs/glows nobody is looking at. (framer-motion's
+  // rAF loop is already throttled by the browser when hidden; CSS keyframes are
+  // not, so they keep the GPU busy until we explicitly pause them.)
+  useEffect(() => {
+    const onVis = () => document.documentElement.classList.toggle("tab-hidden", document.hidden);
+    onVis();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      document.documentElement.classList.remove("tab-hidden");
+    };
+  }, []);
+
   return <MotionConfig reducedMotion={reduce ? "always" : "user"}>{children}</MotionConfig>;
 }

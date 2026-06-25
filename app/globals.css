@@ -1014,6 +1014,14 @@ html.no-ambient .occ-icon-bounce,
 html.no-ambient .occ-fire-icon,
 html.no-ambient .ambient-orb { display: none !important; }
 
+/* Tab backgrounded (set by MotionRoot on visibilitychange) — freeze every CSS
+   keyframe animation so decorative motion stops burning GPU/CPU while nobody is
+   looking. Resumes from where it paused on return. Only CSS animations are
+   affected; framer-motion's rAF loop is already throttled by the browser. */
+html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after {
+  animation-play-state: paused !important;
+}
+
 /* ── Immersive backgrounds (html.immersive) ─────────────────────────
    The accent gradient washes the whole page instead of staying neutral. The
    body carries a fixed two-tone wash; sections go transparent so it shows

@@ -7,6 +7,7 @@ import { useFocusTrap } from "@/lib/useFocusTrap";
 import { useConfirm } from "@/components/ConfirmDialog";
 import Tip from "@/components/Tip";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import IsolatedTextarea from "@/components/IsolatedTextarea";
 
 interface Page { icon: string; accent: string; bg: string; text: string }
 
@@ -908,10 +909,10 @@ export default function Final() {
 
               <label style={{ display:"flex", flexDirection:"column", gap:"0.35rem" }}>
                 <span style={{ fontFamily:SANS, fontSize:"0.7rem", color:"var(--muted)", letterSpacing:"0.14em", textTransform:"uppercase" }}>your note</span>
-                <textarea
+                <IsolatedTextarea
                   autoFocus
                   value={editor.text}
-                  onChange={e => setEditor(s => s ? { ...s, text: e.target.value } : s)}
+                  onCommit={t => setEditor(s => s ? { ...s, text: t } : s)}
                   placeholder="write something you always want them to remember…"
                   rows={7}
                   style={{

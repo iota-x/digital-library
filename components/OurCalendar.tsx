@@ -484,6 +484,59 @@ function MediaUploadZone({ onFiles, busy }: { onFiles: (files: File[]) => void; 
   );
 }
 
+/* ─── journal note field ─────────────────────────────────────────────────────
+   Isolated so typing doesn't re-render the entire DayView modal on every
+   keystroke. It owns its own text state and only pushes up to the shared draft
+   on a short debounce (and immediately on blur / before unmount). The parent's
+   autosave then runs off those committed values instead of every character —
+   which is what kept the gradient header, mood grid, media zone and ~15
+   framer-motion elements reconciling on each key, heating up the machine.
+   ────────────────────────────────────────────────────────────────────────── */
+const NoteField = React.memo(function NoteField({ value, onCommit }: {
+  value: string; onCommit: (v: string) => void;
+}) {
+  const [local, setLocal] = useState(value);
+  const localRef = useRef(local); localRef.current = local;
+  const timer    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Last value we received from / pushed to the parent. Used to tell a genuine
+  // external change (adopt it) apart from the parent simply echoing back our own
+  // committed value — or re-rendering for an unrelated reason while we're still
+  // mid-edit (must NOT clobber the live text).
+  const synced = useRef(value);
+
+  useEffect(() => {
+    if (value !== synced.current) { synced.current = value; setLocal(value); }
+  }, [value]);
+
+  const commit = useCallback((v: string) => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    synced.current = v;
+    onCommit(v);
+  }, [onCommit]);
+
+  // Flush any pending edit if the field unmounts (e.g. tab switch / close)
+  useEffect(() => () => {
+    if (timer.current) { clearTimeout(timer.current); onCommit(localRef.current); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <textarea
+      value={local}
+      onChange={e => {
+        const v = e.target.value;
+        setLocal(v);
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => commit(v), 250);
+      }}
+      onBlur={() => commit(localRef.current)}
+      placeholder={"Write about this day…\n\nHow did it feel? What do you want to remember? 🌸"}
+      rows={6}
+      style={{ width: "100%", padding: "1rem 1rem 1rem 1.4rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(var(--pink-deep-rgb),.16)", borderRadius: 12, resize: "vertical", fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)", color: "var(--text)", outline: "none", boxSizing: "border-box", lineHeight: 1.9, caretColor: "var(--pink)", letterSpacing: "0.01em" }}
+    />
+  );
+});
+
 /* ─── day view portal ─── */
 function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthdayLabel }: {
   dateKey: string; entry: Partial<CalEntry>; originRect: DOMRect | null;
@@ -625,6 +678,12 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
 
   const setStickersFor = useCallback((url: string, next: Sticker[]) => {
     setDraft(d => ({ ...d, photoStickers: { ...(d.photoStickers || {}), [url]: next } }));
+  }, []);
+
+  // Stable so NoteField's React.memo holds — only updates the note when it
+  // actually changed, so an unchanged commit (e.g. blur with no edit) is a no-op.
+  const commitNote = useCallback((note: string) => {
+    setDraft(d => (d.note === note ? d : { ...d, note }));
   }, []);
 
   // Init the baseline on mount so opening an entry doesn't flag it dirty
@@ -882,10 +941,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
                 {/* Note */}
                 <div>
                   <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(var(--pink-rgb),.45)", marginBottom: "0.6rem", letterSpacing: "0.14em", textTransform: "uppercase" }}>Journal</p>
-                  <textarea value={draft.note} onChange={e => setDraft(d => ({ ...d, note: e.target.value }))}
-                    placeholder={"Write about this day…\n\nHow did it feel? What do you want to remember? 🌸"}
-                    rows={6}
-                    style={{ width: "100%", padding: "1rem 1rem 1rem 1.4rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(var(--pink-deep-rgb),.16)", borderRadius: 12, resize: "vertical", fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)", color: "var(--text)", outline: "none", boxSizing: "border-box", lineHeight: 1.9, caretColor: "var(--pink)", letterSpacing: "0.01em" }} />
+                  <NoteField value={draft.note} onCommit={commitNote} />
                 </div>
 
                 {/* Special */}

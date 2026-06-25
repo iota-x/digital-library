@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useUserData } from "@/lib/userStore";
 import { getLoveNotes } from "@/lib/themes";
@@ -134,24 +134,46 @@ function getDurationPill(start: Date): string {
     : `🎀 ${y} year${y !== 1 ? "s" : ""} of us`;
 }
 
+/* The per-second tick lives here, isolated from the section, so the 1Hz
+   setInterval re-renders only the four counter boxes — not the whole LiveTimer
+   section with its floaters, side notes and stat pills (which was reconciling
+   60×/min the entire time this screen was visible). */
+function LiveCounters({ start, inView }: { start: Date; inView: boolean }) {
+  const [time, setTime] = useState<ReturnType<typeof getElapsed> | null>(null);
+  useEffect(() => {
+    setTime(getElapsed(start));
+    const id = setInterval(() => setTime(getElapsed(start)), 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [start.getTime()]);
+
+  return (
+    <div style={{ display:"flex", flexWrap:"wrap", gap:"clamp(0.8rem,2vw,2rem)", justifyContent:"center", marginBottom:"2.5rem" }}>
+      {time ? (
+        <>
+          <CounterBox label="days"    value={time.days}  delay={0.3}  inView={inView} />
+          <CounterBox label="hours"   value={time.hours} delay={0.45} inView={inView} />
+          <CounterBox label="minutes" value={time.mins}  delay={0.6}  inView={inView} />
+          <CounterBox label="seconds" value={time.secs}  delay={0.75} inView={inView} />
+        </>
+      ) : (
+        [0,1,2,3].map(i => (
+          <div key={i} style={{ width:"clamp(90px,16vw,130px)", height:"clamp(90px,16vw,130px)", borderRadius:20, background:"rgba(255,255,255,.6)", border:"2px solid var(--pink)" }} />
+        ))
+      )}
+    </div>
+  );
+}
+
 export default function LiveTimer() {
   const userData  = useUserData();
   const loveNotes = isAnkitJuhi(userData?.name, userData?.partnerName)
     ? ANKIT_JUHI_NOTES
     : getLoveNotes(userData?.settings);
   const START = startDateFrom(userData?.startDate, true);
-  const [time, setTime] = useState<ReturnType<typeof getElapsed>|null>(null);
-  const [durationPill, setDurationPill] = useState("🎀 our journey");
+  const durationPill = useMemo(() => getDurationPill(START), [START.getTime()]); // eslint-disable-line react-hooks/exhaustive-deps
   const ref    = useRef(null);
   const inView = useInView(ref, { once:true, margin:"-80px" });
-
-  useEffect(() => {
-    setTime(getElapsed(START));
-    setDurationPill(getDurationPill(START));
-    const id = setInterval(() => setTime(getElapsed(START)), 1000);
-    return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [START.getTime()]);
 
   return (
     <section
@@ -238,21 +260,8 @@ export default function LiveTimer() {
           every second counts, and i&apos;m counting every one 🩷
         </motion.p>
 
-        {/* timer boxes */}
-        <div style={{ display:"flex", flexWrap:"wrap", gap:"clamp(0.8rem,2vw,2rem)", justifyContent:"center", marginBottom:"2.5rem" }}>
-          {time ? (
-            <>
-              <CounterBox label="days"    value={time.days}  delay={0.3}  inView={inView} />
-              <CounterBox label="hours"   value={time.hours} delay={0.45} inView={inView} />
-              <CounterBox label="minutes" value={time.mins}  delay={0.6}  inView={inView} />
-              <CounterBox label="seconds" value={time.secs}  delay={0.75} inView={inView} />
-            </>
-          ) : (
-            [0,1,2,3].map(i => (
-              <div key={i} style={{ width:"clamp(90px,16vw,130px)", height:"clamp(90px,16vw,130px)", borderRadius:20, background:"rgba(255,255,255,.6)", border:"2px solid var(--pink)" }} />
-            ))
-          )}
-        </div>
+        {/* timer boxes — isolated so the per-second tick doesn't re-render the section */}
+        <LiveCounters start={START} inView={inView} />
 
         {/* and still counting */}
         <motion.div

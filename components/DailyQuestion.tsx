@@ -7,6 +7,7 @@ import { todayKey } from "@/lib/dailyQuestions";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { heartBump, buzz } from "@/lib/haptics";
 import SectionGlow from "@/components/SectionGlow";
+import IsolatedTextarea from "@/components/IsolatedTextarea";
 
 interface DailyView {
   date: string;
@@ -236,9 +237,9 @@ export default function DailyQuestion() {
                     {partnerName} already answered — add yours to reveal both 💌
                   </p>
                 )}
-                <textarea
+                <IsolatedTextarea
                   value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
+                  onCommit={setDraft}
                   placeholder="write it just for them…"
                   rows={3}
                   autoFocus={editing}
