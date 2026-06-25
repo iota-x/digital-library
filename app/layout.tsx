@@ -11,6 +11,7 @@ import DarkOverlay     from "@/components/DarkOverlay";
 import AppShell        from "@/components/AppShell";
 import MotionRoot     from "@/components/MotionRoot";
 import MobileTabBar   from "@/components/MobileTabBar";
+import PerfMonitor    from "@/components/PerfMonitor";
 import PageviewTracker from "@/components/PageviewTracker";
 import { ConfirmProvider } from "@/components/ConfirmDialog";
 import { ToasterProvider } from "@/components/Toaster";
@@ -90,13 +91,19 @@ export const viewport = {
 // accent's CSS variables. So when an accent is cached, skip the theme class.
 const THEME_BOOTSTRAP = `(function(){try{var a=localStorage.getItem('ann_accent_vars');var t=localStorage.getItem('ann_color_theme');if(t&&t!=='pink'&&!a)document.documentElement.classList.add('theme-'+t);if(a){var m=JSON.parse(a);for(var k in m)document.documentElement.style.setProperty(k,m[k]);}if(localStorage.getItem('ann_reduce_motion')==='1')document.documentElement.classList.add('reduce-motion');if(localStorage.getItem('ann_hide_ambient')==='1')document.documentElement.classList.add('no-ambient');var fp=localStorage.getItem('ann_font_pairing');if(fp&&fp!=='romantic')document.documentElement.classList.add('font-'+fp);if(localStorage.getItem('ann_immersive')==='1')document.documentElement.classList.add('immersive');var pbg=localStorage.getItem('ann_page_bg');if(pbg){document.documentElement.classList.add('custom-bg');document.documentElement.style.setProperty('--page-bg-image',pbg);}}catch(e){}})();`;
 
+// Pick the adaptive performance tier before first paint so weak devices never
+// flash the heavy UI. Forced mode > last measured tier (auto) > a guess from
+// static device hints. The live PerfMonitor refines it after load. Keep in sync
+// with guessTierFromHints() in lib/perfTier.ts.
+const PERF_BOOTSTRAP = `(function(){try{var pm=localStorage.getItem('ann_perf_mode');var t;if(pm==='high'||pm==='mid'||pm==='low'){t=pm;}else{t=localStorage.getItem('ann_perf_tier');if(t!=='high'&&t!=='mid'&&t!=='low'){var rm=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;var c=navigator.connection;var mem=navigator.deviceMemory;var co=navigator.hardwareConcurrency||0;if(rm||(c&&c.saveData))t='low';else if((mem&&mem<=2)||(co&&co<=2))t='low';else if((mem&&mem<=4)||(co&&co<=4))t='mid';else t='high';}}document.documentElement.classList.add('perf-'+t);}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // suppressHydrationWarning: the bootstrap script mutates <html> class/style
     // before hydration, which is expected and must not warn.
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP + PERF_BOOTSTRAP }} />
       </head>
       <body className={`${playfair.variable} ${caveat.variable} ${lato.variable}`}>
         <MotionRoot>
@@ -110,6 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <CommandPalette />
               <SwipeNav />
               <PwaRegister />
+              <PerfMonitor />
               <MobileTabBar />
               <PageviewTracker />
               {/* Keyboard skip link — visually hidden until focused */}

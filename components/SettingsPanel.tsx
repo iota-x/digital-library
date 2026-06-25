@@ -7,6 +7,7 @@ import { uploadToCloudinary } from "@/lib/cloudUpload";
 import { usePathname } from "next/navigation";
 import { HOME_SECTIONS, orderedKeys } from "@/lib/sections";
 import { getReduceMotion, getHideAmbient, setReduceMotion, setHideAmbient } from "@/lib/uiPrefs";
+import { getPerfMode, setPerfMode, type PerfMode } from "@/lib/perfTier";
 import { resolvePlaylistId } from "@/lib/spotify";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { publicEnv } from "@/lib/env";
@@ -173,6 +174,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   // Per-device motion/effects prefs (apply instantly, not part of the save).
   const [calmMode,    setCalmMode]    = useState(false);
   const [noAmbient,   setNoAmbient]   = useState(false);
+  const [perfMode,    setPerfModeState] = useState<PerfMode>("auto");
   const [bgUploading, setBgUploading] = useState(false);
   const [bgErr,       setBgErr]       = useState("");
   // Tabbed navigation + search across all settings.
@@ -181,7 +183,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   // Referral / "spread the love" state — code + how many couples brought in.
   const [referral,    setReferral]    = useState<{ code: string; count: number } | null>(null);
   const [refCopied,   setRefCopied]   = useState(false);
-  useEffect(() => { setCalmMode(getReduceMotion()); setNoAmbient(getHideAmbient()); }, []);
+  useEffect(() => { setCalmMode(getReduceMotion()); setNoAmbient(getHideAmbient()); setPerfModeState(getPerfMode()); }, []);
   useEffect(() => {
     if (!open || referral) return;
     let cancelled = false;
@@ -722,7 +724,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 </p>
               )}
 
-              <TabSection tab="appearance" active={tab} q={search} kw="photo avatar picture profile colour color theme gradient accent hex saved per-page per page typography font fonts immersive background page wallpaper signature cursor greeting tagline motion effects calm reduce decorations animation">
+              <TabSection tab="appearance" active={tab} q={search} kw="photo avatar picture profile colour color theme gradient accent hex saved per-page per page typography font fonts immersive background page wallpaper signature cursor greeting tagline motion effects calm reduce decorations animation performance battery speed lite plain lag fps device">
               {/* ─── Your photo ─── */}
               <GroupLabel>📸 your photo</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.6rem", lineHeight: 1.5 }}>
@@ -1156,6 +1158,32 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 <SectionRow label="🌸 Floating decorations" on={!noAmbient}
                   onChange={() => { const v = !noAmbient; setNoAmbient(v); setHideAmbient(v); }} />
               </div>
+
+              {/* ─── Performance (adaptive visual tier) ─── */}
+              <GroupLabel>⚡ performance</GroupLabel>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.5rem" }}>
+                {([
+                  { id: "auto", emoji: "🤖", name: "Auto", desc: "match this device" },
+                  { id: "high", emoji: "✨", name: "Full",  desc: "all the effects" },
+                  { id: "mid",  emoji: "🌿", name: "Plain", desc: "lighter, calmer" },
+                  { id: "low",  emoji: "🪶", name: "Lite",  desc: "max battery" },
+                ] as { id: PerfMode; emoji: string; name: string; desc: string }[]).map(o => {
+                  const active = perfMode === o.id;
+                  return (
+                    <motion.button key={o.id} whileTap={{ scale: 0.97 }}
+                      onClick={() => { setPerfModeState(o.id); setPerfMode(o.id); }}
+                      style={{ padding: "0.6rem 0.7rem", borderRadius: 10, cursor: "pointer", textAlign: "left",
+                        border: active ? "1.5px solid var(--pink-deep)" : "1.5px solid rgba(var(--pink-mid-rgb,249,168,212),.4)",
+                        background: active ? "rgba(var(--pink-rgb),.12)" : "var(--pink-light)", transition: "border .15s, background .15s" }}>
+                      <div style={{ fontFamily: SANS, fontSize: "0.92rem", color: "var(--pink-deep)", fontWeight: 600, lineHeight: 1.2 }}>{o.emoji} {o.name}</div>
+                      <div style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)" }}>{o.desc}</div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+              <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.5rem 0 0", lineHeight: 1.45 }}>
+                Auto watches how smoothly this device runs and dials the visuals down if it starts to struggle. Pick a level yourself to override.
+              </p>
 
               </TabSection>
 

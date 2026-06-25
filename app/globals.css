@@ -1022,6 +1022,36 @@ html.tab-hidden *, html.tab-hidden *::before, html.tab-hidden *::after {
   animation-play-state: paused !important;
 }
 
+/* ── Adaptive performance tiers (set by the bootstrap + PerfMonitor) ──
+   Auto-chosen per device so weak phones don't melt under the full effect stack.
+     perf-high  full heavy UI — no restrictions (no rules needed)
+     perf-mid   "plain": drop ambient decorations + the GPU-heavy backdrop blur,
+                keep motion/transitions
+     perf-low   "lite":  everything in mid + freeze animations & transitions    */
+html.perf-mid .occ-petal,  html.perf-low .occ-petal,
+html.perf-mid .occ-star,   html.perf-low .occ-star,
+html.perf-mid .occ-deco,   html.perf-low .occ-deco,
+html.perf-mid .ambient-orb, html.perf-low .ambient-orb { display: none !important; }
+
+/* backdrop-filter is the single biggest GPU/heat cost. The !important here
+   overrides the inline `backdropFilter` set on components (modals, chips). */
+html.perf-mid *, html.perf-mid *::before, html.perf-mid *::after,
+html.perf-low *, html.perf-low *::before, html.perf-low *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* perf-low: calm the device right down — same short-circuit as reduce-motion. */
+html.perf-low *, html.perf-low *::before, html.perf-low *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+html.perf-low .occ-heart,
+html.perf-low .occ-icon-bounce,
+html.perf-low .occ-fire-icon { animation: none !important; transform: none !important; }
+
 /* ── Immersive backgrounds (html.immersive) ─────────────────────────
    The accent gradient washes the whole page instead of staying neutral. The
    body carries a fixed two-tone wash; sections go transparent so it shows
