@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, partnerDisplayName } from "@/lib/userStore";
 import { usePartnerPresence } from "@/lib/presenceStore";
 import DoodleCanvas from "@/components/DoodleCanvas";
 import CuteTooltip from "@/components/CuteTooltip";
@@ -23,7 +23,7 @@ export default function TogetherMode() {
   const [showBanner, setShowBanner] = useState(false);
   const [tip, setTip] = useState(false);
   const celebrated = useRef(false);
-  const partnerFirst = (partner.name || user?.partnerName || "them").trim().split(" ")[0];
+  const partnerFirst = (partnerDisplayName(user) || partner.name || "them").trim().split(" ")[0];
 
   // Celebrate the *transition* into togetherness (rising edge), then keep the
   // banner up while both are online; let it dismiss when the partner goes quiet.

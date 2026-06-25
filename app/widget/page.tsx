@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { fetchUserData, useUserData } from "@/lib/userStore";
+import { fetchUserData, useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { daysTogether } from "@/lib/relationship";
 import { SERIF, SANS } from "@/lib/typography";
 
@@ -24,7 +24,7 @@ export default function WidgetPage() {
   }, []);
 
   const days = daysTogether(user?.startDate);
-  const names = [user?.name, user?.partnerName].filter(Boolean).join(" & ");
+  const names = [displayName(user), partnerDisplayName(user)].filter(Boolean).join(" & ");
 
   return (
     <main

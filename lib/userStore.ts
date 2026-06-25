@@ -9,6 +9,14 @@ export interface UserInfo {
   name:        string;
   role:        "creator" | "partner";
   partnerName: string | null;
+  /** Affectionate name the partner gave the signed-in user. Shown in place of
+   *  `name` (for both partners) when `nicknameOn` is true. Null if unset. */
+  nickname:    string | null;
+  nicknameOn:  boolean;
+  /** Nickname the signed-in user gave their partner. Shown in place of
+   *  `partnerName` (for both) when `partnerNicknameOn` is true. */
+  partnerNickname:   string | null;
+  partnerNicknameOn: boolean;
   /** The signed-in user's cropped square avatar (Cloudinary URL) — null if unset. */
   avatarUrl:        string | null;
   /** The partner's avatar — null if they haven't set one. */
@@ -62,6 +70,10 @@ export async function fetchUserData(): Promise<UserInfo | null> {
       name:        data.name,
       role:        data.role,
       partnerName: data.partnerName ?? null,
+      nickname:          data.nickname          ?? null,
+      nicknameOn:        data.nicknameOn         === true,
+      partnerNickname:   data.partnerNickname    ?? null,
+      partnerNicknameOn: data.partnerNicknameOn  === true,
       avatarUrl:        data.avatarUrl        ?? null,
       partnerAvatarUrl: data.partnerAvatarUrl ?? null,
       inviteCode:  data.inviteCode  ?? null,
@@ -104,6 +116,21 @@ export function updateAvatar(which: "me" | "partner", url: string | null): void 
     ? { ..._user, avatarUrl: url }
     : { ..._user, partnerAvatarUrl: url };
   persist(_user); notify(_user);
+}
+
+/** The name to *show* for the signed-in user — their nickname if the partner
+ *  set one and it's switched on, otherwise their given name. Use this for any
+ *  user-facing label; keep `name` for identity checks (e.g. isAnkitJuhi). */
+export function displayName(u: UserInfo | null | undefined): string {
+  if (!u) return "";
+  return u.nicknameOn && u.nickname ? u.nickname : u.name;
+}
+
+/** The name to *show* for the partner — nickname (set by the signed-in user) if
+ *  switched on, otherwise their given name. */
+export function partnerDisplayName(u: UserInfo | null | undefined): string {
+  if (!u) return "";
+  return u.partnerNicknameOn && u.partnerNickname ? u.partnerNickname : (u.partnerName ?? "");
 }
 
 export function useUserData(): UserInfo | null {

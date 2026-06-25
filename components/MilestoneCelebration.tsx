@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 
 
@@ -57,7 +57,7 @@ export default function MilestoneCelebration() {
   };
 
   const coupleName = user?.settings?.coupleName?.trim() ||
-    (user?.partnerName ? `${user.name} & ${user.partnerName}` : "you two");
+    (user?.partnerName ? `${displayName(user)} & ${partnerDisplayName(user)}` : "you two");
 
   return (
     <AnimatePresence>

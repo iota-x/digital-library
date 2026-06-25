@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { TRUTHS, DARES } from "@/lib/playDecks";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
@@ -21,7 +21,7 @@ export default function TruthOrDare() {
   const [turn, setTurn] = useState(0); // 0 = you, 1 = partner
   const lastRef = useRef("");
 
-  const names = [user?.name || "you", user?.partnerName || "them"];
+  const names = [displayName(user) || "you", partnerDisplayName(user) || "them"];
 
   const draw = (k: "truth" | "dare") => {
     buzz(k === "dare" ? "double" : "tap");

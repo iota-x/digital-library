@@ -3,7 +3,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useUserData, clearUserData, updateUserData } from "@/lib/userStore";
+import { useUserData, clearUserData, updateUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { invalidateCalendarCache } from "@/lib/calendarStore";
 import { useToast } from "@/components/Toaster";
 import { useConfirm } from "@/components/ConfirmDialog";
@@ -192,7 +192,7 @@ export default function Navbar() {
                   borderRadius: 50, padding: "0.3rem 0.55rem", cursor: "pointer",
                   fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--pink-deep)", fontWeight: 600,
                 }}>
-                <span>🌸</span><span className="nav-desktop">{user.name}</span>
+                <span>🌸</span><span className="nav-desktop">{displayName(user)}</span>
               </motion.button>
 
               <AnimatePresence>
@@ -206,9 +206,9 @@ export default function Navbar() {
                       padding: "1rem", minWidth: 230, boxShadow: `0 12px 40px rgba(var(--pink-rgb,244,114,182),0.2)`, zIndex: 600,
                     }}>
                     <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.72rem", color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase", margin: "0 0 0.4rem" }}>signed in as</p>
-                    <p style={{ fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "1rem", color: "var(--pink-deep)", margin: "0 0 0.8rem", fontWeight: 400 }}>{user.name}</p>
+                    <p style={{ fontFamily: '"Georgia","Times New Roman",serif', fontStyle: "italic", fontSize: "1rem", color: "var(--pink-deep)", margin: "0 0 0.8rem", fontWeight: 400 }}>{displayName(user)}</p>
                     {user.partnerName ? (
-                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 0.8rem" }}>with {user.partnerName} 💗</p>
+                      <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.8rem", color: "var(--muted)", margin: "0 0 0.8rem" }}>with {partnerDisplayName(user)} 💗</p>
                     ) : (
                       <p style={{ fontFamily: "var(--font-lato),'Inter',system-ui,sans-serif", fontSize: "0.78rem", color: "var(--muted)", margin: "0 0 0.8rem", fontStyle: "italic", opacity: 0.7 }}>partner not joined yet</p>
                     )}

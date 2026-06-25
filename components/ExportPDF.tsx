@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { motion, AnimatePresence } from "framer-motion";
 import BgAccents from "@/components/BgAccents";
 import { SERIF, SANS, MONO } from "@/lib/typography";
@@ -26,7 +26,7 @@ export default function ExportPDF() {
   const dayNum = useMemo(() => makeDayNum(startDate), [startDate]);
 
   const coupleName = userData?.settings?.coupleName?.trim() ||
-    (userData?.partnerName ? `${userData.name} & ${userData.partnerName}` : "our story");
+    (userData?.partnerName ? `${displayName(userData)} & ${partnerDisplayName(userData)}` : "our story");
 
   const [loading,    setLoading]    = useState(false);
   const [preview,    setPreview]    = useState(false);

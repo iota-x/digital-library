@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, partnerDisplayName } from "@/lib/userStore";
 import { SANS } from "@/lib/typography";
 
 /**
@@ -64,7 +64,7 @@ export default function DateReminders() {
     const firstName = (n: string | null) => (n || "").trim().split(" ")[0];
 
     push("bday-partner", partnerBday, "🎂", (d) =>
-      d === 0 ? `it's ${firstName(user.partnerName) || "their"} birthday today 🎉` : `${firstName(user.partnerName) || "their"}'s birthday is ${d === 1 ? "tomorrow" : `in ${d} days`}`);
+      d === 0 ? `it's ${firstName(partnerDisplayName(user)) || "their"} birthday today 🎉` : `${firstName(partnerDisplayName(user)) || "their"}'s birthday is ${d === 1 ? "tomorrow" : `in ${d} days`}`);
     push("bday-me", myBday, "🎂", (d) =>
       d === 0 ? `it's your birthday today 🎉` : `your birthday is ${d === 1 ? "tomorrow" : `in ${d} days`}`);
 

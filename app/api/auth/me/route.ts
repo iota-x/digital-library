@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
     let inviteCode:  string | null = null;
     let startDate                  = DEFAULT_START_DATE;
     let partnerName: string | null = null;
+    let nickname:          string | null = null;
+    let nicknameOn                       = false;
+    let partnerNickname:   string | null = null;
+    let partnerNicknameOn                = false;
     let avatarUrl:        string | null = null;
     let partnerAvatarUrl: string | null = null;
     let settings                   = DEFAULT_SETTINGS;
@@ -46,6 +50,12 @@ export async function GET(req: NextRequest) {
         startDate   = couple.startDate  ?? DEFAULT_START_DATE;
         const isCreator = session.role === "creator";
         partnerName      = (isCreator ? couple.person2Name   : couple.person1Name)   ?? null;
+        // A person's own nickname lives on their person slot (set by the other);
+        // the partner's nickname lives on the partner's slot (set by this user).
+        nickname          = (isCreator ? couple.person1Nickname   : couple.person2Nickname)   ?? null;
+        nicknameOn        = (isCreator ? couple.person1NicknameOn : couple.person2NicknameOn) === true;
+        partnerNickname   = (isCreator ? couple.person2Nickname   : couple.person1Nickname)   ?? null;
+        partnerNicknameOn = (isCreator ? couple.person2NicknameOn : couple.person1NicknameOn) === true;
         avatarUrl        = (isCreator ? couple.person1Avatar  : couple.person2Avatar) ?? null;
         partnerAvatarUrl = (isCreator ? couple.person2Avatar  : couple.person1Avatar) ?? null;
         settings    = couple.settings ?? DEFAULT_SETTINGS;
@@ -59,6 +69,10 @@ export async function GET(req: NextRequest) {
       name:        session.name,
       role:        session.role,
       partnerName,
+      nickname,
+      nicknameOn,
+      partnerNickname,
+      partnerNicknameOn,
       avatarUrl,
       partnerAvatarUrl,
       inviteCode,

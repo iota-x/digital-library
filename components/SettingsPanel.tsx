@@ -146,6 +146,11 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [saveErr, setSaveErr] = useState("");
   const [draft,   setDraft]   = useState<CoupleSettings>(DEFAULT_SETTINGS);
   const [startDate,   setStartDate]   = useState("");
+  // Nickname the user gives their partner (saved via its own endpoint, not the
+  // settings blob). `nickOnDraft` toggles whether it's shown instead of the
+  // given name — for both partners.
+  const [nickDraft,   setNickDraft]   = useState("");
+  const [nickOnDraft, setNickOnDraft] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
   const [pushErr,     setPushErr]     = useState("");
@@ -197,8 +202,11 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const didSaveRef       = useRef(false);
   const initialDraftRef  = useRef<string>("");
   const initialDateRef   = useRef<string>("");
+  const initialNickRef   = useRef<string>("");
+  const initialNickOnRef = useRef<boolean>(false);
   // True when the draft differs from what was last loaded — drives the save-button glow
-  const dirty = JSON.stringify(draft) !== initialDraftRef.current || startDate !== initialDateRef.current;
+  const dirty = JSON.stringify(draft) !== initialDraftRef.current || startDate !== initialDateRef.current
+    || nickDraft !== initialNickRef.current || nickOnDraft !== initialNickOnRef.current;
 
   // When opened with a focus target (e.g. the "add a playlist" prompt), scroll
   // that field into view and focus it once the open animation has settled.
@@ -248,8 +256,12 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       setHexInput(merged.customAccent ?? "");
       setHexInput2(merged.customAccent2 ?? "");
       setStartDate(user.startDate ?? "");
+      setNickDraft(user.partnerNickname ?? "");
+      setNickOnDraft(user.partnerNicknameOn ?? false);
       initialDraftRef.current = JSON.stringify(merged);
       initialDateRef.current  = user.startDate ?? "";
+      initialNickRef.current   = user.partnerNickname ?? "";
+      initialNickOnRef.current = user.partnerNicknameOn ?? false;
       // Only update originalTheme from server data when we haven't saved yet
       if (!didSaveRef.current) {
         originalThemeRef.current = user.settings.theme ?? "pink";
@@ -588,6 +600,24 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
         const body = await res.json().catch(() => ({}));
         setSaveErr(body?.error ?? `server error (${res.status})`);
         return;
+      }
+      // Partner nickname lives on its own endpoint (couple doc, not settings).
+      const nick = nickDraft.trim();
+      const nickOn = nick ? nickOnDraft : false;
+      if (nick !== (initialNickRef.current ?? "") || nickOn !== initialNickOnRef.current) {
+        const nres = await fetch("/api/couples/nickname", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nickname: nick, on: nickOn }),
+        });
+        if (!nres.ok) {
+          const body = await nres.json().catch(() => ({}));
+          setSaveErr(body?.error ?? `couldn't save nickname (${nres.status})`);
+          return;
+        }
+        updateUserData({ partnerNickname: nick || null, partnerNicknameOn: nickOn });
+        initialNickRef.current   = nick;
+        initialNickOnRef.current = nickOn;
       }
       try { localStorage.setItem("ann_color_theme", draft.theme); } catch {}
       updateSettings(draft);
@@ -1129,7 +1159,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
 
               </TabSection>
 
-              <TabSection tab="account" active={tab} q={search} kw="couple name title relationship start date anniversary">
+              <TabSection tab="account" active={tab} q={search} kw="couple name title relationship start date anniversary nickname pet name partner babe love">
               {/* ─── Couple name ─── */}
               <GroupLabel>💑 couple name</GroupLabel>
               <input
@@ -1144,6 +1174,37 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                   color: "var(--text)", caretColor: "var(--pink-deep)",
                 }}
               />
+
+              {/* ─── Partner nickname ─── */}
+              <GroupLabel>💕 {(user?.partnerName?.trim().split(" ")[0]) || "partner"}&rsquo;s nickname</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.5rem", lineHeight: 1.5 }}>
+                {user?.partnerName
+                  ? <>A sweet name for {user.partnerName.trim().split(" ")[0]}. When switched on, it shows everywhere instead of their name — for both of you. 💗</>
+                  : <>Once your partner joins, you can give them a sweet little nickname here.</>}
+              </p>
+              <input
+                value={nickDraft}
+                onChange={e => setNickDraft(e.target.value)}
+                disabled={!user?.partnerName}
+                placeholder={user?.partnerName ? "babe, my love, cutie…" : "waiting for your partner…"}
+                maxLength={40}
+                style={{
+                  width: "100%", boxSizing: "border-box",
+                  padding: "0.7rem 1rem", borderRadius: 10, marginTop: "0.1rem",
+                  border: "1.5px solid var(--pink-mid)", outline: "none",
+                  background: "var(--pink-light)", fontFamily: SCRIPT, fontSize: "1rem",
+                  color: "var(--text)", caretColor: "var(--pink-deep)",
+                  opacity: user?.partnerName ? 1 : 0.55,
+                }}
+              />
+              {!!nickDraft.trim() && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.7rem 0 0.1rem", gap: "0.8rem" }}>
+                  <span style={{ fontFamily: SANS, fontSize: "0.84rem", color: "var(--text)" }}>
+                    Use &ldquo;{nickDraft.trim()}&rdquo; instead of {user?.partnerName?.trim().split(" ")[0] || "their name"}
+                  </span>
+                  <Toggle on={nickOnDraft} onChange={() => setNickOnDraft(v => !v)} />
+                </div>
+              )}
 
               {/* ─── Relationship start date ─── */}
               <GroupLabel>📅 relationship start date</GroupLabel>

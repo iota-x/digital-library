@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { useUserData, updateSettings } from "@/lib/userStore";
+import { useUserData, updateSettings, partnerDisplayName } from "@/lib/userStore";
 import { type CoupleSettings } from "@/lib/themes";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { buzz, heartBump } from "@/lib/haptics";
@@ -92,7 +92,7 @@ export default function LongDistance() {
   const settings = user?.settings;
   const myTz = settings?.timezones?.[mySlot(user?.role)];
   const theirTz = settings?.timezones?.[theirSlot(user?.role)];
-  const partnerName = user?.partnerName || "them";
+  const partnerName = partnerDisplayName(user) || "them";
 
   // Auto-store this device's timezone the first time, so the partner's clock
   // can render without any manual setup.

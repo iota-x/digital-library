@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { useFocusTrap } from "@/lib/useFocusTrap";
 import { SERIF, SCRIPT, SANS } from "@/lib/typography";
 import { chime, buzz } from "@/lib/haptics";
@@ -69,8 +69,8 @@ export default function BirthdayTakeover() {
     const s = userData.settings as unknown as Record<string, unknown>;
     const me  = typeof s?.userBirthday    === "string" ? s.userBirthday    : null;
     const them = typeof s?.partnerBirthday === "string" ? s.partnerBirthday : null;
-    if (me === md)   return { forName: userData.name || "you",                isSelf: true  };
-    if (them === md) return { forName: userData.partnerName || "your love",   isSelf: false };
+    if (me === md)   return { forName: displayName(userData) || "you",                isSelf: true  };
+    if (them === md) return { forName: partnerDisplayName(userData) || "your love",   isSelf: false };
     return null;
   }, [userData]);
 

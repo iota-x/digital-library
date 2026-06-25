@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion";
 import Image from "next/image";
-import { useUserData, updateAvatar } from "@/lib/userStore";
+import { useUserData, updateAvatar, displayName, partnerDisplayName } from "@/lib/userStore";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { startDateFrom } from "@/lib/relationship";
 import { onPartnerSSE } from "@/lib/sseClient";
@@ -211,8 +211,8 @@ export default function Polaroids() {
   const heroText = computeHeroText(startDate);
   const [editing, setEditing] = useState(false);
   const [heartTip, setHeartTip] = useState(false);
-  const meFirst = (userData?.name ?? "").trim().split(" ")[0];
-  const partnerFirst = (userData?.partnerName ?? "").trim().split(" ")[0];
+  const meFirst = displayName(userData).trim().split(" ")[0];
+  const partnerFirst = partnerDisplayName(userData).trim().split(" ")[0];
   const heartLabel = meFirst && partnerFirst ? `${meFirst} & ${partnerFirst} 💗` : "always us 💗";
 
   // Live-update the partner's polaroid when they change their photo.
@@ -274,10 +274,10 @@ export default function Polaroids() {
             // left, partner on the right. Each shows their own cropped avatar
             // (or a placeholder), and tapping your own opens the editor.
             const me = userData
-              ? { name: userData.name, avatar: userData.avatarUrl, mine: true }
+              ? { name: displayName(userData), avatar: userData.avatarUrl, mine: true }
               : null;
             const partner = userData
-              ? { name: userData.partnerName ?? "", avatar: userData.partnerAvatarUrl, mine: false }
+              ? { name: partnerDisplayName(userData), avatar: userData.partnerAvatarUrl, mine: false }
               : null;
             const isCreator = userData?.role === "creator";
             // For Ankit + Juhi, keep the original hand-placed photos (force the

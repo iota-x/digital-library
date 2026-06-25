@@ -1,7 +1,8 @@
 "use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { useUserData } from "@/lib/userStore";
+import { useUserData, getUser, updateUserData } from "@/lib/userStore";
+import { onSSE } from "@/lib/sseClient";
 import { THEMES, FONT_PAIRINGS, cursorCss, pageAccentKey } from "@/lib/themes";
 import { applyAccent, reapplyAccent } from "@/lib/themeColor";
 
@@ -72,6 +73,22 @@ export default function ThemeProvider() {
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute("content", accent || THEME_COLORS[themeId] || "#ec4899");
   }, [user, themeId, accent, accent2, pairing, immersive, cursor, pageBgImage, pathname]);
+
+  // Live-sync nicknames across the couple. A `nickname:update` carries the
+  // affected person slot ("person1"/"person2") — if it's mine it changes how I
+  // see myself; otherwise it's the nickname I have for my partner.
+  useEffect(() => {
+    return onSSE((detail) => {
+      if (detail.type !== "nickname:update") return;
+      const me = getUser();
+      if (!me) return;
+      const myslot = me.role === "creator" ? "person1" : "person2";
+      const nickname = (detail.nickname as string) || null;
+      const on = detail.on === true;
+      if (detail.target === myslot) updateUserData({ nickname, nicknameOn: on });
+      else updateUserData({ partnerNickname: nickname, partnerNicknameOn: on });
+    });
+  }, []);
 
   // A custom accent derives different shades for light vs dark — so when dark
   // mode is toggled (fires `annapp:theme`), re-derive it for the new mode.
