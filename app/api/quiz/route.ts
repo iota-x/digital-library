@@ -4,7 +4,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
-import { getQuizPack, QUIZ_PACKS, type QuizPack } from "@/lib/quizzes";
+import { getQuizPack, type QuizPack } from "@/lib/quizzes";
 import { senderDisplayName } from "@/lib/displayName";
 
 /** A pack id resolves to either a built-in pack or one this couple generated. */
@@ -80,14 +80,16 @@ function viewFor(pack: QuizPack, doc: QuizDoc | null, userId: string) {
 export const GET = withAuth(async (req, session) => {
   const quizId = new URL(req.url).searchParams.get("quiz");
   if (!quizId) {
-    // Lightweight catalog for the hub — built-in packs plus any this couple
-    // generated, each with whether it's been revealed.
+    // Lightweight catalog for the hub — ONLY this couple's freshly-generated
+    // quizzes (the daily drop of 3), newest first. We deliberately don't mix in
+    // the built-in packs: the whole point of "3 new a day" is to keep the hub a
+    // small, fresh set instead of an ever-growing wall of cards.
     const [roundsCol, genCol] = await Promise.all([getCol("quizRounds"), getCol("coupleQuizzes")]);
     const docs = (await roundsCol.find({ coupleId: session.coupleId }).toArray()) as unknown as QuizDoc[];
     const byId = new Map(docs.map((d) => [d.quizId, d]));
-    const genDocs = (await genCol.find({ coupleId: session.coupleId }).sort({ createdAt: -1 }).toArray()) as unknown as CouplePackDoc[];
+    const genDocs = (await genCol.find({ coupleId: session.coupleId }).sort({ createdAt: -1 }).limit(3).toArray()) as unknown as CouplePackDoc[];
     const genPacks: QuizPack[] = genDocs.map((d) => ({ id: d.quizId, title: d.title, emoji: d.emoji, blurb: d.blurb, questions: d.questions }));
-    const all = [...genPacks, ...QUIZ_PACKS];
+    const all = genPacks;
     return NextResponse.json(
       all.map((p) => {
         const v = viewFor(p, byId.get(p.id) ?? null, session.userId);

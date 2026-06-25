@@ -1,12 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
+import { useUserData, displayName, partnerDisplayName, updateSettings, getUser } from "@/lib/userStore";
+import { onSSE } from "@/lib/sseClient";
 import { TRUTHS, DARES, TRUTHS_18, DARES_18, pickFresh } from "@/lib/playDecks";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
 import { buzz } from "@/lib/haptics";
-
-const SPICY_KEY = "play:spicyMode";
 
 const CARD: React.CSSProperties = {
   background: "var(--cream)",
@@ -21,28 +20,42 @@ export default function TruthOrDare() {
   const [kind, setKind] = useState<"truth" | "dare" | null>(null);
   const [text, setText] = useState("");
   const [turn, setTurn] = useState(0); // 0 = you, 1 = partner
-  // Spicy mode mixes the explicit 18+ cards into the decks. Off by default and
-  // remembered on this device so it survives a refresh.
-  const [spicy, setSpicy] = useState(false);
+  // Spicy mode mixes the explicit 18+ cards into the decks. It's a couple-level
+  // setting (shared & synced via the couple's `settings`), so flipping it on one
+  // phone flips it on both — off by default.
+  const spicy = user?.settings?.spicyMode === true;
   // Track recently-drawn cards per pool so the same one doesn't come back around
   // again so soon (it gets weird seeing it again two cards later).
   const recentTruths = useRef<string[]>([]);
   const recentDares = useRef<string[]>([]);
 
+  // Live-sync: when the partner toggles spicy mode, reflect it here instantly.
   useEffect(() => {
-    try { if (localStorage.getItem(SPICY_KEY) === "1") setSpicy(true); } catch {}
+    return onSSE((detail) => {
+      if (detail.type !== "settings:spicy") return;
+      const me = getUser();
+      if (me) updateSettings({ ...me.settings, spicyMode: detail.on === true });
+    });
   }, []);
+
+  const setSpicy = (next: boolean) => {
+    const me = getUser();
+    if (me) updateSettings({ ...me.settings, spicyMode: next }); // optimistic
+    fetch("/api/couples/spicy", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ on: next }),
+    }).catch(() => {});
+  };
 
   const toggleSpicy = () => {
     if (!spicy) {
       const ok = window.confirm(
-        "Spicy mode adds explicit 18+ cards (including consensual power-play) to truth or dare.\n\nOnly turn this on if you're both adults and good with it. Continue?",
+        "Spicy mode adds explicit 18+ cards (including consensual power-play) to truth or dare.\n\nIt turns on for BOTH of you. Only enable it if you're both adults and good with it. Continue?",
       );
       if (!ok) return;
     }
-    const next = !spicy;
-    setSpicy(next);
-    try { localStorage.setItem(SPICY_KEY, next ? "1" : "0"); } catch {}
+    setSpicy(!spicy);
     buzz("tap");
   };
 
@@ -50,9 +63,10 @@ export default function TruthOrDare() {
 
   const draw = (k: "truth" | "dare") => {
     buzz(k === "dare" ? "double" : "tap");
-    const base = k === "truth" ? TRUTHS : DARES;
-    const explicit = k === "truth" ? TRUTHS_18 : DARES_18;
-    const pool = spicy ? [...base, ...explicit] : base;
+    // Spicy mode = ONLY the explicit deck — no soft/silly cards mixed in.
+    const pool = spicy
+      ? (k === "truth" ? TRUTHS_18 : DARES_18)
+      : (k === "truth" ? TRUTHS : DARES);
     const recentRef = k === "truth" ? recentTruths : recentDares;
     const { pick, recent } = pickFresh(pool, recentRef.current);
     recentRef.current = recent;
@@ -69,7 +83,7 @@ export default function TruthOrDare() {
           truth or dare
         </h2>
         <p style={{ fontFamily: SCRIPT, fontSize: "1rem", color: "var(--muted)", margin: 0 }}>
-          {spicy ? "take turns — and brace yourselves 🔞" : "take turns — soft, silly, just for you two"}
+          {spicy ? "take turns — reignite the spark, miles apart 🔞" : "take turns — soft, silly, just for you two"}
         </p>
         <div style={{ marginTop: "0.7rem" }}>
           <motion.button

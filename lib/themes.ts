@@ -54,6 +54,9 @@ export interface CoupleSettings {
    *  timezone in their role slot; `nextVisit` is the shared next-meet date. */
   timezones?: { person1?: string; person2?: string };
   nextVisit?: string;
+  /** When true, the /play truth-or-dare game mixes in the explicit 18+ deck.
+   *  Couple-level (both partners share it) and off by default. */
+  spicyMode?: boolean;
   sections: {
     home:    { showTimer: boolean; showMemoryCards: boolean; showVoiceNotes: boolean; showCapsuleTeaser: boolean; showFinal: boolean };
     journal: { showStreak: boolean; showSurpriseMe: boolean; showMonthlyRecap: boolean; showAnniversaryBanner: boolean };

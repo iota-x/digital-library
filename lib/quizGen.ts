@@ -185,7 +185,9 @@ export async function insertGeneratedQuiz(coupleId: string, pack: GeneratedPack)
     createdAt: new Date().toISOString(),
   });
 
-  const extra = (await col.find({ coupleId }).sort({ createdAt: -1 }).skip(6).toArray()) as { _id: ObjectId }[];
+  // Keep only the 3 most recent — the hub shows just the daily set, so older
+  // generated quizzes are pruned rather than piling up.
+  const extra = (await col.find({ coupleId }).sort({ createdAt: -1 }).skip(3).toArray()) as { _id: ObjectId }[];
   if (extra.length) await col.deleteMany({ _id: { $in: extra.map((d) => d._id) } });
 
   return { id: quizId, title: pack.title, emoji: pack.emoji, blurb: pack.blurb, total: pack.questions.length };

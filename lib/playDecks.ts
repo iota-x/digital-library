@@ -194,10 +194,12 @@ export const DARES: string[] = [
 ];
 
 /**
- * 18+ 🔞 decks — explicit, grown, and including consensual power-play. These are
- * gated behind the /play "spicy mode" toggle (off by default) so they only ever
- * appear when both partners have switched it on. Anything-goes between the two
- * of you: skip freely, and only do what you're both comfortable with.
+ * 18+ 🔞 decks — explicit and grown, built to reignite the spark over distance:
+ * desire, fantasies, reveals, partner's-choice outfits, day-long tasks, and
+ * subtle consensual dom/sub power-play. Gated behind the /play "spicy mode"
+ * toggle (off by default) so they only appear when both partners switch it on.
+ * Always consensual: skip any card freely, agree on a safeword, and only do
+ * what you're both comfortable with.
  */
 export const TRUTHS_18: string[] = [
   // — desire & turn-ons —
@@ -239,6 +241,65 @@ export const TRUTHS_18: string[] = [
   "what's the most dominant thing you'd want to try on me? 😈",
   "blindfold or no blindfold — which turns you on more? 🙈",
   "what's a punishment-or-reward game you'd want to play? 🎲",
+  // — subtle dom/sub & control (consensual) —
+  "do you like being told what to do, or being the one giving orders? 👑",
+  "how does it feel to hand over control to me completely? 🔓",
+  "what's an order you secretly wish I'd give you? 🤫",
+  "would you wear something all day just because I told you to? 👗",
+  "what's the most obedient thing you'd do to please me? 🙇",
+  "be honest — do you want me softer or stricter with you? 🖤",
+  "what 'rule' from me would actually turn you on to follow? 📜",
+  "what would you call me if I were fully in charge tonight? 🗝️",
+  "what's a reward you'd want for being good for me? 🍬",
+  "what's the longest you'd let me make you wait? ⏳",
+  // — keeping the spark alive over distance —
+  "what do you miss most about me physically when we're apart? 🥺",
+  "what's the hottest photo or video you've saved of me? 📲",
+  "what do you do alone when you're aching to have me there? 🔥",
+  "what's the first thing you'll do to me when we finally meet? ✈️",
+  "what's a 'when we're together again' plan that's all yours? 🗓️",
+  "what turns you on most about our late-night calls? 🌙",
+  // — confessions & secret turn-ons —
+  "when did you last think about me… in detail? ⏰",
+  "what's the riskiest place you've imagined doing something with me? 🙊",
+  "what's a secret turn-on you've never admitted to anyone? 🔐",
+  "what's the dirtiest dream you've had about me? 💤",
+  "what's something you act shy about but secretly love? 😇😈",
+  "what's a word or phrase that instantly wrecks your focus? 🥵",
+  "what's the most number of times I've crossed your mind in one day? 🔁",
+  "have you ever had to 'behave' in public while thinking of me? 😳",
+  // — preferences & dynamics —
+  "lights on or off — and tell me why 💡",
+  "teased to the edge slowly, or given it all at once? 🌋",
+  "what name would you want me to call you in the moment? 🏷️",
+  "do you get off more on praise, or on being told what to do? 🥇",
+  "honestly — more romantic or more filthy with me? 🌹🔥",
+  "would you rather be in control or completely at my mercy? ⚖️",
+  "what's a 'beg for it' moment you'd actually enjoy? 🙏",
+  "rough or gentle — and does it depend on the day? 🐺🕊️",
+  // — fantasy depth & limits —
+  "describe your ideal 'I'm completely yours tonight' scenario 🗝️",
+  "what's a fantasy you'd only ever trust me with? 💍",
+  "what's the boldest thing you'd let me film or photograph? 🎥",
+  "what's one hard limit, and one thing you're dying to try? 🚧",
+  "if I gave you a safe word right now, what would it be? 🛟",
+  "what would 'losing all control with me' actually look like for you? 🌪️",
+  // — explicit, over call & video —
+  "how do you make yourself finish when you're thinking of me? 💦",
+  "what would you want me to watch you do on cam right now? 🎥",
+  "describe the last time you got off to the thought of me 🔥",
+  "what's the filthiest thing you'd say to me on a late-night call? 🎙️",
+  "how loud do you get when no one else is home? 🔊",
+  "what do you want me to do to you the second the camera turns on? 📹",
+  "fast and hard, or slow and deep — how do you want it tonight? 🌊",
+  "where do you most want my mouth on you? 👅",
+  "what's a sound I make that finishes you off? 🫦",
+  "tell me exactly how you'd ride me if I were there 🐎",
+  "what turns you on more — watching me, or being watched? 👀",
+  "what would make you beg for it on call? 🙏",
+  "how many times could you go in one night with me? 🔁",
+  "what's the dirtiest thing you've done while we were on the phone? 📞",
+  "talk me through your favourite way to be finished off 💥",
 ];
 
 export const DARES_18: string[] = [
@@ -280,6 +341,82 @@ export const DARES_18: string[] = [
   "get into the most tempting pose you can and snap it 📸🔥",
   "whisper my name the way you do when you're close, on voice note 🎙️",
   "edge yourself for 60 seconds and report back 🥵",
+  // — day-long obedience & control (consensual; safeword always wins) —
+  "be a slave to my words for the whole day — every request, no 'no' 👑",
+  "you're mine to command for the next hour — text 'yes, yours' to start 🫡",
+  "be my good [pet name] today — every task I send, you do and reply 'done' 🐾",
+  "I'll text you little orders through the day — obey each one 📋",
+  "say 'yes [my name]' to everything I ask for the next 10 minutes 🗣️",
+  "no touching yourself today unless I say so — check in with me tonight ⛓️",
+  "you don't get to finish until I allow it — tell me when you're close 🚦",
+  "ask my permission before anything spicy tonight, and wait for my yes 🙏",
+  "I set one rule you obey till midnight — break it and you owe me 📜",
+  "hands behind your back — you move only when I say 🪢",
+  // — partner's-choice outfits & reveals —
+  "put on something I choose and send a photo to prove it 👗",
+  "show me what you're wearing underneath — your tease, your pace 🙈",
+  "wear something of mine (or my pick) all day and send proof 🧣",
+  "let me choose your outfit for tomorrow, down to the underwear 👙",
+  "wear only what I pick for our next video call 📹",
+  "strip one layer each time I say 'next' on call 🎬",
+  "model three looks for me and I'll pick what you keep on 🛍️",
+  "send a mirror pic — I decide if you're allowed to change 🪞",
+  // — LDR spice: tasks across the miles —
+  "every hour today, send me one flirty photo on my command ⏰",
+  "set a 'good morning' tease for me to wake up to tomorrow 🌅",
+  "record a 15-second clip of exactly what you wish I was doing to you 🎥",
+  "leave yourself one of my instructions for right before bed 🌙",
+  "do whatever I type next on video, right now, no questions ⚡",
+  "edge on my count over call and don't finish till I say 🥵",
+  // — roleplay & sexting scenarios —
+  "sext me like we just stumbled in from a date and can't wait 🚪",
+  "roleplay: text me as a stranger flirting with me at a bar 🍸",
+  "narrate a 'we almost got caught' scene, start to finish 🤫",
+  "text me like it's the morning after our best night 🌅",
+  "play two-truths-and-a-filthy-lie about what you want 🎭",
+  "be my 'assistant' for 10 min and follow every instruction 📋",
+  "pick a fantasy and act it out with me over voice note 🎙️",
+  // — wagers, coupons & IOUs (consensual) —
+  "write me an 'anything you want' coupon, redeemable anytime 🎟️",
+  "loser of the next round loses one item of clothing — agree now 🎴",
+  "owe me one 'no saying no' hour, my choice when ⏳",
+  "bet a dare: if I win, you do my next 3 commands 🃏",
+  "first one to blush owes the other a 'yes to anything' pass 🎟️",
+  "give me a rain-check for one bold thing, due next time we meet 🧾",
+  // — sensory & teasing —
+  "ice cube challenge — use one and tell me exactly where 🧊",
+  "blindfold on, phone on call, and let me talk you through it 🙈",
+  "trace where you want to be kissed and send the picture ✍️",
+  "describe a taste or touch you're craving from me right now 👅",
+  "lose the top layer, then send a photo from your boldest angle 📐🔥",
+  "leave a mark on yourself where only I'd get to see it 💋",
+  // — extreme-but-consensual control —
+  "you don't finish without my permission for the next 24h — agree? 🔒",
+  "every text I send today, reply with what you'd do to me 💬",
+  "be on call and follow my countdown — nothing till zero ⏱️",
+  "kneel and ask me nicely for exactly what you want tonight 🧎🗣️",
+  "let me decide your reward or denial when this game ends 🎰",
+  "surrender your phone for 5 min — I get to set tonight's plan 📱👑",
+  "pick a safe word, then put yourself fully in my hands 🗝️",
+  // — explicit, over call & video (consensual; safe word always wins) —
+  "get on video and touch yourself the way you do when you think of me 🎥",
+  "show me on cam exactly where and how you want to be touched 👆🔥",
+  "strip all the way down on video, slow, while I watch 🎬",
+  "mutual on call — we both go until one of us finishes first 🏁",
+  "touch yourself on my count and don't stop until I say ⏱️",
+  "moan my name on the call like you actually mean it 🎙️",
+  "show me your favourite toy and use it on video for me 🍆",
+  "lie back, spread out on cam, and let me direct every move 📹",
+  "talk me through what you'd do to me while you touch yourself 💬",
+  "finish for me on camera — no faking it 💦",
+  "edge yourself three times on call before I let you finish 🚦",
+  "show me how turned on you are right now 🔥",
+  "describe, in filthy detail, how you want me inside/around you 👅",
+  "keep the camera where I tell you and don't move it 📐",
+  "use your hands exactly how I narrate, live on cam ✋",
+  "put on a show — tease me on video until I can't take it 🎭",
+  "stay on the line and don't finish until we go together 🤝💥",
+  "send a video of you saying the dirtiest thing you want tonight 🎥🤫",
 ];
 
 export interface Dilemma { a: string; b: string }
