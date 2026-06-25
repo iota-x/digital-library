@@ -147,6 +147,18 @@ On Vercel, add a Cron Job pointing at that path; or use cron-job.org / a GitHub
 Action passing the `x-cron-secret` header. Sends are de-duplicated per
 (couple, occasion, days-out), so running it more than once a day is safe.
 
+`/api/cron/daily-quiz` drops one fresh couple quiz a day — but only for couples
+who've completed every quiz currently available to them (the 3 built-in packs
+plus any earlier generated ones), so quizzes never pile up unplayed. Same guard
+and scheduler setup:
+
+```
+GET https://<your-app>/api/cron/daily-quiz?secret=$CRON_SECRET
+```
+
+De-duplicated per (couple, UTC-day), which is what enforces the "one per day"
+cap even if a couple blitzes through the new quiz the same day.
+
 ## 🏗️ Project layout
 
 ```

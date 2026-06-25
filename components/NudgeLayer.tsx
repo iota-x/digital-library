@@ -64,6 +64,22 @@ export default function NudgeLayer() {
           });
           break;
         }
+        case "memory:new":
+        case "memory:added": {
+          const name = (d.name as string) || "they";
+          const date = (d.date as string) || "";
+          const added = d.type === "memory:added";
+          heartBump();
+          buzz("double");
+          push({
+            id: date ? `nudge-memory-${date}` : "nudge-memory", type: d.type, emoji: "💗",
+            title: added ? `${name} added to your journal 💗` : `${name} added a memory 💗`,
+            message: date ? `${date} — tap to add on it or react` : "tap to add on it or react",
+            href: date ? `/journal?date=${date}` : "/journal",
+            actionLabel: "view", durationMs: 7000,
+          });
+          break;
+        }
         case "daily:answered": {
           const name = (d.name as string) || "they";
           buzz("tap");
@@ -93,6 +109,18 @@ export default function NudgeLayer() {
             title: "a quiz is waiting 🎮",
             message: `${name} played one — play it too to reveal your score`,
             href: "/play", actionLabel: "play", durationMs: 7000,
+          });
+          break;
+        }
+        case "quiz:new": {
+          const title = (d.title as string) || "a new quiz";
+          heartBump();
+          buzz("double");
+          push({
+            id: "nudge-quiz", type: d.type, emoji: "🎮",
+            title: "a fresh quiz is ready 🎮",
+            message: `today's "${title}" — play it together`,
+            href: "/play", actionLabel: "play", durationMs: 8000,
           });
           break;
         }

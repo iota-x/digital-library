@@ -80,11 +80,15 @@ export const POST = withAuth(async (req, session) => {
   await col.updateOne({ date, coupleId: session.coupleId }, { $set: doc }, { upsert: true });
   broadcastCalendarUpdate(session.coupleId, { type: "update", entry: doc });
 
-  // Gentle nudge: when a brand-new memory with real content is added, ping the
-  // partner. Only on first creation (no prior doc) so routine edits/autosaves
-  // don't spam — and never the author themselves.
+  // Gentle nudge so the partner can come add on it or react. Fires on a
+  // brand-new memory, and also when fresh content lands on an EXISTING day —
+  // photos added, or a note written for the first time. Each case compares
+  // against the pre-write `existing` doc, so routine re-saves/autosaves (which
+  // change nothing new) never re-ping — and never the author themselves.
   const isNew = !existing;
   const hasContent = !!(doc.note || (doc.photos?.length ?? 0) > 0);
+  const photosAdded = doc.photos.length - (existing?.photos?.length ?? 0);
+  const noteJustWritten = !existing?.note && !!doc.note;
   if (isNew && hasContent) {
     const who = await senderDisplayName(session);
     broadcastCalendarUpdate(session.coupleId, {
@@ -93,6 +97,17 @@ export const POST = withAuth(async (req, session) => {
     sendPushToOtherInCouple(session.coupleId, session.userId, {
       title: `${who} added a memory 💗`,
       body: doc.note ? doc.note.slice(0, 80) : "a new moment for your journal",
+    });
+  } else if (!isNew && (photosAdded > 0 || noteJustWritten)) {
+    const who = await senderDisplayName(session);
+    broadcastCalendarUpdate(session.coupleId, {
+      type: "memory:added", userId: session.userId, name: who, date,
+    });
+    sendPushToOtherInCouple(session.coupleId, session.userId, {
+      title: `${who} added to your journal 💗`,
+      body: photosAdded > 0
+        ? `${photosAdded} new ${photosAdded === 1 ? "photo" : "photos"} on ${date} — come see & react`
+        : doc.note.slice(0, 80) || `a new note on ${date} — come see & react`,
     });
   }
   return NextResponse.json({ ok: true });
