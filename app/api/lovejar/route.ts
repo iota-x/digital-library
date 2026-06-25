@@ -5,6 +5,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * "Reasons I love you" jar — each partner drops in notes; either can draw one
@@ -26,14 +27,15 @@ export const POST = withAuth(async (req, session) => {
 
   const c = await getCol("loveJar");
   const addedAt = new Date().toISOString();
-  const result = await c.insertOne({ coupleId: session.coupleId, text: clean, from: session.name, addedAt });
+  const who = await senderDisplayName(session);
+  const result = await c.insertOne({ coupleId: session.coupleId, text: clean, from: who, addedAt });
 
   broadcastToCouple(session.coupleId, { type: "lovejar:add", userId: session.userId });
   sendPushToOtherInCouple(session.coupleId, session.userId, {
     title: "a new reason in the jar 🫙💗",
-    body: `${session.name} added a reason they love you — open the jar to find it`,
+    body: `${who} added a reason they love you — open the jar to find it`,
   });
-  return NextResponse.json({ _id: result.insertedId.toString(), text: clean, from: session.name, addedAt }, { status: 201 });
+  return NextResponse.json({ _id: result.insertedId.toString(), text: clean, from: who, addedAt }, { status: 201 });
 }, { rateLimit: { scope: "lovejar:add", max: 60, windowMs: 60_000 } });
 
 export const DELETE = withAuth(async (req, session) => {

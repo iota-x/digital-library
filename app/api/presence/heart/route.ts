@@ -3,6 +3,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * Send a reaction to the partner. Broadcasts on SSE for an in-app floating
@@ -28,11 +29,12 @@ export const POST = withAuth(async (req, session) => {
   const body = await req.json().catch(() => ({}));
   const section = typeof body?.section === "string" ? body.section.slice(0, 64) : "";
   const emoji = typeof body?.emoji === "string" && REACTIONS[body.emoji] ? body.emoji : "🩷";
+  const who = await senderDisplayName(session);
 
   broadcastToCouple(session.coupleId, {
     type: "presence:heart",
     userId: session.userId,
-    name: session.name,
+    name: who,
     emoji,
     section,
     ts: Date.now(),
@@ -41,7 +43,7 @@ export const POST = withAuth(async (req, session) => {
   // Partner-only push — don't notify the sender about their own reaction.
   sendPushToOtherInCouple(session.coupleId, session.userId, {
     title: `${emoji} for you`,
-    body: `${session.name} ${REACTIONS[emoji]}`,
+    body: `${who} ${REACTIONS[emoji]}`,
   });
 
   return NextResponse.json({ ok: true });

@@ -3,6 +3,7 @@ import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * Weekly relationship check-in — each partner taps a 1–5 "how are we?" once a
@@ -81,16 +82,17 @@ export const POST = withAuth(async (req, session) => {
   const col = await getCol("checkins");
   const before = (await col.findOne({ coupleId: session.coupleId, week })) as CheckinDoc | null;
   const hadMine = !!before?.ratings?.[session.userId];
+  const who = await senderDisplayName(session);
 
   await col.updateOne(
     { coupleId: session.coupleId, week },
-    { $set: { coupleId: session.coupleId, week, [`ratings.${session.userId}`]: { name: session.name, value: v, at: new Date().toISOString() } } },
+    { $set: { coupleId: session.coupleId, week, [`ratings.${session.userId}`]: { name: who, value: v, at: new Date().toISOString() } } },
     { upsert: true },
   );
 
   const after = (await col.findOne({ coupleId: session.coupleId, week })) as CheckinDoc | null;
   if (!hadMine) {
-    broadcastToCouple(session.coupleId, { type: "checkin:done", userId: session.userId, name: session.name, week });
+    broadcastToCouple(session.coupleId, { type: "checkin:done", userId: session.userId, name: who, week });
   }
   const history = await buildHistory(session.coupleId, week);
   return NextResponse.json(viewFor(after, session.userId, week, history));

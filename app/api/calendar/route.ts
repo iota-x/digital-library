@@ -7,6 +7,7 @@ import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 import { serverEnv } from "@/lib/env";
 import { fetchWeatherSnapshot } from "@/lib/weather";
 import { v, parseBody, badRequest } from "@/lib/validate";
+import { senderDisplayName } from "@/lib/displayName";
 
 /** Server's UTC date in YYYY-MM-DD (matches how entries are keyed). */
 function todayKey(): string {
@@ -85,11 +86,12 @@ export const POST = withAuth(async (req, session) => {
   const isNew = !existing;
   const hasContent = !!(doc.note || (doc.photos?.length ?? 0) > 0);
   if (isNew && hasContent) {
+    const who = await senderDisplayName(session);
     broadcastCalendarUpdate(session.coupleId, {
-      type: "memory:new", userId: session.userId, name: session.name, date,
+      type: "memory:new", userId: session.userId, name: who, date,
     });
     sendPushToOtherInCouple(session.coupleId, session.userId, {
-      title: `${session.name} added a memory 💗`,
+      title: `${who} added a memory 💗`,
       body: doc.note ? doc.note.slice(0, 80) : "a new moment for your journal",
     });
   }

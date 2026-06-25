@@ -5,6 +5,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
+import { senderDisplayName } from "@/lib/displayName";
 
 export const GET = withAuth(async (_req, session) => {
   const c = await getCol("bucketlist");
@@ -44,7 +45,7 @@ export const PUT = withAuth(async (req, session) => {
   // Celebrate together: nudge the partner when an item gets crossed off.
   if (fields.completed === true) {
     const item = fields.text ? fields.text : (await c.findOne({ _id: new ObjectId(_id), coupleId: session.coupleId }))?.text;
-    broadcastToCouple(session.coupleId, { type: "bucketlist:done", userId: session.userId, name: session.name });
+    broadcastToCouple(session.coupleId, { type: "bucketlist:done", userId: session.userId, name: await senderDisplayName(session) });
     sendPushToOtherInCouple(session.coupleId, session.userId, {
       title: "another one done together ✅",
       body: item ? `“${String(item).slice(0, 80)}” — checked off your bucket list` : "you crossed something off your bucket list",

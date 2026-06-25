@@ -5,6 +5,7 @@ import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { todayKey, questionForDate } from "@/lib/dailyQuestions";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * Daily question — both partners answer privately; answers reveal only once
@@ -107,6 +108,7 @@ export const POST = withAuth(async (req, session) => {
 
   const before = (await col.findOne({ coupleId: session.coupleId, date })) as DailyDoc | null;
   const hadMineBefore = !!before?.answers?.[session.userId];
+  const who = await senderDisplayName(session);
 
   await col.updateOne(
     { coupleId: session.coupleId, date },
@@ -116,7 +118,7 @@ export const POST = withAuth(async (req, session) => {
         date,
         questionId: q.id,
         questionText: q.text,
-        [`answers.${session.userId}`]: { name: session.name, text, at: new Date().toISOString() },
+        [`answers.${session.userId}`]: { name: who, text, at: new Date().toISOString() },
       },
     },
     { upsert: true },
@@ -132,13 +134,13 @@ export const POST = withAuth(async (req, session) => {
       broadcastToCouple(session.coupleId, { type: "daily:reveal", date, userId: session.userId });
       sendPushToOtherInCouple(session.coupleId, session.userId, {
         title: "you can both see it now 💌",
-        body: `${session.name} answered today's question — tap to reveal both`,
+        body: `${who} answered today's question — tap to reveal both`,
       });
     } else {
-      broadcastToCouple(session.coupleId, { type: "daily:answered", date, userId: session.userId, name: session.name });
+      broadcastToCouple(session.coupleId, { type: "daily:answered", date, userId: session.userId, name: who });
       sendPushToOtherInCouple(session.coupleId, session.userId, {
         title: "today's question 💭",
-        body: `${session.name} answered — add yours to reveal both`,
+        body: `${who} answered — add yours to reveal both`,
       });
     }
   } else if (bothAnswered) {

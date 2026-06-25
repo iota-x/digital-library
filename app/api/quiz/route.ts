@@ -5,6 +5,7 @@ import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { getQuizPack, QUIZ_PACKS, type QuizPack } from "@/lib/quizzes";
+import { senderDisplayName } from "@/lib/displayName";
 
 /** A pack id resolves to either a built-in pack or one this couple generated. */
 async function resolvePack(coupleId: string, quizId: string): Promise<QuizPack | null> {
@@ -126,6 +127,7 @@ export const POST = withAuth(async (req, session) => {
     ([uid, e]) => uid !== session.userId && isComplete(pack, e.picks),
   );
   const iWasComplete = isComplete(pack, before?.answers?.[session.userId]?.picks);
+  const who = await senderDisplayName(session);
 
   await col.updateOne(
     { coupleId: session.coupleId, quizId: pack.id },
@@ -133,7 +135,7 @@ export const POST = withAuth(async (req, session) => {
       $set: {
         coupleId: session.coupleId,
         quizId: pack.id,
-        [`answers.${session.userId}`]: { name: session.name, picks, at: new Date().toISOString() },
+        [`answers.${session.userId}`]: { name: who, picks, at: new Date().toISOString() },
       },
     },
     { upsert: true },
@@ -148,13 +150,13 @@ export const POST = withAuth(async (req, session) => {
       broadcastToCouple(session.coupleId, { type: "quiz:reveal", quizId: pack.id, userId: session.userId });
       sendPushToOtherInCouple(session.coupleId, session.userId, {
         title: "your quiz results are in 💞",
-        body: `${session.name} finished "${pack.title}" — tap to see how you matched`,
+        body: `${who} finished "${pack.title}" — tap to see how you matched`,
       });
     } else {
-      broadcastToCouple(session.coupleId, { type: "quiz:answered", quizId: pack.id, userId: session.userId, name: session.name });
+      broadcastToCouple(session.coupleId, { type: "quiz:answered", quizId: pack.id, userId: session.userId, name: who });
       sendPushToOtherInCouple(session.coupleId, session.userId, {
         title: "a quiz is waiting 💭",
-        body: `${session.name} played "${pack.title}" — play it too to reveal your score`,
+        body: `${who} played "${pack.title}" — play it too to reveal your score`,
       });
     }
   }

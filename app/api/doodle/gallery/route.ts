@@ -5,6 +5,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { v, parseBody, badRequest } from "@/lib/validate";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * Doodle gallery — instead of one ephemeral board, each finished canvas can be
@@ -38,14 +39,15 @@ export const POST = withAuth(
     if (!parsed.ok) return badRequest(parsed.error);
 
     const col = await getCol("doodleGallery");
+    const who = await senderDisplayName(session);
     const res = await col.insertOne({
       coupleId: session.coupleId,
       imageUrl: parsed.value.imageUrl,
       userId: session.userId,
-      name: session.name,
+      name: who,
       createdAt: new Date().toISOString(),
     });
-    broadcastToCouple(session.coupleId, { type: "doodle:saved", userId: session.userId, name: session.name });
+    broadcastToCouple(session.coupleId, { type: "doodle:saved", userId: session.userId, name: who });
     return NextResponse.json({ ok: true, id: res.insertedId.toString() }, { status: 201 });
   },
   { rateLimit: { scope: "doodle:gallery", max: 40, windowMs: 60_000 } },

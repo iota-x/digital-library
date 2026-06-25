@@ -40,7 +40,15 @@ export const GET = withAuth(async (_req, session) => {
   const couple = await couplesCol.findOne({ _id: new ObjectId(coupleId) });
   const startDate: string = couple?.startDate ?? DEFAULT_START_DATE;
   const isCreator = session.role === "creator";
-  const partnerName: string = (isCreator ? couple?.person2Name : couple?.person1Name) ?? "your person";
+  // Refer to each person by their nickname (when switched on), matching the
+  // rest of the app. A person's nickname lives on their own person slot.
+  const mySlot = isCreator ? "person1" : "person2";
+  const partnerSlot = isCreator ? "person2" : "person1";
+  const youName: string = couple?.[`${mySlot}NicknameOn`] && couple?.[`${mySlot}Nickname`]
+    ? couple[`${mySlot}Nickname`] : session.name;
+  const partnerName: string = couple?.[`${partnerSlot}NicknameOn`] && couple?.[`${partnerSlot}Nickname`]
+    ? couple[`${partnerSlot}Nickname`]
+    : ((isCreator ? couple?.person2Name : couple?.person1Name) ?? "your person");
   const coupleName: string = couple?.settings?.coupleName ?? "";
 
   const [calCol, dailyCol, quizCol, jarCol, bucketCol, watchCol, voiceCol, capsuleCol] = await Promise.all([
@@ -94,7 +102,7 @@ export const GET = withAuth(async (_req, session) => {
   ]);
 
   return NextResponse.json({
-    names: { you: session.name, partner: partnerName },
+    names: { you: youName, partner: partnerName },
     coupleName,
     startDate,
     daysTogether: daysTogether(startDate),

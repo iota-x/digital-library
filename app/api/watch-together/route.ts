@@ -4,6 +4,7 @@ import { withAuth } from "@/lib/apiHandler";
 import { broadcastToCouple } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * "Watch together" session — one active session per couple.
@@ -84,6 +85,7 @@ export const POST = withAuth(async (req, session) => {
   const col = await getCol("watchSessions");
   const now = new Date().toISOString();
   const existing = (await col.findOne({ coupleId: session.coupleId })) as SessionDoc | null;
+  const who = await senderDisplayName(session);
 
   switch (body.action) {
     case "start": {
@@ -93,7 +95,7 @@ export const POST = withAuth(async (req, session) => {
 
       const sameItem = existing?.itemId === itemId;
       const participants = sameItem ? { ...(existing?.participants ?? {}) } : {};
-      participants[session.userId] = { name: session.name, startedAt: now };
+      participants[session.userId] = { name: who, startedAt: now };
 
       const doc: SessionDoc = {
         coupleId: session.coupleId,
@@ -105,9 +107,9 @@ export const POST = withAuth(async (req, session) => {
       };
       await col.updateOne({ coupleId: session.coupleId }, { $set: doc }, { upsert: true });
 
-      broadcastToCouple(session.coupleId, { type: "watch:start", userId: session.userId, name: session.name, title, itemId });
+      broadcastToCouple(session.coupleId, { type: "watch:start", userId: session.userId, name: who, title, itemId });
       sendPushToOtherInCouple(session.coupleId, session.userId, {
-        title: `${session.name} hit play 🍿`,
+        title: `${who} hit play 🍿`,
         body: `started "${title}" — join them?`,
       });
       return NextResponse.json(viewFor(doc, session.userId));
@@ -117,12 +119,12 @@ export const POST = withAuth(async (req, session) => {
       if (!existing?.itemId) return NextResponse.json({ error: "no active session" }, { status: 400 });
       await col.updateOne(
         { coupleId: session.coupleId },
-        { $set: { [`participants.${session.userId}`]: { name: session.name, startedAt: now } } },
+        { $set: { [`participants.${session.userId}`]: { name: who, startedAt: now } } },
       );
       const doc = (await col.findOne({ coupleId: session.coupleId })) as SessionDoc | null;
-      broadcastToCouple(session.coupleId, { type: "watch:update", userId: session.userId, name: session.name });
+      broadcastToCouple(session.coupleId, { type: "watch:update", userId: session.userId, name: who });
       sendPushToOtherInCouple(session.coupleId, session.userId, {
-        title: `${session.name} joined 🍿`,
+        title: `${who} joined 🍿`,
         body: `you're watching "${existing.title}" together now`,
       });
       return NextResponse.json(viewFor(doc, session.userId));
@@ -149,9 +151,9 @@ export const POST = withAuth(async (req, session) => {
           body: `see how you both rated "${existing.title}"`,
         });
       } else if (!hadMine) {
-        broadcastToCouple(session.coupleId, { type: "watch:rated", userId: session.userId, name: session.name });
+        broadcastToCouple(session.coupleId, { type: "watch:rated", userId: session.userId, name: who });
         sendPushToOtherInCouple(session.coupleId, session.userId, {
-          title: `${session.name} rated it ⭐`,
+          title: `${who} rated it ⭐`,
           body: `drop yours to reveal both scores`,
         });
       }

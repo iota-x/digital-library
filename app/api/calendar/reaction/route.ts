@@ -3,6 +3,7 @@ import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
 import { broadcastCalendarUpdate } from "@/lib/sseBroadcast";
 import { sendPushToOtherInCouple } from "@/lib/pushNotify";
+import { senderDisplayName } from "@/lib/displayName";
 
 /**
  * Toggle a reaction on a calendar entry.
@@ -51,18 +52,19 @@ export const POST = withAuth(async (req, session) => {
   // Only notify on add — un-reacting shouldn't ping. Skip the sender so
   // you don't get a push for your own reaction.
   if (!had) {
+    const who = await senderDisplayName(session);
     // Dedicated lightweight nudge event for an in-app toast (the calendar
     // entry update above already syncs the data; this drives the "Juhi
     // reacted 🩷 to June 3" toast for whoever has the app open).
     broadcastCalendarUpdate(session.coupleId, {
       type: "reaction:nudge",
       userId: session.userId,
-      name: session.name,
+      name: who,
       emoji,
       date,
     });
     sendPushToOtherInCouple(session.coupleId, session.userId, {
-      title: `${session.name} reacted ${emoji}`,
+      title: `${who} reacted ${emoji}`,
       body: `to your memory from ${date}`,
     });
   }
