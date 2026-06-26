@@ -31,6 +31,7 @@ function MagneticPolaroid({ children, rotate, label, emoji, onClick, editable }:
   const sx = useSpring(x,{stiffness:130,damping:18});
   const sy = useSpring(y,{stiffness:130,damping:18});
   const [hovered, setHovered] = useState(false);
+  const isMobile = useIsMobile();
 
   const onMove = useCallback((e: React.MouseEvent) => {
     const el=ref.current; if(!el) return;
@@ -42,6 +43,9 @@ function MagneticPolaroid({ children, rotate, label, emoji, onClick, editable }:
 
   return (
     <div style={{ position:"relative", flexShrink:0, zIndex:10 }}>
+      {/* Shimmer glow. Animating `backgroundPosition` on a blurred layer repaints
+          it every frame — fine for desktop GPUs, but a top-of-page jank source on
+          phones (no hover there anyway), so we render it static on touch devices. */}
       <motion.div
         style={{
           position:"absolute", inset:-6, borderRadius:4,
@@ -49,8 +53,8 @@ function MagneticPolaroid({ children, rotate, label, emoji, onClick, editable }:
           backgroundSize:"300% 300%", filter:"blur(12px)",
           opacity: hovered ? 0.85 : 0.45, zIndex:-1, transition:"opacity 0.3s ease",
         }}
-        animate={{ backgroundPosition:["0% 50%","100% 50%","0% 50%"] }}
-        transition={{ duration:3, repeat:Infinity, ease:"linear" }}
+        animate={isMobile ? undefined : { backgroundPosition:["0% 50%","100% 50%","0% 50%"] }}
+        transition={isMobile ? undefined : { duration:3, repeat:Infinity, ease:"linear" }}
       />
       <motion.div
         ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} onHoverStart={()=>setHovered(true)}
@@ -323,10 +327,7 @@ export default function Polaroids() {
                     fontSize:"clamp(3rem,6vw,5rem)", flexShrink:0, zIndex:10, cursor:"default",
                     filter:"drop-shadow(0 0 18px rgba(var(--pink-rgb),0.55))",
                   }}
-                  animate={{
-                    scale:[1,1.22,1,1.15,1],
-                    filter:["drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))","drop-shadow(0 0 32px rgba(var(--pink-rgb),0.95))","drop-shadow(0 0 10px rgba(var(--pink-rgb),0.4))"],
-                  }}
+                  animate={{ scale:[1,1.22,1,1.15,1] }}
                   transition={{ repeat:Infinity, duration:1.5, ease:"easeInOut" }}
                 >
                   💗
