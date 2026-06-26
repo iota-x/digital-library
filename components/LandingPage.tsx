@@ -308,6 +308,8 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
   const [joinEmail, setJoinEmail] = useState("");
   const [joinPassword, setJoinPassword] = useState("");
   const [joinCode, setJoinCode] = useState("");
+  // Warmth for the joining partner: who invited them + their personal note.
+  const [inviteInfo, setInviteInfo] = useState<{ inviterName: string | null; note: string | null } | null>(null);
 
   // Signin fields
   const [signinEmail, setSigninEmail] = useState("");
@@ -332,8 +334,14 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
     const params = new URLSearchParams(window.location.search);
     const invite = params.get("invite");
     if (invite) {
-      setJoinCode(invite.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 8));
+      const clean = invite.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 8);
+      setJoinCode(clean);
       setMode("join");
+      // Pull the inviter's name + note so the join screen feels personal, not cold.
+      fetch(`/api/couples/invite-info?code=${encodeURIComponent(clean)}`)
+        .then(r => r.json())
+        .then(d => { if (d?.valid && !d.alreadyJoined) setInviteInfo({ inviterName: d.inviterName ?? null, note: d.note ?? null }); })
+        .catch(() => {});
     }
     const ref = params.get("ref");
     if (ref) {
@@ -794,9 +802,29 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.25 }}
                   >
-                    <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
-                      Got an invite code from your partner? Join their space here.
-                    </p>
+                    {inviteInfo ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                        style={{
+                          margin: "0 0 1.2rem", padding: "0.9rem 1rem", borderRadius: 16,
+                          background: "linear-gradient(135deg,rgba(249,168,212,0.22),rgba(236,72,153,0.12))",
+                          border: "1px solid rgba(249,168,212,0.55)",
+                        }}
+                      >
+                        <p style={{ fontFamily: SANS, fontSize: "0.82rem", color: "#be185d", fontWeight: 700, margin: 0 }}>
+                          {inviteInfo.inviterName ? `${inviteInfo.inviterName} wants to start your little world together 💗` : "you've been invited 💗"}
+                        </p>
+                        {inviteInfo.note && (
+                          <p style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: "1.02rem", color: "#9d174d", margin: "0.5rem 0 0", lineHeight: 1.4 }}>
+                            “{inviteInfo.note}”
+                          </p>
+                        )}
+                      </motion.div>
+                    ) : (
+                      <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
+                        Got an invite code from your partner? Join their space here.
+                      </p>
+                    )}
                     <label style={labelStyle()}>your name</label>
                     <input value={joinName} onChange={e => setJoinName(e.target.value)} placeholder="your name" style={inputStyle()} autoComplete="name" />
                     <label style={labelStyle()}>email</label>

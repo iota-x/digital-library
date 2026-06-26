@@ -19,6 +19,7 @@ interface DailyView {
   revealed: boolean;
   partner: { name: string; text: string } | null;
   streak: number;
+  streakFrozen?: boolean;
 }
 
 const CARD: React.CSSProperties = {
@@ -205,7 +206,13 @@ export default function DailyQuestion() {
                 color: "var(--pink-deep)" }}>
                 {view.streak}-day answer streak
               </span>
+              {view.streakFrozen && <span aria-hidden title="we bridged a missed day for you" style={{ fontSize: "0.95rem" }}>🛡️</span>}
             </div>
+          )}
+          {view.streakFrozen && (
+            <p style={{ fontFamily: SANS, fontSize: "0.68rem", color: "var(--muted)", margin: "0.35rem 0 0" }}>
+              🛡️ a missed day was covered — your streak lives on
+            </p>
           )}
         </div>
 

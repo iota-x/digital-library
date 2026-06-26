@@ -180,8 +180,13 @@ export default function Wrapped() {
       daily: data.daily.answeredTogether, matchPct, loveNotes: data.loveJar,
       bucketDone: data.bucket.done, moviesDone: data.watch.done,
     };
+    let referralUrl: string | undefined;
     try {
-      const how = await shareWrapped(stats);
+      const d = await (await fetch("/api/couples/referral")).json();
+      if (d?.referralCode && typeof window !== "undefined") referralUrl = `${window.location.origin}/?ref=${d.referralCode}`;
+    } catch {}
+    try {
+      const how = await shareWrapped(stats, referralUrl);
       heartBump();
       setShareMsg(how === "shared" ? "shared 💗" : "saved to your photos 💗");
     } catch { setShareMsg("couldn't make the card — try again"); }

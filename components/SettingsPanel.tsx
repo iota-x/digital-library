@@ -162,6 +162,11 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [zipErr,      setZipErr]      = useState("");
   const [migrateBusy, setMigrateBusy] = useState(false);
   const [migrateMsg,  setMigrateMsg]  = useState("");
+  // "Close our space" offboarding — gated behind a type-to-confirm.
+  const [leaveOpen,   setLeaveOpen]   = useState(false);
+  const [leaveConfirm, setLeaveConfirm] = useState("");
+  const [leaveBusy,   setLeaveBusy]   = useState(false);
+  const [leaveErr,    setLeaveErr]    = useState("");
   // Raw text in the hex fields — kept separate so partially-typed values (e.g.
   // "#99") don't get reverted while applying only completed, valid hexes.
   // hexInput = primary accent; hexInput2 = optional gradient partner colour.
@@ -549,6 +554,26 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       setZipErr(e instanceof Error ? e.message : "couldn't build the zip — try again");
     } finally {
       setZipBusy(false); setZipProgress(null);
+    }
+  };
+
+  // Permanently close the couple's space. Requires the exact "DELETE" token so
+  // it can never happen by accident; on success the session is gone, so just
+  // send them home (which becomes the landing page).
+  const closeSpace = async () => {
+    if (leaveBusy || leaveConfirm.trim().toUpperCase() !== "DELETE") return;
+    setLeaveBusy(true); setLeaveErr("");
+    try {
+      const res = await fetch("/api/couples/leave", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "DELETE" }),
+      });
+      if (!res.ok) throw new Error();
+      try { localStorage.clear(); } catch {}
+      window.location.href = "/";
+    } catch {
+      setLeaveBusy(false);
+      setLeaveErr("couldn't close your space — try again");
     }
   };
 
@@ -1472,6 +1497,59 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 }}>
                 reset sections &amp; theme to defaults
               </motion.button>
+
+              {/* ─── Close our space (offboarding) ─── */}
+              <GroupLabel>🕊️ close our space</GroupLabel>
+              <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.6rem", lineHeight: 1.5 }}>
+                Your memories are yours. <strong>Download everything above first</strong> — then, if you ever need to, you can permanently close your space. This erases the journal, letters, photos &amp; both accounts for good. It can&apos;t be undone.
+              </p>
+              {!leaveOpen ? (
+                <motion.button
+                  onClick={() => { setLeaveOpen(true); setLeaveErr(""); setLeaveConfirm(""); }}
+                  whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                  style={{
+                    width: "100%", padding: "0.7rem", borderRadius: 10,
+                    border: "1.5px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.06)",
+                    color: "#ef4444", fontFamily: SANS, fontSize: "0.82rem", fontWeight: 600, cursor: "pointer",
+                  }}>
+                  close our space…
+                </motion.button>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem", padding: "0.9rem", borderRadius: 12, border: "1.5px solid rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.05)" }}>
+                  <p style={{ fontFamily: SANS, fontSize: "0.74rem", color: "var(--text)", margin: 0, lineHeight: 1.5 }}>
+                    To confirm, type <strong style={{ color: "#ef4444" }}>DELETE</strong> below. This is permanent.
+                  </p>
+                  <input
+                    value={leaveConfirm}
+                    onChange={e => setLeaveConfirm(e.target.value)}
+                    placeholder="DELETE"
+                    style={{
+                      padding: "0.6rem 0.8rem", borderRadius: 10, fontFamily: SANS, fontSize: "0.9rem",
+                      border: "1.5px solid rgba(239,68,68,0.4)", background: "var(--card-bg,#fff)", color: "var(--text)",
+                      letterSpacing: "0.15em", textTransform: "uppercase",
+                    }}
+                  />
+                  {leaveErr && <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "#ef4444", margin: 0 }}>⚠️ {leaveErr}</p>}
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button
+                      onClick={() => { setLeaveOpen(false); setLeaveConfirm(""); setLeaveErr(""); }}
+                      style={{ flex: 1, padding: "0.6rem", borderRadius: 10, border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)", color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.82rem", fontWeight: 600, cursor: "pointer" }}>
+                      keep our space 💗
+                    </button>
+                    <button
+                      onClick={closeSpace}
+                      disabled={leaveBusy || leaveConfirm.trim().toUpperCase() !== "DELETE"}
+                      style={{
+                        flex: 1, padding: "0.6rem", borderRadius: 10, border: "none",
+                        background: leaveConfirm.trim().toUpperCase() === "DELETE" ? "#ef4444" : "rgba(239,68,68,0.4)",
+                        color: "#fff", fontFamily: SANS, fontSize: "0.82rem", fontWeight: 700,
+                        cursor: leaveBusy || leaveConfirm.trim().toUpperCase() !== "DELETE" ? "not-allowed" : "pointer",
+                      }}>
+                      {leaveBusy ? "closing…" : "close forever"}
+                    </button>
+                  </div>
+                </div>
+              )}
               </TabSection>
             </div>
 

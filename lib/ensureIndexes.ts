@@ -61,6 +61,9 @@ const INDEXES: IndexDef[] = [
   // OTPs — single pending code per (email, purpose) + TTL reaping on expiry.
   { collection: "otps", keys: { email: 1, purpose: 1 } },
   { collection: "otps", keys: { expiresAt: 1 }, options: { expireAfterSeconds: 0 } },
+  // Win-back dedup — unique per (couple, ISO-week) key, self-reaping after 60d.
+  { collection: "winbackSent", keys: { key: 1 }, options: { unique: true } },
+  { collection: "winbackSent", keys: { sentAtDate: 1 }, options: { expireAfterSeconds: 60 * 86_400 } },
 ];
 
 export function ensureIndexes(db: Db): Promise<void> {

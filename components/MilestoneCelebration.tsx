@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import { shareMilestone } from "@/lib/shareCard";
 
 
 interface Milestone { days: number; label: string; emoji: string }
@@ -33,6 +34,7 @@ export default function MilestoneCelebration() {
   const user = useUserData();
   const [milestone, setMilestone] = useState<Milestone | null>(null);
   const [visible, setVisible] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     if (!user?.startDate) return;
@@ -58,6 +60,23 @@ export default function MilestoneCelebration() {
 
   const coupleName = user?.settings?.coupleName?.trim() ||
     (user?.partnerName ? `${displayName(user)} & ${partnerDisplayName(user)}` : "you two");
+
+  // Share at the emotional peak — a branded card carrying a referral link so the
+  // most shareable moment in the app turns into word-of-mouth.
+  const share = async () => {
+    if (!milestone || sharing) return;
+    setSharing(true);
+    let referralUrl: string | undefined;
+    try {
+      const d = await (await fetch("/api/couples/referral")).json();
+      if (d?.referralCode && typeof window !== "undefined") referralUrl = `${window.location.origin}/?ref=${d.referralCode}`;
+    } catch {}
+    try {
+      await shareMilestone({ label: milestone.label, emoji: milestone.emoji, coupleName, daysTogether: milestone.days }, referralUrl);
+    } catch {}
+    setSharing(false);
+    dismiss();
+  };
 
   return (
     <AnimatePresence>
@@ -115,19 +134,33 @@ export default function MilestoneCelebration() {
               {coupleName} 💗
             </p>
 
-            <motion.button
-              onClick={dismiss}
-              whileHover={{ scale:1.04, y:-2 }} whileTap={{ scale:0.97 }}
-              style={{
-                fontFamily:SCRIPT, fontSize:"1.15rem",
-                background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
-                color:"#fff", border:"none", borderRadius:50,
-                padding:"0.85rem 2.5rem", cursor:"pointer",
-                boxShadow:"0 6px 24px rgba(var(--pink-deep-rgb),.35)",
-              }}
-            >
-              celebrate! 🎉
-            </motion.button>
+            <div style={{ display:"flex", gap:"0.6rem", justifyContent:"center", flexWrap:"wrap" }}>
+              <motion.button
+                onClick={share} disabled={sharing}
+                whileHover={{ scale:1.04, y:-2 }} whileTap={{ scale:0.97 }}
+                style={{
+                  fontFamily:SCRIPT, fontSize:"1.15rem",
+                  background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",
+                  color:"#fff", border:"none", borderRadius:50,
+                  padding:"0.85rem 2rem", cursor:"pointer",
+                  boxShadow:"0 6px 24px rgba(var(--pink-deep-rgb),.35)",
+                }}
+              >
+                {sharing ? "making your card…" : "share this 💌"}
+              </motion.button>
+              <motion.button
+                onClick={dismiss}
+                whileHover={{ scale:1.04, y:-2 }} whileTap={{ scale:0.97 }}
+                style={{
+                  fontFamily:SCRIPT, fontSize:"1.15rem",
+                  background:"rgba(var(--pink-rgb),0.12)",
+                  color:"var(--pink-deep)", border:"none", borderRadius:50,
+                  padding:"0.85rem 1.8rem", cursor:"pointer",
+                }}
+              >
+                celebrate! 🎉
+              </motion.button>
+            </div>
           </motion.div>
         </>
       )}

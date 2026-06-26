@@ -34,6 +34,9 @@ interface DailyView {
   /** Consecutive days (ending today, with a grace day for today) where BOTH
    *  partners answered — the shared "answer streak". */
   streak: number;
+  /** True when a single missed day was bridged by the streak "freeze" so a long
+   *  streak survives one slip — the UI can show a gentle "we saved it 🛡️". */
+  streakFrozen: boolean;
 }
 
 const DAY_MS = 86_400_000;
@@ -44,7 +47,7 @@ const dayKey = (ms: number) => new Date(ms).toISOString().slice(0, 10);
  * answered (the "revealed" state). Today is given a grace day — it doesn't
  * break the streak just because you haven't both answered yet today.
  */
-async function computeStreak(coupleId: string, today: string): Promise<number> {
+async function computeStreak(coupleId: string, today: string): Promise<{ streak: number; frozen: boolean }> {
   const col = await getCol("dailyAnswers");
   const todayMs = Date.parse(`${today}T00:00:00Z`);
   const lower = dayKey(todayMs - 400 * DAY_MS); // bound the scan to ~13 months
@@ -56,17 +59,30 @@ async function computeStreak(coupleId: string, today: string): Promise<number> {
     docs.filter((d) => Object.keys(d.answers ?? {}).length >= 2).map((d) => d.date),
   );
 
+  // Streak "freeze": a single missed day inside an otherwise-unbroken run is
+  // bridged once, so one slip never nukes a long streak (Duolingo's lesson).
+  // Stateless — at most one bridge per continuous run; a second miss truly ends
+  // it. The frozen day itself doesn't count toward the number.
   let streak = 0;
   let cursor = todayMs;
+  let frozen = false;
   if (!done.has(dayKey(cursor))) cursor -= DAY_MS; // grace: today still pending
-  while (done.has(dayKey(cursor))) {
-    streak++;
-    cursor -= DAY_MS;
+  while (true) {
+    if (done.has(dayKey(cursor))) {
+      streak++;
+      cursor -= DAY_MS;
+    } else if (!frozen && streak > 0 && done.has(dayKey(cursor - DAY_MS))) {
+      // one freeze: skip a lone gap only when the run continues on the far side
+      frozen = true;
+      cursor -= DAY_MS;
+    } else {
+      break;
+    }
   }
-  return streak;
+  return { streak, frozen: frozen && streak > 0 };
 }
 
-function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: string }, userId: string, streak: number): DailyView {
+function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: string }, userId: string, streakInfo: { streak: number; frozen: boolean }): DailyView {
   const answers = doc?.answers ?? {};
   const mineEntry = answers[userId] ?? null;
   const partnerEntry = Object.entries(answers).find(([uid]) => uid !== userId) ?? null;
@@ -81,7 +97,8 @@ function viewFor(doc: DailyDoc | null, date: string, q: { id: number; text: stri
     partnerAnswered,
     revealed,
     partner: revealed && partnerEntry ? { name: partnerEntry[1].name, text: partnerEntry[1].text } : null,
-    streak,
+    streak: streakInfo.streak,
+    streakFrozen: streakInfo.frozen,
   };
 }
 
@@ -90,8 +107,8 @@ export const GET = withAuth(async (_req, session) => {
   const q = questionForDate(date);
   const col = await getCol("dailyAnswers");
   const doc = (await col.findOne({ coupleId: session.coupleId, date })) as DailyDoc | null;
-  const streak = await computeStreak(session.coupleId, date);
-  return NextResponse.json(viewFor(doc, date, q, session.userId, streak));
+  const streakInfo = await computeStreak(session.coupleId, date);
+  return NextResponse.json(viewFor(doc, date, q, session.userId, streakInfo));
 });
 
 export const POST = withAuth(async (req, session) => {
@@ -148,6 +165,6 @@ export const POST = withAuth(async (req, session) => {
     broadcastToCouple(session.coupleId, { type: "daily:reveal", date, userId: session.userId, silent: true });
   }
 
-  const streak = await computeStreak(session.coupleId, date);
-  return NextResponse.json(viewFor(after, date, q, session.userId, streak));
+  const streakInfo = await computeStreak(session.coupleId, date);
+  return NextResponse.json(viewFor(after, date, q, session.userId, streakInfo));
 });

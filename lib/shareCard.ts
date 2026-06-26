@@ -25,6 +25,9 @@ export interface ShareStats {
 const W = 1080, H = 1920;
 const SANS = '"Helvetica Neue", Arial, sans-serif';
 const SERIF = 'Georgia, "Times New Roman", serif';
+// Stamped on every shared card so each post is a findable ad. Keep in sync with
+// the deployed domain (README → wearesocuteomg.vercel.app).
+const SITE = "wearesocuteomg.vercel.app";
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
@@ -36,8 +39,8 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
 }
 
-function drawCard(ctx: CanvasRenderingContext2D, s: ShareStats) {
-  // ── Background gradient ──
+/** Shared pink gradient + orbs + scattered hearts — used by every card type. */
+function drawBackground(ctx: CanvasRenderingContext2D) {
   const bg = ctx.createLinearGradient(0, 0, W, H);
   bg.addColorStop(0, "#f9a8d4");
   bg.addColorStop(0.45, "#ec4899");
@@ -45,7 +48,6 @@ function drawCard(ctx: CanvasRenderingContext2D, s: ShareStats) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // ── Soft decorative orbs ──
   const orb = (x: number, y: number, r: number, a: number) => {
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, `rgba(255,255,255,${a})`);
@@ -56,7 +58,6 @@ function drawCard(ctx: CanvasRenderingContext2D, s: ShareStats) {
   orb(880, 240, 340, 0.16);
   orb(150, 1500, 320, 0.12);
 
-  // Scattered hearts
   ctx.font = `48px ${SANS}`;
   ctx.globalAlpha = 0.18;
   const hearts: Array<[number, number, number]> = [[120, 520, 0.4], [960, 700, -0.3], [200, 1180, 0.2], [900, 1280, 0.5], [520, 250, -0.2]];
@@ -64,8 +65,23 @@ function drawCard(ctx: CanvasRenderingContext2D, s: ShareStats) {
     ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillText("♥", 0, 0); ctx.restore();
   }
   ctx.globalAlpha = 1;
-
   ctx.textAlign = "left";
+}
+
+/** Branded footer — app name + findable URL, so each shared card is an ad. */
+function drawFooter(ctx: CanvasRenderingContext2D) {
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `italic 44px ${SERIF}`;
+  ctx.fillText("made with love on Us  ♥", W / 2, 1838);
+  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  ctx.font = `600 32px ${SANS}`;
+  ctx.fillText(SITE, W / 2, 1890);
+  ctx.textAlign = "left";
+}
+
+function drawCard(ctx: CanvasRenderingContext2D, s: ShareStats) {
+  drawBackground(ctx);
 
   // ── Header ──
   ctx.fillStyle = "rgba(255,255,255,0.82)";
@@ -113,46 +129,88 @@ function drawCard(ctx: CanvasRenderingContext2D, s: ShareStats) {
     ctx.fillText(label, x + 46, y + 185);
   });
 
-  // ── Footer ──
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.font = `italic 42px ${SERIF}`;
-  ctx.fillText("made with love on Us  ♥", W / 2, 1850);
-  ctx.textAlign = "left";
+  drawFooter(ctx);
 }
 
-async function renderPng(s: ShareStats): Promise<Blob> {
+export interface MilestoneShare {
+  label: string;        // "100 days", "1 year"
+  emoji: string;
+  coupleName: string;
+  daysTogether: number;
+}
+
+/** A simpler, punchier card for a single milestone moment. */
+function drawMilestoneCard(ctx: CanvasRenderingContext2D, m: MilestoneShare) {
+  drawBackground(ctx);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,0.82)";
+  ctx.font = `600 40px ${SANS}`;
+  ctx.fillText("✦  T O D A Y   M A R K S", W / 2, 560);
+
+  ctx.font = `300px ${SERIF}`;
+  ctx.fillText(m.emoji, W / 2, 940);
+
+  ctx.fillStyle = "#ffffff";
+  let size = 150;
+  ctx.font = `italic 700 ${size}px ${SERIF}`;
+  const headline = `${m.label} together`;
+  while (ctx.measureText(headline).width > W - 160 && size > 70) { size -= 4; ctx.font = `italic 700 ${size}px ${SERIF}`; }
+  ctx.fillText(headline, W / 2, 1180);
+
+  ctx.fillStyle = "rgba(255,255,255,0.92)";
+  ctx.font = `italic 56px ${SERIF}`;
+  ctx.fillText(`${m.daysTogether} days & counting 💞`, W / 2, 1280);
+
+  const name = m.coupleName.trim() || "us";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `500 60px ${SANS}`;
+  ctx.fillText(`${name} 💗`, W / 2, 1420);
+
+  ctx.textAlign = "left";
+  drawFooter(ctx);
+}
+
+async function renderPng(draw: (ctx: CanvasRenderingContext2D) => void): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("no 2d context");
-  drawCard(ctx, s);
+  draw(ctx);
   return await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png"),
   );
 }
 
-/** Generate the poster and share it (or download as a fallback). Returns how it
- *  was delivered so the caller can show the right confirmation. */
-export async function shareWrapped(stats: ShareStats): Promise<"shared" | "downloaded"> {
-  const blob = await renderPng(stats);
-  const file = new File([blob], "us-wrapped.png", { type: "image/png" });
-
+/** Share any rendered card, optionally carrying a referral link in the text so
+ *  platforms that support text+file (and the download fallback) spread it. */
+async function shareBlob(blob: Blob, filename: string, title: string, referralUrl?: string): Promise<"shared" | "downloaded"> {
+  const file = new File([blob], filename, { type: "image/png" });
   const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
   if (nav.share && nav.canShare?.({ files: [file] })) {
     try {
-      await nav.share({ files: [file], title: "Us, Wrapped 💗" });
+      await nav.share({ files: [file], title, ...(referralUrl ? { text: `come make your own 💗 ${referralUrl}` } : {}) });
       return "shared";
     } catch (err) {
-      // User cancelled the share sheet — treat as handled, don't also download.
       if (err instanceof DOMException && err.name === "AbortError") return "shared";
     }
   }
-
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "us-wrapped.png";
+  a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   return "downloaded";
+}
+
+/** Generate the Wrapped poster and share it (or download as a fallback). */
+export async function shareWrapped(stats: ShareStats, referralUrl?: string): Promise<"shared" | "downloaded"> {
+  const blob = await renderPng((ctx) => drawCard(ctx, stats));
+  return shareBlob(blob, "us-wrapped.png", "Us, Wrapped 💗", referralUrl);
+}
+
+/** Generate a single-milestone poster and share it (or download as a fallback). */
+export async function shareMilestone(m: MilestoneShare, referralUrl?: string): Promise<"shared" | "downloaded"> {
+  const blob = await renderPng((ctx) => drawMilestoneCard(ctx, m));
+  return shareBlob(blob, `us-${m.label.replace(/\s+/g, "-")}.png`, `${m.label} together 💗`, referralUrl);
 }

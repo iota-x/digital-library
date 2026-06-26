@@ -4,6 +4,8 @@ import { getCol } from "@/lib/mongo";
 import { signSession, setSessionCookie } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { generateOtp, storeOtp, sendMail, verifyEmailTemplate } from "@/lib/email";
+import { sendPushToCouple } from "@/lib/pushNotify";
+import { REWARD_THEMES } from "@/lib/themes";
 
 function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -103,11 +105,22 @@ export async function POST(req: NextRequest) {
         if (refCode && refCode !== referralCode) {
           const referrer = await couples.findOne({ referralCode: refCode });
           if (referrer && referrer._id.toString() !== coupleId) {
-            await couples.updateOne({ _id: referrer._id }, { $inc: { referralCount: 1 } });
+            const updated = await couples.findOneAndUpdate(
+              { _id: referrer._id },
+              { $inc: { referralCount: 1 } },
+              { returnDocument: "after" },
+            );
             await couples.updateOne(
               { _id: coupleResult.insertedId },
               { $set: { referredBy: referrer._id.toString(), referredAt: new Date().toISOString() } },
             );
+            // Close the reward loop: tell the referrer it landed, and celebrate
+            // loudly when this referral crosses a theme-unlock threshold.
+            const newCount = (updated?.referralCount as number | undefined) ?? 0;
+            const unlocked = REWARD_THEMES.find(t => t.unlockAt === newCount);
+            void sendPushToCouple(referrer._id.toString(), unlocked
+              ? { title: `you unlocked ${unlocked.emoji} ${unlocked.name}!`, body: "a couple you invited just joined — your reward theme is ready in settings 💝" }
+              : { title: "a couple you invited just joined 💗", body: "thank you for spreading the love" });
           }
         }
       } catch (e) {

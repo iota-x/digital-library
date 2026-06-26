@@ -128,7 +128,8 @@ See [`.env.example`](.env.example) for the full list.
 | Song-of-the-day | `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET` |
 | Cross-instance rate limiting | `REDIS_URL` |
 | Daily weather snapshots | `WEATHER_LAT`, `WEATHER_LON` |
-| Scheduled reminders | `CRON_SECRET` |
+| Scheduled reminders / win-back | `CRON_SECRET` |
+| Real-time error alerts | `ERROR_WEBHOOK_URL` (Discord/Slack webhook) |
 
 > Without `ANTHROPIC_API_KEY`, the date/reconnect ideas and quiz generator use a
 > built-in content library — set the key to turn on Claude personalisation.
@@ -158,6 +159,15 @@ GET https://<your-app>/api/cron/daily-quiz?secret=$CRON_SECRET
 
 De-duplicated per (couple, UTC-day), which is what enforces the "one per day"
 cap even if a couple blitzes through the new quiz the same day.
+
+`/api/cron/winback` sends one gentle re-engagement push to *paired* couples
+who've gone quiet (5–21 days since either partner was last seen), de-duplicated
+per (couple, ISO-week) so it's at most ~one nudge a week and never nags the
+long-gone. Same `CRON_SECRET` guard and scheduler setup:
+
+```
+GET https://<your-app>/api/cron/winback?secret=$CRON_SECRET
+```
 
 ## 🏗️ Project layout
 

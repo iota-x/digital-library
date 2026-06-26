@@ -12,6 +12,7 @@ import ButtonSection from "@/components/ButtonSection";
 import VoiceNote     from "@/components/VoiceNote";
 import CapsuleTeaser from "@/components/CapsuleTeaser";
 import Final         from "@/components/Final";
+import UnpairedCard   from "@/components/UnpairedCard";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useUserData } from "@/lib/userStore";
 import { sectionVisible } from "@/lib/themes";
@@ -41,6 +42,7 @@ function HomeContent() {
 
   return (
     <main>
+      <ErrorBoundary><UnpairedCard /></ErrorBoundary>
       {order.map(key => {
         const meta = HOME_SECTIONS.find(s => s.key === key);
         if (!meta || !nodes[key]) return null;

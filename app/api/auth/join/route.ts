@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     await couples.updateOne(
       { _id: couple._id },
-      { $set: { person2Name: name.trim(), person2Email: emailLower } }
+      { $set: { person2Name: name.trim(), person2Email: emailLower }, $unset: { inviteNote: "" } }
     );
 
     // Issue + email verification code
