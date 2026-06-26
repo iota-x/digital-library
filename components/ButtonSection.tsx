@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
 // Spoken in the partner's first-person voice — whoever is logged in, the "me"
@@ -85,14 +85,24 @@ export default function ButtonSection() {
   const cur = active !== null ? BUTTONS[active] : null;
   const curShade = active !== null ? CARD_SHADES[active] : null;
 
+  // Lock background scroll while a card is open. Driven by `active` (not the
+  // open/close handlers) so the cleanup ALWAYS restores overflow — on close,
+  // on unmount, on route change, or on an HMR reload mid-open. The old
+  // imperative version could leave `body.overflow:hidden` stuck (page won't
+  // scroll) if the modal ever went away without handleClose running.
+  useEffect(() => {
+    if (active === null) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [active]);
+
   function handleOpen(i: number) {
     setActive(i);
     setHeartKey(k => k + 1);
-    document.body.style.overflow = "hidden";
   }
   function handleClose() {
     setActive(null);
-    document.body.style.overflow = "";
   }
 
   return (
