@@ -239,7 +239,7 @@ export default function Polaroids() {
   return (
     <>
       <section ref={ref} id="hero" style={{
-        position:"relative", width:"100%", minHeight:"100vh",
+        position:"relative", width:"100%", minHeight:"100dvh",
         display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
         padding:"5rem 2rem", overflow:"hidden",
         background:"linear-gradient(160deg,var(--cream) 0%,var(--rose) 50%,var(--cream) 100%)",

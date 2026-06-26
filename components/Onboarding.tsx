@@ -146,7 +146,7 @@ export default function Onboarding() {
         <>
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 9970, background: "rgba(0,0,0,.55)", backdropFilter: "blur(8px)" }}
+            style={{ position: "fixed", inset: 0, zIndex: 9970, background: "rgba(0,0,0,.55)", WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)" }}
           />
           <motion.div
             key={step}

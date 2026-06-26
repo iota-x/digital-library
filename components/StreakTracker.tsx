@@ -80,7 +80,7 @@ export default function StreakTracker() {
 
   return (
     <section id="streak" style={{
-      position:"relative",width:"100%",minHeight:"100vh",
+      position:"relative",width:"100%",minHeight:"100dvh",
       display:"flex",alignItems:"center",justifyContent:"center",
       padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",
       overflow:"hidden",

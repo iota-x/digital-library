@@ -61,8 +61,7 @@ export default function DoodleGallery({ open, onClose }: { open: boolean; onClos
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "clamp(0.8rem, 3vw, 2rem)",
             background: "rgba(var(--pink-deep-rgb), .3)",
-            backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-          }}
+            WebkitBackdropFilter: "blur(14px)", backdropFilter: "blur(14px)", }}
         >
           <motion.div
             ref={dialogRef}

@@ -66,7 +66,7 @@ export default function MilestoneCelebration() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={dismiss}
-            style={{ position:"fixed", inset:0, zIndex:9998, background:"rgba(0,0,0,.5)", backdropFilter:"blur(6px)" }}
+            style={{ position:"fixed", inset:0, zIndex:9998, background:"rgba(0,0,0,.5)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)" }}
           />
           <motion.div
             initial={{ opacity:0, scale:0.8, y:40 }}

@@ -357,7 +357,7 @@ function PartnerChip({ partner }: { partner: PartnerPresence }) {
         zIndex: 930,
         display: "flex", alignItems: "center", gap: "0.4rem",
         background: "rgba(var(--pink-deep-rgb), .14)",
-        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)", backdropFilter: "blur(10px)",
         border: "1px solid rgba(var(--pink-rgb), .45)",
         borderRadius: 50,
         padding: "0.32rem 0.7rem 0.32rem 0.45rem",

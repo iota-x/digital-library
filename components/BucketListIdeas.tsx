@@ -96,7 +96,7 @@ export default function BucketListIdeas({ onAdd }: Props) {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,.45)", backdropFilter: "blur(4px)" }}
+              style={{ position: "fixed", inset: 0, zIndex: 9000, background: "rgba(0,0,0,.45)", WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)" }}
             />
             <motion.div
               ref={dialogRef}

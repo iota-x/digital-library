@@ -685,8 +685,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
         style={{
           position: "relative", zIndex: 2,
           background: "rgba(255,255,255,0.75)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)", backdropFilter: "blur(20px)",
           border: "1px solid rgba(249,168,212,0.4)",
           borderRadius: 24,
           padding: "clamp(2rem,5vw,3rem) clamp(1.5rem,4vw,2.5rem)",

@@ -195,8 +195,7 @@ export default function CommandPalette() {
           style={{
             position:"fixed", inset:0, zIndex:9999,
             background:"rgba(50,0,25,.42)",
-            backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
-            display:"flex", alignItems:"flex-start", justifyContent:"center",
+            WebkitBackdropFilter: "blur(10px)", backdropFilter: "blur(10px)", display:"flex", alignItems:"flex-start", justifyContent:"center",
             paddingTop:"clamp(80px,16vh,150px)",
           }}>
           <motion.div

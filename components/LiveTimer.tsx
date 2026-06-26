@@ -180,7 +180,7 @@ export default function LiveTimer() {
       id="live-timer"
       ref={ref}
       style={{
-        width:"100%", minHeight:"100vh",
+        width:"100%", minHeight:"100dvh",
         display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center",
         padding:"5rem 2rem",

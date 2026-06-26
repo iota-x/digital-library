@@ -145,7 +145,7 @@ export default function WatchlistSection() {
 
   return (
     <section style={{
-      position:"relative",width:"100%",minHeight:"100vh",
+      position:"relative",width:"100%",minHeight:"100dvh",
       padding:"clamp(3.5rem,7vh,5.5rem) clamp(1rem,4vw,2.5rem)",
       background:"linear-gradient(160deg,var(--pink-light) 0%,var(--pink-light) 55%,var(--rose) 100%)",
       overflow:"hidden",
@@ -418,7 +418,7 @@ export default function WatchlistSection() {
                             background:"linear-gradient(to top,rgba(0,0,0,.78),transparent)"}} />
                           <div className="wl-pill" data-status={item.status}
                             style={{position:"absolute",bottom:"0.5rem",left:"0.55rem",
-                            background:sm.bg,backdropFilter:"blur(8px)",
+                            background:sm.bg,WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)",
                             borderRadius:6,padding:"0.15rem 0.5rem"}}>
                             <span style={{fontFamily:SANS,fontSize:"0.6rem",fontWeight:700,color:sm.text}}>
                               {sm.label}
@@ -500,5 +500,5 @@ const ICON_BTN:React.CSSProperties = {
   width:38,height:38,border:"none",borderRadius:10,background:"rgba(0,0,0,.55)",
   cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
   fontSize:"0.95rem",boxShadow:"0 2px 8px rgba(0,0,0,.3)",
-  backdropFilter:"blur(6px)",
+  WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)",
 };

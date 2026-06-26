@@ -844,6 +844,7 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
 .occ-deco {
   position: absolute;
   pointer-events: none;
+  -webkit-user-select: none;
   user-select: none;
   z-index: 0;
   animation: occ-float var(--occ-dur, 4s) ease-in-out infinite;
@@ -883,6 +884,7 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
 .occ-petal {
   position: absolute;
   pointer-events: none;
+  -webkit-user-select: none;
   user-select: none;
   top: -60px;
   animation: occ-fall var(--occ-dur, 10s) linear infinite;
@@ -1114,6 +1116,17 @@ html.custom-bg.custom-bg.custom-bg section { background: transparent !important;
   [role="button"]:not([data-no-touch-min]) {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /* Calendar day cells live in a fixed repeat(7,1fr) grid. The 44px floor above
+     would push 7 cells past the width of a <360px phone; because the cells are
+     `aspect-ratio:1`, even min-width:0 isn't enough — min-height:44 drags the
+     width back up via the ratio, so the buttons overflow their 1fr tracks and
+     overlap. Drop both floors here and let the cells stay square within the
+     grid (they grow naturally with the viewport on larger phones). */
+  button.occ-day {
+    min-width: 0;
+    min-height: 0;
   }
 
   /* iOS Safari auto-zooms the whole page whenever a focused field's font is

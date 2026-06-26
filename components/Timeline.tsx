@@ -394,7 +394,7 @@ export default function Timeline() {
     <section
       id="timeline"
       style={{
-        width: "100%", minHeight: "100vh",
+        width: "100%", minHeight: "100dvh",
         display: "flex", flexDirection: "column",
         alignItems: "center",
         padding: "6rem 2rem 8rem",
@@ -514,7 +514,7 @@ export default function Timeline() {
               key="dim"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={close}
-              style={{ position:"fixed", inset:0, zIndex:9997, background:"rgba(61,31,43,.42)", backdropFilter:"blur(6px)" }}
+              style={{ position:"fixed", inset:0, zIndex:9997, background:"rgba(61,31,43,.42)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)" }}
             />
             <motion.div
               key="drawer"
@@ -608,8 +608,7 @@ export default function Timeline() {
             style={{
               position:"fixed", inset:0, zIndex:9999,
               background:"rgba(var(--pink-deep-rgb),.35)",
-              backdropFilter:"blur(10px)",
-              WebkitBackdropFilter:"blur(10px)",
+              WebkitBackdropFilter: "blur(10px)", backdropFilter: "blur(10px)",
               display:"flex", alignItems:"center", justifyContent:"center",
               padding:"clamp(0.8rem,3vw,1.5rem)",
             }}

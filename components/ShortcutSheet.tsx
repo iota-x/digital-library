@@ -54,7 +54,7 @@ export default function ShortcutSheet() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setOpen(false)}
-            style={{ position: "fixed", inset: 0, zIndex: 9980, background: "rgba(0,0,0,.55)", backdropFilter: "blur(6px)" }}
+            style={{ position: "fixed", inset: 0, zIndex: 9980, background: "rgba(0,0,0,.55)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)" }}
           />
           <motion.div
             ref={dialogRef}

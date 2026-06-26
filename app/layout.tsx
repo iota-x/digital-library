@@ -81,6 +81,9 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#be185d",
+  // Extend the page under the notch/home indicator so env(safe-area-inset-*)
+  // resolves to real values — the bottom dock and its body padding rely on it.
+  viewportFit: "cover",
 };
 
 // Runs before first paint to apply the saved theme + custom accent, killing the

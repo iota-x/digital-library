@@ -213,7 +213,7 @@ function ILoveYouGame({ globalStep, totalSteps }: { globalStep: number; totalSte
       className="dk-ily-game"
       style={{
         width:"100%",
-        minHeight:"100vh",
+        minHeight:"100dvh",
         zIndex:2, position:"relative",
         display:"flex", flexDirection:"column",
         alignItems:"center", justifyContent:"center",
@@ -588,7 +588,7 @@ function Arrow({ dir, onClick, disabled }: { dir:"left"|"right"; onClick:()=>voi
         fontSize:"1.2rem",
         color: disabled ? "var(--pink)99" : "var(--pink-deep)",
         outline:"none",
-        backdropFilter:"blur(8px)",
+        WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)",
         transition:"background 0.2s, box-shadow 0.2s",
         opacity: disabled ? 0.4 : 1,
       }}
@@ -716,7 +716,7 @@ export default function Final() {
       <section
         id="final"
         style={{
-          width:"100%", minHeight:"100vh",
+          width:"100%", minHeight:"100dvh",
           display:"flex", flexDirection:"column",
           alignItems:"center", justifyContent:"center",
           padding:"6rem 2rem",
@@ -876,8 +876,7 @@ export default function Final() {
               display:"flex", alignItems:"center", justifyContent:"center",
               padding:"clamp(0.8rem,3vw,1.5rem)",
               background:"rgba(var(--pink-deep-rgb),.35)",
-              backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
-            }}
+              WebkitBackdropFilter: "blur(10px)", backdropFilter: "blur(10px)", }}
           >
             <motion.div
               ref={editorRef}

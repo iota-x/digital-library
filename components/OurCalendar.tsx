@@ -211,7 +211,7 @@ function Lightbox({
             left: "50%", transform: "translateX(-50%)",
             zIndex: 4,
             background: "rgba(20, 4, 14, .92)",
-            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)", backdropFilter: "blur(10px)",
             border: "1px solid rgba(var(--pink-rgb), .25)",
             borderRadius: 18,
             padding: "0.55rem 0.75rem",
@@ -816,7 +816,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
               {entry.weather && (
                 <span
                   title={`${entry.weather.label}, ${entry.weather.tempMinC}°–${entry.weather.tempMaxC}°C`}
-                  style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(255,255,255,.85)", background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.3)", padding: "0.18rem 0.6rem", borderRadius: 20, display: "inline-flex", alignItems: "center", gap: "0.3rem", backdropFilter: "blur(8px)" }}>
+                  style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(255,255,255,.85)", background: "rgba(255,255,255,.1)", border: "1px solid rgba(var(--pink-rgb),.3)", padding: "0.18rem 0.6rem", borderRadius: 20, display: "inline-flex", alignItems: "center", gap: "0.3rem", WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)" }}>
                   <span style={{ fontSize: "0.95rem", lineHeight: 1 }}>{entry.weather.emoji}</span>
                   {entry.weather.tempMaxC}°
                 </span>
@@ -826,7 +826,7 @@ function DayView({ dateKey, entry, originRect, onClose, onSave, onDelete, birthd
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
             {hasContent && (
-              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 28, padding: "0.18rem", display: "flex", border: "1px solid rgba(var(--pink-rgb),.3)", backdropFilter: "blur(8px)" }}>
+              <div style={{ background: "rgba(255,255,255,.08)", borderRadius: 28, padding: "0.18rem", display: "flex", border: "1px solid rgba(var(--pink-rgb),.3)", WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)" }}>
                 {(["view", "edit"] as const).map(t => (
                   <button key={t} onClick={() => setTab(t)}
                     style={{ padding: "0.28rem 0.85rem", borderRadius: 24, border: "none", fontFamily: SANS, fontSize: "0.82rem", fontWeight: tab === t ? 700 : 500, cursor: "pointer", transition: "all 0.2s", background: tab === t ? "linear-gradient(135deg,var(--pink),var(--pink-deep))" : "transparent", color: tab === t ? "#fff" : "rgba(255,255,255,.7)", boxShadow: tab === t ? "0 2px 10px rgba(var(--pink-deep-rgb),.4)" : "none" }}>
@@ -1222,7 +1222,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
   const specialCnt = Object.values(entries).filter(e => e.special).length;
 
   return (
-    <section id="calendar" style={{ position: "relative", width: "100%", minHeight: "100vh", padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)", background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,rgba(var(--pink-rgb),.55) 60%,rgba(var(--pink-rgb),.85) 85%,var(--pink-deep) 100%)", overflow: "hidden" }}>
+    <section id="calendar" style={{ position: "relative", width: "100%", minHeight: "100dvh", padding: "clamp(4rem,7vw,6rem) clamp(1rem,3vw,2rem) clamp(4rem,7vw,6rem)", background: "linear-gradient(180deg,var(--rose) 0%,var(--pink-light) 30%,rgba(var(--pink-rgb),.55) 60%,rgba(var(--pink-rgb),.85) 85%,var(--pink-deep) 100%)", overflow: "hidden" }}>
       {DECO_SYMS.map((sym, i) => (
         <span key={i} className="occ-deco"
           style={{ left: `${8 + i * 18}%`, top: `${DECO_TOPS[i]}%`, fontSize: `${DECO_SIZES[i]}rem`, "--occ-dur": `${4 + i * 1.2}s`, "--occ-del": `${i * 0.8}s` } as React.CSSProperties}>
@@ -1246,7 +1246,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
           {[{ label: `${totalMem} memories`, e: "📖" }, { label: `${specialCnt} special days`, e: "⭐" }, { label: `Day ${todayDayNumber(getUser()?.startDate)} of us`, e: "🌸" }].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
               className="dk-cal-chip"
-              style={{ background: "rgba(255,255,255,.6)", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 30, padding: "0.35rem 1rem", fontFamily: SANS, fontSize: "0.82rem", color: "var(--pink-deep)", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.08)" }}>
+              style={{ background: "rgba(255,255,255,.6)", border: "1px solid rgba(var(--pink-deep-rgb),.2)", borderRadius: 30, padding: "0.35rem 1rem", fontFamily: SANS, fontSize: "0.82rem", color: "var(--pink-deep)", WebkitBackdropFilter: "blur(8px)", backdropFilter: "blur(8px)", boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.08)" }}>
               {s.e} {s.label}
             </motion.div>
           ))}
@@ -1324,7 +1324,7 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
       </div>
 
       {loading && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,245,249,.8)", backdropFilter: "blur(6px)" }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,245,249,.8)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)" }}>
           <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1.2 }} style={{ fontSize: "2rem" }}>💗</motion.div>
         </div>
       )}

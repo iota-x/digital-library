@@ -10,7 +10,7 @@ import { initCalendarStore, ensureRealtime } from "@/lib/calendarStore";
 function GateLoading() {
   return (
     <div style={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center",
       background: "linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 50%,var(--rose) 100%)",
     }}>
       <motion.div

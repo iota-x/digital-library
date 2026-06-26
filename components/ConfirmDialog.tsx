@@ -54,7 +54,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => close(false)}
-              style={{ position: "fixed", inset: 0, zIndex: 9990, background: "rgba(0,0,0,.5)", backdropFilter: "blur(6px)" }}
+              style={{ position: "fixed", inset: 0, zIndex: 9990, background: "rgba(0,0,0,.5)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)" }}
             />
             <motion.div
               ref={dialogRef}

@@ -307,8 +307,7 @@ export default function DoodleCanvas({ open, onClose }: { open: boolean; onClose
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "clamp(0.8rem, 3vw, 2rem)",
             background: "rgba(var(--pink-deep-rgb), .28)",
-            backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-          }}
+            WebkitBackdropFilter: "blur(14px)", backdropFilter: "blur(14px)", }}
         >
           <motion.div
             initial={{ scale: 0.92, y: 30, opacity: 0 }}

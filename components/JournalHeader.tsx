@@ -76,7 +76,7 @@ export default function JournalHeader() {
             display: "flex", alignItems: "center", gap: "0.45rem",
             fontFamily: SANS, fontSize: "0.84rem", color: "var(--text)",
             boxShadow: "0 2px 10px rgba(var(--pink-deep-rgb),.07)",
-            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)",
           }}>
             <span>{s.e}</span>
             <span style={{ fontWeight: 700, color: "var(--pink-deep)" }}>{s.v}</span>
@@ -96,7 +96,7 @@ export default function JournalHeader() {
               border: "1px solid rgba(var(--pink-rgb),.28)",
               fontFamily: SANS, fontSize: "0.78rem", color: "var(--text)",
               cursor: "pointer",
-              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)",
             }}>
               <span style={{ fontSize: "0.85rem" }}>{s.emoji}</span>
               <span>{s.label}</span>

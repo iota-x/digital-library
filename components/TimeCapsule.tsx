@@ -169,7 +169,7 @@ export default function TimeCapsule() {
   };
 
   return (
-    <div style={{position:"relative",width:"100%",minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",background:BG,overflow:"hidden"}}>
+    <div style={{position:"relative",width:"100%",minHeight:"100dvh",display:"flex",alignItems:"center",justifyContent:"center",padding:"clamp(4rem,8vh,7rem) clamp(1rem,4vw,3rem)",background:BG,overflow:"hidden"}}>
 
       {/* Floating petals */}
       {[3,54,27,62,10,44,68,6,38,18,58,1,46,31,64,13,50,72,22,56].map((l,i)=>(
@@ -407,7 +407,7 @@ export default function TimeCapsule() {
               <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
                   onClick={()=>setConfirmDelete(null)}
-                  style={{position:"fixed",inset:0,zIndex:9000,background:"rgba(0,0,0,.5)",backdropFilter:"blur(6px)"}}/>
+                  style={{position:"fixed",inset:0,zIndex:9000,background:"rgba(0,0,0,.5)",WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)"}}/>
                 <motion.div ref={confirmRef} initial={{opacity:0,scale:0.9,y:20}} animate={{opacity:1,scale:1,y:0}} exit={{opacity:0,scale:0.95}}
                   role="dialog" aria-modal="true"
                   aria-labelledby="release-title" aria-describedby="release-body"

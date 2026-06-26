@@ -107,7 +107,7 @@ export default function BucketList() {
 
   return (
     <section style={{
-      position: "relative", width: "100%", minHeight: "100vh",
+      position: "relative", width: "100%", minHeight: "100dvh",
       overflow: "hidden",
     }}>
       <style>{`

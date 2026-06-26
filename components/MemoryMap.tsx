@@ -137,7 +137,7 @@ export default function MemoryMap() {
             style={{
               position: "absolute", bottom: "5rem", left: "50%", transform: "translateX(-50%)",
               zIndex: 800, background: "rgba(var(--cream-rgb,255,245,249),.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
-              borderRadius: 50, padding: "0.6rem 1.4rem", backdropFilter: "blur(12px)",
+              borderRadius: 50, padding: "0.6rem 1.4rem", WebkitBackdropFilter: "blur(12px)", backdropFilter: "blur(12px)",
               boxShadow: "0 4px 20px rgba(var(--pink-deep-rgb),.15)", pointerEvents: "none",
             }}>
             <p style={{ fontFamily: SANS, fontSize: "0.82rem", color: "var(--pink-deep)", margin: 0, whiteSpace: "nowrap" }}>
@@ -152,7 +152,7 @@ export default function MemoryMap() {
         <div style={{
           position: "absolute", top: "1rem", right: "1rem", zIndex: 800,
           background: "rgba(var(--cream-rgb,255,245,249),.92)", border: "1px solid rgba(var(--pink-deep-rgb),.2)",
-          borderRadius: 50, padding: "0.4rem 1rem", backdropFilter: "blur(12px)",
+          borderRadius: 50, padding: "0.4rem 1rem", WebkitBackdropFilter: "blur(12px)", backdropFilter: "blur(12px)",
           boxShadow: "0 2px 12px rgba(var(--pink-deep-rgb),.15)",
         }}>
           <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "var(--pink-deep)", margin: 0 }}>
@@ -177,7 +177,7 @@ export default function MemoryMap() {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setAdding(null)}
-              style={{ position: "absolute", inset: 0, zIndex: 850, background: "rgba(6,1,4,.45)", backdropFilter: "blur(2px)" }} />
+              style={{ position: "absolute", inset: 0, zIndex: 850, background: "rgba(6,1,4,.45)", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }} />
             <motion.div
               initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92 }}
               transition={{ type: "spring", stiffness: 280, damping: 28 }}
@@ -238,7 +238,7 @@ export default function MemoryMap() {
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setActive(null)}
-              style={{ position: "absolute", inset: 0, zIndex: 850, background: "rgba(6,1,4,.4)", backdropFilter: "blur(2px)" }} />
+              style={{ position: "absolute", inset: 0, zIndex: 850, background: "rgba(6,1,4,.4)", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }} />
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.94 }}
               transition={{ type: "spring", stiffness: 280, damping: 28 }}

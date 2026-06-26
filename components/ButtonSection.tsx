@@ -101,7 +101,7 @@ export default function ButtonSection() {
       ref={ref}
       style={{
         width: "100%",
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -237,9 +237,8 @@ export default function ButtonSection() {
               display:"flex", alignItems:"center", justifyContent:"center",
               padding:"clamp(1rem,4vw,2rem)",
               background:`rgba(var(--pink-light-rgb),0.65)`,
-              backdropFilter:"blur(18px)",
-              WebkitBackdropFilter:"blur(18px)",
-            }}
+              WebkitBackdropFilter: "blur(18px)", backdropFilter: "blur(18px)",
+              }}
           >
             {Array.from({ length: 7 }, (_, i) => (
               <FloatingHeart key={`${heartKey}-${i}`} delay={i*0.2} x={`${10+i*12}%`} />

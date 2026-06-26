@@ -126,8 +126,7 @@ export default function Navbar() {
           background: scrolled
             ? dark ? "color-mix(in srgb, var(--cream) 90%, transparent)" : `rgba(var(--pink-light-rgb,255,245,249),0.9)`
             : dark ? "color-mix(in srgb, var(--cream) 60%, transparent)" : "rgba(255,255,255,0.35)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)", backdropFilter: "blur(20px)",
           borderBottom: scrolled
             ? dark ? "1px solid rgba(var(--pink-rgb),0.14)" : `1px solid rgba(var(--pink-mid-rgb,249,168,212),0.2)`
             : "1px solid transparent",
@@ -201,7 +200,7 @@ export default function Navbar() {
                     initial={{ opacity: 0, y: -8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.95 }} transition={{ duration: 0.18 }}
                     style={{
                       position: "absolute", top: "calc(100% + 0.5rem)", right: 0,
-                      background: "var(--cream)", backdropFilter: "blur(20px)",
+                      background: "var(--cream)", WebkitBackdropFilter: "blur(20px)", backdropFilter: "blur(20px)",
                       border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),0.35)", borderRadius: 16,
                       padding: "1rem", minWidth: 230, boxShadow: `0 12px 40px rgba(var(--pink-rgb,244,114,182),0.2)`, zIndex: 600,
                     }}>

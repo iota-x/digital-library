@@ -25,7 +25,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <main style={{
-      minHeight: "100vh", display: "flex", flexDirection: "column",
+      minHeight: "100dvh", display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center", textAlign: "center",
       padding: "2rem", gap: "0.4rem",
       background: "linear-gradient(160deg,var(--rose) 0%,var(--pink-light) 50%,var(--rose) 100%)",

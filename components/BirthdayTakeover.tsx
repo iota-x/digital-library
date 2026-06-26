@@ -115,8 +115,7 @@ export default function BirthdayTakeover() {
               "radial-gradient(circle at 30% 20%, rgba(var(--pink-rgb),0.35), transparent 55%)," +
               "radial-gradient(circle at 70% 80%, rgba(var(--pink-deep-rgb),0.32), transparent 60%)," +
               "rgba(15, 0, 12, 0.88)",
-            backdropFilter: "blur(14px)",
-            WebkitBackdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)", backdropFilter: "blur(14px)",
             padding: "2rem",
           }}>
           {/* Confetti / petals */}

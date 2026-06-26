@@ -242,7 +242,7 @@ export default function VoiceNote() {
       ref={ref}
       style={{
         width: "100%",
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

@@ -146,7 +146,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
       <motion.div
         initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:0.22}}
         onClick={onClose}
-        style={{position:'fixed',inset:0,zIndex:8000,background:'rgba(4,0,2,.72)',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)'}}
+        style={{position:'fixed',inset:0,zIndex:8000,background:'rgba(4,0,2,.72)',WebkitBackdropFilter: 'blur(8px)', backdropFilter: 'blur(8px)',}}
       />
       <motion.div
         initial={{y:'100%'}}
@@ -209,8 +209,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
             {/* Dim overlay over the blurred backdrop so the photo pops */}
             <div aria-hidden style={{
               position: 'absolute', inset: 0,
-              backdropFilter: 'blur(28px) brightness(.45)',
-              WebkitBackdropFilter: 'blur(28px) brightness(.45)',
+              WebkitBackdropFilter: 'blur(28px) brightness(.45)', backdropFilter: 'blur(28px) brightness(.45)',
               pointerEvents: 'none',
             }}/>
             <AnimatePresence mode='wait'>
@@ -247,7 +246,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
                 />
                 {isVid(photos[photoIdx])&&(
                   <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                    <div style={{width:60,height:60,borderRadius:'50%',background:'rgba(0,0,0,.55)',backdropFilter:'blur(6px)',border:'2px solid rgba(255,255,255,.45)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>▶</div>
+                    <div style={{width:60,height:60,borderRadius:'50%',background:'rgba(0,0,0,.55)',WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)',border:'2px solid rgba(255,255,255,.45)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>▶</div>
                   </div>
                 )}
               </motion.div>
@@ -256,10 +255,10 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
               <>
                 <button onClick={()=>setPhotoIdx(i=>(i-1+photos.length)%photos.length)}
                   aria-label="previous photo"
-                  style={{position:'absolute',left:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.55)',backdropFilter:'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>‹</button>
+                  style={{position:'absolute',left:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.55)',WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>‹</button>
                 <button onClick={()=>setPhotoIdx(i=>(i+1)%photos.length)}
                   aria-label="next photo"
-                  style={{position:'absolute',right:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.55)',backdropFilter:'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>›</button>
+                  style={{position:'absolute',right:'0.7rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,.55)',WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',border:'1px solid rgba(255,255,255,.2)',borderRadius:'50%',width:36,height:36,color:'#fff',cursor:'pointer',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2}}>›</button>
                 <div style={{position:'absolute',bottom:'0.55rem',left:'50%',transform:'translateX(-50%)',display:'flex',gap:5,zIndex:2}}>
                   {photos.map((_,i)=>(
                     <button key={i} onClick={()=>setPhotoIdx(i)}
@@ -267,7 +266,7 @@ function MemoryDetail({ entry, onClose }: { entry: Entry; onClose: () => void })
                       style={{width:i===photoIdx?18:6,height:6,borderRadius:3,border:'none',background:i===photoIdx?'#fff':'rgba(255,255,255,.45)',cursor:'pointer',transition:'all .22s',padding:0}}/>
                   ))}
                 </div>
-                <div style={{position:'absolute',top:'0.55rem',right:'0.7rem',background:'rgba(0,0,0,.55)',backdropFilter:'blur(4px)',borderRadius:10,padding:'2px 8px',fontFamily:SANS,fontSize:'0.56rem',color:'rgba(255,255,255,.85)',border:'1px solid rgba(255,255,255,.18)',pointerEvents:'none'}}>
+                <div style={{position:'absolute',top:'0.55rem',right:'0.7rem',background:'rgba(0,0,0,.55)',WebkitBackdropFilter: 'blur(4px)', backdropFilter: 'blur(4px)',borderRadius:10,padding:'2px 8px',fontFamily:SANS,fontSize:'0.56rem',color:'rgba(255,255,255,.85)',border:'1px solid rgba(255,255,255,.18)',pointerEvents:'none'}}>
                   tap · full screen
                 </div>
               </>
@@ -390,9 +389,9 @@ const MemCard = memo(function MemCard({ entry,cardIdx,glow,onOpen,setRef,isMobil
                 style={{objectFit:"cover",objectPosition:"center top",transform:hovered?"scale(1.05)":"scale(1)",transition:"transform 0.45s ease"}}
               />
               {isVid(photos[0])&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,.18)"}}>
-                <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(255,255,255,.2)",backdropFilter:"blur(4px)",border:"1.5px solid rgba(255,255,255,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>▶</div>
+                <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(255,255,255,.2)",WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)",border:"1.5px solid rgba(255,255,255,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1.2rem"}}>▶</div>
               </div>}
-              {photos.length>1&&<div style={{position:"absolute",top:7,right:7,background:"rgba(0,0,0,.52)",backdropFilter:"blur(6px)",borderRadius:20,padding:"3px 8px",color:"#fff",fontFamily:SANS,fontSize:"0.58rem",fontWeight:700,border:"1px solid rgba(255,255,255,.18)"}}>+{photos.length-1}</div>}
+              {photos.length>1&&<div style={{position:"absolute",top:7,right:7,background:"rgba(0,0,0,.52)",WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)",borderRadius:20,padding:"3px 8px",color:"#fff",fontFamily:SANS,fontSize:"0.58rem",fontWeight:700,border:"1px solid rgba(255,255,255,.18)"}}>+{photos.length-1}</div>}
             </div>
 
             {/* thumb strip */}
@@ -444,7 +443,7 @@ const MemCard = memo(function MemCard({ entry,cardIdx,glow,onOpen,setRef,isMobil
             position:"relative",
             minHeight:120,
           }}>
-            <div style={{position:"absolute",top:9,right:9,background:"rgba(var(--pink-light-rgb),.85)",backdropFilter:"blur(4px)",borderRadius:8,padding:"2px 7px",fontFamily:SCRIPT,fontSize:"0.76rem",color:PINK,border:"1px solid rgba(var(--pink-rgb),.4)",lineHeight:1.3}}>
+            <div style={{position:"absolute",top:9,right:9,background:"rgba(var(--pink-light-rgb),.85)",WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)",borderRadius:8,padding:"2px 7px",fontFamily:SCRIPT,fontSize:"0.76rem",color:PINK,border:"1px solid rgba(var(--pink-rgb),.4)",lineHeight:1.3}}>
               {entry.mood||"💗"} Day {dn}
             </div>
             {entry.special&&<span style={{display:"inline-block",fontFamily:SANS,fontSize:"0.52rem",background:"linear-gradient(135deg,var(--pink),var(--pink-deep))",color:"#fff",borderRadius:20,padding:"0.1rem 0.45rem",fontWeight:700,marginBottom:"0.45rem"}}>✨ {entry.specialLabel||"special"}</span>}
@@ -570,7 +569,7 @@ export default function MemoryLane() {
   if(loading) return <SectionSkeleton bg="linear-gradient(160deg,var(--rose),var(--pink-light))" accent="rgba(var(--pink-deep-rgb),.12)" lines={5}/>;
 
   return (
-    <section style={{width:"100%",minHeight:"100vh",background:"linear-gradient(155deg,var(--rose) 0%,var(--pink-light) 35%,var(--pink-light) 65%,var(--rose) 100%)",padding:"clamp(3rem,7vh,5rem) clamp(1rem,4vw,2.5rem) 7rem",position:"relative",overflow:"hidden"}}>
+    <section style={{width:"100%",minHeight:"100dvh",background:"linear-gradient(155deg,var(--rose) 0%,var(--pink-light) 35%,var(--pink-light) 65%,var(--rose) 100%)",padding:"clamp(3rem,7vh,5rem) clamp(1rem,4vw,2.5rem) 7rem",position:"relative",overflow:"hidden"}}>
 
       {/* ── Falling petals — desktop only ── */}
       {!isMobile && PETALS.map((p,i)=>(

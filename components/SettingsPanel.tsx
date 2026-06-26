@@ -647,7 +647,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={handleClose}
-            style={{ position: "fixed", inset: 0, zIndex: 8500, background: "rgba(4,0,8,.45)", backdropFilter: "blur(4px)" }}
+            style={{ position: "fixed", inset: 0, zIndex: 8500, background: "rgba(4,0,8,.45)", WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)" }}
           />
 
           {/* Panel */}
