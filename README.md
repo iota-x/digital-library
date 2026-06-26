@@ -136,6 +136,13 @@ See [`.env.example`](.env.example) for the full list.
 
 ## ⏰ Scheduled reminders (optional)
 
+**On Vercel:** `vercel.json` schedules a single daily job — `/api/cron/daily` —
+that fans out to all three sweeps below (reminders, daily-quiz, win-back). One
+cron keeps you within the Hobby plan's limit. Just set `CRON_SECRET` in your
+project env vars; Vercel Cron auto-sends it as a `Bearer` token, so nothing is
+hardcoded. To run a sweep yourself (or from another scheduler), the individual
+endpoints still work standalone:
+
 `/api/cron/reminders` sends push reminders for upcoming anniversaries and
 birthdays. Guarded by `CRON_SECRET`, meant to be hit once a day by an external
 scheduler:
