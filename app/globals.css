@@ -766,9 +766,11 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Stop the page behind modals/sheets from scrolling or rubber-banding, and
-   prevent pull-to-refresh firing mid-interaction. */
-body {
+/* Tame pull-to-refresh / rubber-banding at the page's scroll boundary. This
+   MUST live on the scrolling element (<html>) — putting it on <body> traps the
+   wheel/trackpad inside the body box and stops it chaining to <html>, which
+   silently breaks wheel scrolling while the scrollbar still works. */
+html {
   overscroll-behavior-y: none;
 }
 
