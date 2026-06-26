@@ -749,11 +749,27 @@ html.dark {
 html, body {
   width: 100%;
   min-height: 100vh;
+  /* dvh tracks the *actual* viewport as the mobile URL bar shows/hides, so
+     full-height sections aren't clipped behind it. 100vh stays as the fallback
+     for browsers without dvh. */
+  min-height: 100dvh;
   overflow-x: hidden;
   scroll-behavior: smooth;
   /* In-page anchor jumps (#daily, #calendar, the daily nudge, etc.) land below
      the fixed navbar instead of tucked under it. */
   scroll-padding-top: 80px;
+  /* Keep layouts intact when the OS/browser bumps the default text size, and
+     kill the grey flash boxes that touch browsers paint over tapped elements
+     (we ship our own press states). */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Stop the page behind modals/sheets from scrolling or rubber-banding, and
+   prevent pull-to-refresh firing mid-interaction. */
+body {
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -766,6 +782,7 @@ body {
 #__next, main {
   width: 100%;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .font-playfair { font-family: var(--font-playfair) !important; }
@@ -789,6 +806,9 @@ img, video, canvas, iframe { max-width: 100%; display: block; }
     border-radius: 20px 20px 0 0 !important;
     max-height: 92dvh !important;
     overflow-y: auto !important;
+    /* Keep scroll momentum inside the sheet — don't bleed into the page or
+       trigger pull-to-refresh when you hit the top/bottom. */
+    overscroll-behavior: contain !important;
   }
   /* Book reader in Final.tsx — hide arrows, full width */
   .book-nav-row { flex-direction: column !important; gap: 1rem !important; }
@@ -1094,6 +1114,18 @@ html.custom-bg.custom-bg.custom-bg section { background: transparent !important;
   [role="button"]:not([data-no-touch-min]) {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /* iOS Safari auto-zooms the whole page whenever a focused field's font is
+     under 16px, then leaves the user awkwardly scrolled. Many inputs ship at
+     ~0.9rem (often via inline style) for visual density, so force a 16px floor
+     on touch only — desktop keeps the smaller sizes. !important is required to
+     beat the inline font-size some of these fields set. max(16px, 1em) keeps
+     any field that's already larger from shrinking. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: max(16px, 1em) !important;
   }
 }
 
