@@ -520,19 +520,37 @@ const NoteField = React.memo(function NoteField({ value, onCommit }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Grow the box to fit its content so long entries are never trapped behind a
+  // fixed height — the drag-to-resize handle is unusable on phone/tablet, so a
+  // full box would otherwise become a cramped scroll window you can't write in.
+  // Caps at ~60vh, then the field scrolls so it never eats the whole screen.
+  const taRef = useRef<HTMLTextAreaElement>(null);
+  const autoGrow = useCallback(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, Math.round(window.innerHeight * 0.6)) + "px";
+  }, []);
+  useEffect(() => { autoGrow(); }, [local, autoGrow]);
+
   return (
     <textarea
+      ref={taRef}
       value={local}
       onChange={e => {
         const v = e.target.value;
         setLocal(v);
+        autoGrow();
         if (timer.current) clearTimeout(timer.current);
         timer.current = setTimeout(() => commit(v), 250);
       }}
       onBlur={() => commit(localRef.current)}
       placeholder={"Write about this day…\n\nHow did it feel? What do you want to remember? 🌸"}
       rows={6}
-      style={{ width: "100%", padding: "1rem 1rem 1rem 1.4rem", background: "rgba(255,255,255,.03)", border: "1px solid rgba(var(--pink-deep-rgb),.16)", borderRadius: 12, resize: "vertical", fontFamily: SERIF, fontSize: "clamp(0.95rem,2.2vw,1.1rem)", color: "var(--text)", outline: "none", boxSizing: "border-box", lineHeight: 1.9, caretColor: "var(--pink)", letterSpacing: "0.01em" }}
+      // Opaque themed surface (--pink-light) paired with --text — the design's
+      // guaranteed-contrast pair in both light and dark — so the page (or a
+      // custom dark background) can't bleed through and wash out the text.
+      style={{ width: "100%", minHeight: "9.5rem", maxHeight: "60vh", padding: "1rem 1rem 1rem 1.4rem", background: "var(--pink-light)", border: "1px solid rgba(var(--pink-deep-rgb),.35)", borderRadius: 12, resize: "none", overflowY: "auto", fontFamily: SERIF, fontSize: "clamp(1rem,2.4vw,1.12rem)", color: "var(--text)", outline: "none", boxSizing: "border-box", lineHeight: 1.85, caretColor: "var(--pink)", letterSpacing: "0.01em" }}
     />
   );
 });
