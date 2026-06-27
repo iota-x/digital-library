@@ -536,6 +536,7 @@ const NoteField = React.memo(function NoteField({ value, onCommit }: {
   return (
     <textarea
       ref={taRef}
+      className="journal-note"
       value={local}
       onChange={e => {
         const v = e.target.value;

@@ -1106,6 +1106,27 @@ html.custom-bg body {
 }
 html.custom-bg.custom-bg.custom-bg section { background: transparent !important; }
 
+/* Journal note field over a custom page background.
+   Normally the note box is an OPAQUE light surface (--pink-light + dark --text)
+   so the page can't bleed through and wash out the writing. But a custom page
+   background is usually dark, and that opaque light box becomes a jarring bright
+   slab of dark text floating over the dark backdrop. Over a custom backdrop we
+   recast it as a mellow, glassy version of the theme — a deep accent-tinted
+   dark surface with near-white (faintly accent-tinted) text — so it reads as
+   part of the theme and stays legible on a dark page. Tints derive from the
+   accent vars so a custom hex colour propagates; only the dark/light poles are
+   fixed anchors. (Real dark mode already derives a dark box + light text, so
+   this is only needed for the light-mode + dark-backdrop case.) */
+html.custom-bg textarea.journal-note {
+  background: color-mix(in srgb, rgb(var(--pink-deep-rgb)) 20%, rgba(8, 6, 10, 0.9)) !important;
+  color: color-mix(in srgb, rgb(var(--pink-rgb)) 14%, #fff) !important;
+  border-color: color-mix(in srgb, rgb(var(--pink-rgb)) 38%, transparent) !important;
+  caret-color: rgb(var(--pink-rgb)) !important;
+}
+html.custom-bg textarea.journal-note::placeholder {
+  color: color-mix(in srgb, rgb(var(--pink-rgb)) 30%, rgba(255, 255, 255, 0.5)) !important;
+}
+
 /* ══════════════════════════════════════════════════════════════════
    TOUCH TARGETS
    ══════════════════════════════════════════════════════════════════
