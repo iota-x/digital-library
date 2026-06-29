@@ -1,21 +1,29 @@
 /** @type {import('next').NextConfig} */
 
 // Content-Security-Policy covering the app's real origins (Cloudinary media,
-// Carto map tiles, iTunes poster art, Spotify embeds, Vercel analytics).
-// Shipped in REPORT-ONLY mode: the browser reports violations to the console but
-// nothing is blocked, so it can't break a feature. Once verified clean in a
-// browser, rename the header to `Content-Security-Policy` to enforce. Tightening
-// script-src to a nonce (dropping 'unsafe-inline') is the eventual goal — it's
-// what most protects the in-session E2EE key from an injected script.
+// Carto map tiles, iTunes poster art, Spotify embeds, Vercel analytics, the
+// Google web font the PDF export imports). All third-party APIs (Spotify, Jikan,
+// iTunes, Open-Meteo, ipwho.is) are fetched from server-side API routes, so they
+// need no connect-src entry. ENFORCED — the browser blocks anything not listed;
+// the directives below were reconciled against every external resource the
+// client actually loads. If a future feature adds a new origin, watch the
+// console for a CSP error and add it here (or roll back to
+// `Content-Security-Policy-Report-Only` while diagnosing). Tightening script-src
+// to a nonce (dropping 'unsafe-inline') is the eventual goal — it's what most
+// protects the in-session E2EE key from an injected script — but the inline
+// theme/perf bootstrap in app/layout.tsx relies on 'unsafe-inline' today.
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
-  "style-src 'self' 'unsafe-inline'",
+  // fonts.googleapis.com: PDF export (ExportPDF) opens a blank window that
+  // inherits this CSP and @imports a stylesheet from there.
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://res.cloudinary.com https://*.basemaps.cartocdn.com https://*.mzstatic.com",
   "media-src 'self' blob: https://res.cloudinary.com",
   "connect-src 'self' https://api.cloudinary.com https://va.vercel-scripts.com",
   "frame-src https://open.spotify.com",
-  "font-src 'self' data:",
+  // fonts.gstatic.com: the actual font files behind the googleapis.com @import.
+  "font-src 'self' data: https://fonts.gstatic.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -31,7 +39,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   // Voice notes need the mic; the map may use geolocation. Camera is never used.
   { key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(self)" },
-  { key: "Content-Security-Policy-Report-Only", value: csp },
+  { key: "Content-Security-Policy", value: csp },
 ];
 
 const nextConfig = {
