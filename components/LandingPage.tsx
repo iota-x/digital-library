@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Turnstile from "@/components/Turnstile";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserInfo } from "@/lib/userStore";
 import { DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
@@ -34,7 +35,7 @@ const FEATURES = [
 // Honest reassurances that lower the bar to signing up.
 const TRUST = [
   { e: "🔒", t: "private, just for two" },
-  { e: "🆓", t: "free to start" },
+  { e: "🆓", t: "free to use" },
   { e: "⚡", t: "ready in a minute" },
 ];
 
@@ -396,6 +397,9 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
   const [createPassword, setCreatePassword] = useState("");
   const [createConfirm, setCreateConfirm] = useState("");
   const [createStartDate, setCreateStartDate] = useState("");
+  // Cloudflare Turnstile token for the create form. "" when Turnstile is
+  // unconfigured or unsolved; the server fail-opens when it's not enabled.
+  const [turnstileToken, setTurnstileToken] = useState("");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [pendingUser, setPendingUser] = useState<UserInfo | null>(null);
 
@@ -487,6 +491,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           password: createPassword,
           startDate: createStartDate,
           crypto: blobs,
+          turnstileToken,
           ref: (() => { try { return localStorage.getItem("ann_ref") || undefined; } catch { return undefined; } })(),
         }),
       });
@@ -956,16 +961,17 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                       Make your private little space in under a minute — then share the
                       invite code with your person so it&apos;s just the two of you. 🌸
                     </p>
-                    <label style={labelStyle()}>your name</label>
-                    <input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="your name" style={inputStyle()} autoComplete="name" />
-                    <label style={labelStyle()}>email</label>
-                    <input value={createEmail} onChange={e => setCreateEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
-                    <label style={labelStyle()}>password</label>
-                    <input value={createPassword} onChange={e => setCreatePassword(e.target.value)} placeholder="at least 6 characters" type="password" style={inputStyle()} autoComplete="new-password" />
-                    <label style={labelStyle()}>confirm password</label>
-                    <input value={createConfirm} onChange={e => setCreateConfirm(e.target.value)} placeholder="same again" type="password" style={inputStyle()} autoComplete="new-password" />
-                    <label style={labelStyle()}>relationship start date</label>
-                    <input value={createStartDate} onChange={e => setCreateStartDate(e.target.value)} type="date" style={inputStyle()} />
+                    <label htmlFor="create-name" style={labelStyle()}>your name</label>
+                    <input id="create-name" value={createName} onChange={e => setCreateName(e.target.value)} placeholder="your name" style={inputStyle()} autoComplete="name" />
+                    <label htmlFor="create-email" style={labelStyle()}>email</label>
+                    <input id="create-email" value={createEmail} onChange={e => setCreateEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
+                    <label htmlFor="create-password" style={labelStyle()}>password</label>
+                    <input id="create-password" value={createPassword} onChange={e => setCreatePassword(e.target.value)} placeholder="at least 8 characters" type="password" style={inputStyle()} autoComplete="new-password" />
+                    <label htmlFor="create-confirm" style={labelStyle()}>confirm password</label>
+                    <input id="create-confirm" value={createConfirm} onChange={e => setCreateConfirm(e.target.value)} placeholder="same again" type="password" style={inputStyle()} autoComplete="new-password" />
+                    <label htmlFor="create-start-date" style={labelStyle()}>relationship start date</label>
+                    <input id="create-start-date" value={createStartDate} onChange={e => setCreateStartDate(e.target.value)} type="date" style={inputStyle()} />
+                    <Turnstile onVerify={setTurnstileToken} />
                     {error && (
                       <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                         style={{ fontFamily: SANS, color: "#f43f5e", fontSize: "0.85rem", margin: "-0.4rem 0 0.9rem" }}>
@@ -983,7 +989,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                       {loading ? "creating…" : "create our space 🌸"}
                     </motion.button>
                     <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.45)", textAlign: "center", margin: "0.8rem 0 0", lineHeight: 1.4 }}>
-                      free to start · private · no ads — just the two of you 💗
+                      free · private · no ads — just the two of you 💗
                     </p>
                   </motion.div>
                 )}
@@ -1019,14 +1025,15 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                         Got an invite code from your partner? Join their space here.
                       </p>
                     )}
-                    <label style={labelStyle()}>your name</label>
-                    <input value={joinName} onChange={e => setJoinName(e.target.value)} placeholder="your name" style={inputStyle()} autoComplete="name" />
-                    <label style={labelStyle()}>email</label>
-                    <input value={joinEmail} onChange={e => setJoinEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
-                    <label style={labelStyle()}>password</label>
-                    <input value={joinPassword} onChange={e => setJoinPassword(e.target.value)} placeholder="at least 6 characters" type="password" style={inputStyle()} autoComplete="new-password" />
-                    <label style={labelStyle()}>invite code</label>
+                    <label htmlFor="join-name" style={labelStyle()}>your name</label>
+                    <input id="join-name" value={joinName} onChange={e => setJoinName(e.target.value)} placeholder="your name" style={inputStyle()} autoComplete="name" />
+                    <label htmlFor="join-email" style={labelStyle()}>email</label>
+                    <input id="join-email" value={joinEmail} onChange={e => setJoinEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
+                    <label htmlFor="join-password" style={labelStyle()}>password</label>
+                    <input id="join-password" value={joinPassword} onChange={e => setJoinPassword(e.target.value)} placeholder="at least 8 characters" type="password" style={inputStyle()} autoComplete="new-password" />
+                    <label htmlFor="join-code" style={labelStyle()}>invite code</label>
                     <input
+                      id="join-code"
                       value={joinCode}
                       onChange={e => setJoinCode(e.target.value.toUpperCase())}
                       placeholder="XXXXXX"
@@ -1064,10 +1071,10 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                     <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
                       Welcome back! Sign in to your space.
                     </p>
-                    <label style={labelStyle()}>email</label>
-                    <input value={signinEmail} onChange={e => setSigninEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
-                    <label style={labelStyle()}>password</label>
-                    <input value={signinPassword} onChange={e => setSigninPassword(e.target.value)} placeholder="your password" type="password" style={inputStyle()} autoComplete="current-password" />
+                    <label htmlFor="signin-email" style={labelStyle()}>email</label>
+                    <input id="signin-email" value={signinEmail} onChange={e => setSigninEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle()} autoComplete="email" />
+                    <label htmlFor="signin-password" style={labelStyle()}>password</label>
+                    <input id="signin-password" value={signinPassword} onChange={e => setSigninPassword(e.target.value)} placeholder="your password" type="password" style={inputStyle()} autoComplete="current-password" />
                     {error && (
                       <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                         style={{ fontFamily: SANS, color: "#f43f5e", fontSize: "0.85rem", margin: "-0.4rem 0 0.9rem" }}>

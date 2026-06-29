@@ -55,6 +55,10 @@ export const serverEnv = {
   // snapshot on calendar entries. If unset, the weather feature is a no-op.
   get WEATHER_LAT()          { return optional("WEATHER_LAT"); },
   get WEATHER_LON()          { return optional("WEATHER_LON"); },
+  // Optional: Cloudflare Turnstile secret for bot-protecting registration.
+  // Unset → verification is skipped (fail-open), so dev/un-configured deploys
+  // keep working. Pairs with NEXT_PUBLIC_TURNSTILE_SITE_KEY on the client.
+  get TURNSTILE_SECRET()     { return optional("TURNSTILE_SECRET"); },
 };
 
 /** Public env — safe to read from the client.
@@ -69,4 +73,7 @@ export const publicEnv = {
   get CLOUDINARY_CLOUD_NAME() { return process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ""; },
   get VAPID_PUBLIC_KEY()      { return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""; },
   get APP_NAME()              { return process.env.NEXT_PUBLIC_APP_NAME ?? "Us"; },
+  // Cloudflare Turnstile site key (public by design). Empty → the widget isn't
+  // rendered and registration proceeds without a challenge.
+  get TURNSTILE_SITE_KEY()    { return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""; },
 };

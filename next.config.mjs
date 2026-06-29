@@ -14,14 +14,17 @@
 // theme/perf bootstrap in app/layout.tsx relies on 'unsafe-inline' today.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com",
+  // challenges.cloudflare.com: Turnstile loads its widget script from here.
+  "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://challenges.cloudflare.com",
   // fonts.googleapis.com: PDF export (ExportPDF) opens a blank window that
   // inherits this CSP and @imports a stylesheet from there.
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https://res.cloudinary.com https://*.basemaps.cartocdn.com https://*.mzstatic.com",
   "media-src 'self' blob: https://res.cloudinary.com",
-  "connect-src 'self' https://api.cloudinary.com https://va.vercel-scripts.com",
-  "frame-src https://open.spotify.com",
+  "connect-src 'self' https://api.cloudinary.com https://va.vercel-scripts.com https://challenges.cloudflare.com",
+  // open.spotify.com: playlist embed. challenges.cloudflare.com: Turnstile
+  // renders its challenge in an iframe.
+  "frame-src https://open.spotify.com https://challenges.cloudflare.com",
   // fonts.gstatic.com: the actual font files behind the googleapis.com @import.
   "font-src 'self' data: https://fonts.gstatic.com",
   "object-src 'none'",

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getCol } from "@/lib/mongo";
 import { signSession, setSessionCookie } from "@/lib/auth";
-import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
+import { rateLimit, tooManyRequests, getClientIp } from "@/lib/rateLimit";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { generateOtp, storeOtp, sendMail, verifyEmailTemplate } from "@/lib/email";
 import { sendPushToCouple } from "@/lib/pushNotify";
 import { REWARD_THEMES } from "@/lib/themes";
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many sign-up attempts. Try again later.");
 
     const body = await req.json();
-    const { name, email, password, startDate, ref, crypto } = body as {
+    const { name, email, password, startDate, ref, crypto, turnstileToken } = body as {
       name?: string;
       email?: string;
       password?: string;
@@ -67,7 +68,15 @@ export async function POST(req: NextRequest) {
       // never derives a key or reads content). Optional so the route stays
       // backward-compatible; content encryption activates once keys exist.
       crypto?: unknown;
+      // Cloudflare Turnstile token. Verified only when Turnstile is configured;
+      // a no-op otherwise (see lib/turnstile.ts).
+      turnstileToken?: string;
     };
+
+    // Bot check before any DB work. No-op unless TURNSTILE_SECRET is set.
+    if (!(await verifyTurnstile(turnstileToken, getClientIp(req)))) {
+      return NextResponse.json({ error: "Please complete the bot check and try again." }, { status: 400 });
+    }
 
     if (!name?.trim() || !email?.trim() || !password || !startDate) {
       return NextResponse.json({ error: "All fields required" }, { status: 400 });
