@@ -17,6 +17,9 @@ async function sendUnlockEmail(capsules: { letter: string; from: string; unlockD
   const resend = new Resend(apiKey);
 
   for (const c of capsules) {
+    // The letter is end-to-end encrypted, so the server can't include its text in
+    // the email — it only ever has ciphertext. Send a gentle nudge to open the
+    // app, where the letter is decrypted on the recipient's device.
     const html = `
       <div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;background:#fff5f9;padding:40px 32px;border-radius:20px">
         <div style="text-align:center;font-size:2.5rem;margin-bottom:8px">💌</div>
@@ -26,8 +29,9 @@ async function sendUnlockEmail(capsules: { letter: string; from: string; unlockD
         <p style="text-align:center;color:#9d174d;font-size:0.85rem;margin:0 0 32px">
           from ${c.from || "someone who loves you"} · unlocked ${c.unlockDate}
         </p>
-        <div style="background:#fff;border:1px solid #f9a8d4;border-radius:16px;padding:28px 24px;line-height:2;color:#4a1628;font-style:italic;white-space:pre-wrap">
-          ${c.letter.replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+        <div style="background:#fff;border:1px solid #f9a8d4;border-radius:16px;padding:28px 24px;line-height:1.8;color:#4a1628;text-align:center">
+          Your letter from the past is ready to read 🩷<br/>
+          <span style="font-size:0.85rem;color:#9d174d">Open the app to unlock it — it&apos;s end-to-end encrypted, so it lives just for the two of you.</span>
         </div>
         <p style="text-align:center;color:#be185d;font-size:0.8rem;margin-top:24px">— with love 🩷</p>
       </div>

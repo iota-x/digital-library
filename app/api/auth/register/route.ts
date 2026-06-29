@@ -6,6 +6,7 @@ import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { generateOtp, storeOtp, sendMail, verifyEmailTemplate } from "@/lib/email";
 import { sendPushToCouple } from "@/lib/pushNotify";
 import { REWARD_THEMES } from "@/lib/themes";
+import { pickUserCrypto } from "@/lib/cryptoServer";
 
 function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -56,12 +57,16 @@ export async function POST(req: NextRequest) {
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many sign-up attempts. Try again later.");
 
     const body = await req.json();
-    const { name, email, password, startDate, ref } = body as {
+    const { name, email, password, startDate, ref, crypto } = body as {
       name?: string;
       email?: string;
       password?: string;
       startDate?: string;
       ref?: string;
+      // E2EE key material generated on the client (opaque blobs — the server
+      // never derives a key or reads content). Optional so the route stays
+      // backward-compatible; content encryption activates once keys exist.
+      crypto?: unknown;
     };
 
     if (!name?.trim() || !email?.trim() || !password || !startDate) {
@@ -137,6 +142,7 @@ export async function POST(req: NextRequest) {
       role: "creator" as const,
       emailVerified: false,
       createdAt: new Date().toISOString(),
+      ...pickUserCrypto(crypto),
     });
     const userId = userResult.insertedId.toString();
 

@@ -19,14 +19,18 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** Simple, strict fields of a calendar entry. photoStickers/reactions are
  *  complex nested structures with server-side defaults/merging, so they're
  *  read from the raw body rather than schema-validated here. */
+// Text fields arrive end-to-end encrypted, so these caps bound the *ciphertext*
+// (≈ base64 of plaintext + IV/tag; up to ~6× a plaintext char for 4-byte emoji).
+// The human-facing length limits are enforced on the client; these are generous
+// abuse bounds that must never truncate a legitimately-encrypted value.
 const CalendarBody = v.object({
   date: v.string({ pattern: ISO_DATE }),
-  note: v.optional(v.string({ max: 20_000 })),
+  note: v.optional(v.string({ max: 120_000 })),
   photos: v.optional(v.array(v.string({ max: 2048 }), { max: 50 })),
   special: v.optional(v.boolean()),
-  specialLabel: v.optional(v.string({ max: 200 })),
-  mood: v.optional(v.string({ max: 60 })),
-  pinnedNote: v.optional(v.string({ max: 2000 })),
+  specialLabel: v.optional(v.string({ max: 2_000 })),
+  mood: v.optional(v.string({ max: 1_000 })),
+  pinnedNote: v.optional(v.string({ max: 16_000 })),
 });
 
 export const GET = withAuth(async (_req, session) => {
@@ -96,7 +100,8 @@ export const POST = withAuth(async (req, session) => {
     });
     sendPushToOtherInCouple(session.coupleId, session.userId, {
       title: `${who} added a memory 💗`,
-      body: doc.note ? doc.note.slice(0, 80) : "a new moment for your journal",
+      // The note is end-to-end encrypted — keep the push generic (no content).
+      body: "a new moment for your journal",
     });
   } else if (!isNew && (photosAdded > 0 || noteJustWritten)) {
     const who = await senderDisplayName(session);
@@ -107,7 +112,7 @@ export const POST = withAuth(async (req, session) => {
       title: `${who} added to your journal 💗`,
       body: photosAdded > 0
         ? `${photosAdded} new ${photosAdded === 1 ? "photo" : "photos"} on ${date} — come see & react`
-        : doc.note.slice(0, 80) || `a new note on ${date} — come see & react`,
+        : `a new note on ${date} — come see & react`,
     });
   }
   return NextResponse.json({ ok: true });

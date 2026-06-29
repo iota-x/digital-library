@@ -1,10 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserInfo } from "@/lib/userStore";
-import { DEFAULT_SETTINGS } from "@/lib/themes";
+import { DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 import { DEFAULT_START_DATE } from "@/lib/relationship";
 import { SERIF, SANS, SCRIPT } from "@/lib/typography";
+import {
+  buildCreatorKeys, uploadInviteWrap, buildPartnerKeys, unlockKeys, maybeGrantToPartner,
+  recoverWithRecoveryKey, startResetRegrant, type ServerKeys,
+} from "@/lib/e2ee";
 
 type Mode = "create" | "join" | "signin" | "forgot" | "verify";
 
@@ -32,6 +37,27 @@ const TRUST = [
   { e: "🆓", t: "free to start" },
   { e: "⚡", t: "ready in a minute" },
 ];
+
+/** Build the client UserInfo from an /api/auth/me payload. */
+function buildUserFromMe(me: Record<string, unknown>): UserInfo {
+  return {
+    userId:            me.userId as string,
+    coupleId:          me.coupleId as string,
+    name:              me.name as string,
+    role:              me.role as "creator" | "partner",
+    partnerName:       (me.partnerName as string) ?? null,
+    nickname:          (me.nickname as string) ?? null,
+    nicknameOn:        me.nicknameOn === true,
+    partnerNickname:   (me.partnerNickname as string) ?? null,
+    partnerNicknameOn: me.partnerNicknameOn === true,
+    avatarUrl:         (me.avatarUrl as string) ?? null,
+    partnerAvatarUrl:  (me.partnerAvatarUrl as string) ?? null,
+    inviteCode:        (me.inviteCode as string) ?? null,
+    startDate:         (me.startDate as string) ?? DEFAULT_START_DATE,
+    settings:          (me.settings as CoupleSettings) ?? DEFAULT_SETTINGS,
+    emailVerified:     me.emailVerified !== false,
+  };
+}
 
 function inputStyle(hasError = false): React.CSSProperties {
   return {
@@ -152,6 +178,76 @@ function InviteCodeDisplay({ code, onDone }: { code: string; onDone: () => void 
         }}
       >
         {"let's go 🌸"}
+      </motion.button>
+    </motion.div>
+  );
+}
+
+/** Shown once, right after sign-up / join / recovery: the user's recovery key.
+ *  This is the only safety net (besides the partner) for an end-to-end-encrypted
+ *  account, so we make saving it deliberate before letting them continue. */
+function RecoveryKeyDisplay({ recoveryKey, onDone }: { recoveryKey: string; onDone: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const [ack, setAck] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard.writeText(recoveryKey).catch(() => {});
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: "spring", stiffness: 200, damping: 22 }}
+      style={{ textAlign: "center" }}
+    >
+      <div style={{ fontSize: "2.6rem", marginBottom: "0.6rem" }} aria-hidden>🔑</div>
+      <h2 style={{ fontFamily: SERIF, fontStyle: "italic", color: "#be185d", fontSize: "1.4rem", margin: "0 0 0.4rem" }}>
+        Save your recovery key
+      </h2>
+      <p style={{ fontFamily: SANS, fontSize: "0.82rem", color: "rgba(190,24,93,0.65)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
+        Your memories are encrypted so only you two can read them. If you ever forget
+        your password, <strong>this key restores your access</strong>. Keep it somewhere safe —
+        we can&apos;t recover it for you.
+      </p>
+
+      <div style={{
+        background: "linear-gradient(135deg,rgba(249,168,212,0.2),rgba(236,72,153,0.1))",
+        border: "2px solid rgba(249,168,212,0.5)", borderRadius: 16, padding: "1.1rem", marginBottom: "1rem",
+      }}>
+        <p style={{
+          fontFamily: SERIF, fontSize: "1.05rem", color: "#be185d", margin: "0 0 0.8rem",
+          letterSpacing: "0.12em", fontWeight: 700, wordBreak: "break-all", lineHeight: 1.5,
+        }}>
+          {recoveryKey}
+        </p>
+        <motion.button onClick={copy} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+          style={{
+            padding: "0.55rem 1.4rem", borderRadius: 50, border: "1.5px solid rgba(190,24,93,0.3)",
+            background: copied ? "linear-gradient(135deg,#86efac,#4ade80)" : "transparent",
+            color: copied ? "#fff" : "#be185d", fontFamily: SANS, fontSize: "0.85rem", cursor: "pointer", transition: "all 0.3s",
+          }}>
+          {copied ? "✓ copied!" : "copy key"}
+        </motion.button>
+      </div>
+
+      <label style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", textAlign: "left", cursor: "pointer", margin: "0 0 1rem" }}>
+        <input type="checkbox" checked={ack} onChange={e => setAck(e.target.checked)} style={{ marginTop: "0.2rem" }} />
+        <span style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(157,23,77,0.75)", lineHeight: 1.45 }}>
+          I&apos;ve saved my recovery key somewhere safe.
+        </span>
+      </label>
+
+      <motion.button onClick={onDone} disabled={!ack}
+        whileHover={ack ? { scale: 1.03, y: -2 } : {}} whileTap={ack ? { scale: 0.97 } : {}}
+        style={{
+          width: "100%", padding: "0.9rem", borderRadius: 50, border: "none",
+          background: "linear-gradient(135deg,#f9a8d4,#ec4899)", color: "#fff",
+          fontFamily: SCRIPT, fontSize: "1.2rem", cursor: ack ? "pointer" : "not-allowed",
+          opacity: ack ? 1 : 0.55, boxShadow: "0 4px 20px rgba(236,72,153,0.35)",
+        }}>
+        {"continue 🌸"}
       </motion.button>
     </motion.div>
   );
@@ -303,6 +399,11 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [pendingUser, setPendingUser] = useState<UserInfo | null>(null);
 
+  // E2EE: the recovery key minted at sign-up/join, shown once after verification;
+  // and the overlay state that renders the recovery-key screen.
+  const [pendingRecoveryKey, setPendingRecoveryKey] = useState<string | null>(null);
+  const [recoveryToShow, setRecoveryToShow] = useState<string | null>(null);
+
   // Join fields
   const [joinName, setJoinName] = useState("");
   const [joinEmail, setJoinEmail] = useState("");
@@ -319,8 +420,12 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
   const [forgotEmail,    setForgotEmail]    = useState("");
   const [forgotCode,     setForgotCode]     = useState("");
   const [forgotPassword, setForgotPassword] = useState("");
-  const [forgotStep,     setForgotStep]     = useState<"email" | "reset" | "done">("email");
+  const [forgotStep,     setForgotStep]     = useState<"email" | "reset" | "recover" | "done">("email");
   const [info, setInfo] = useState("");
+  // Reset-flow recovery: the signed-in user's key blobs (fetched after reset) and
+  // the recovery key they type in to restore access to their encrypted content.
+  const [resetKeys,     setResetKeys]     = useState<ServerKeys | null>(null);
+  const [recoveryInput, setRecoveryInput] = useState("");
 
   // Email verification flow (after register / join)
   const [verifyCode,      setVerifyCode]    = useState("");
@@ -370,6 +475,9 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
     }
     setLoading(true);
     try {
+      // Mint the couple's encryption keys on-device first, so we can hand the
+      // server only opaque blobs (it never sees the data key or content).
+      const { blobs, recoveryKey } = await buildCreatorKeys(createPassword);
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -378,6 +486,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           email: createEmail.trim(),
           password: createPassword,
           startDate: createStartDate,
+          crypto: blobs,
           ref: (() => { try { return localStorage.getItem("ann_ref") || undefined; } catch { return undefined; } })(),
         }),
       });
@@ -387,6 +496,10 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
         return;
       }
       try { localStorage.removeItem("ann_ref"); } catch {}
+      // Wrap the data key under the invite code so the partner can join, and keep
+      // the recovery key to show after email verification.
+      if (data.inviteCode) { try { await uploadInviteWrap(data.inviteCode); } catch {} }
+      setPendingRecoveryKey(recoveryKey);
       // Fetch user info, then route to verification step
       const meRes = await fetch("/api/auth/me");
       const meData = await meRes.json();
@@ -431,6 +544,10 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
     }
     setLoading(true);
     try {
+      // Recover the couple's data key from the invite, re-wrap it under this
+      // partner's password (null for legacy couples that have no E2EE set up).
+      const code = joinCode.trim().toUpperCase();
+      const partnerKeys = await buildPartnerKeys(joinPassword, code);
       const res = await fetch("/api/auth/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -438,7 +555,8 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           name: joinName.trim(),
           email: joinEmail.trim(),
           password: joinPassword,
-          inviteCode: joinCode.trim().toUpperCase(),
+          inviteCode: code,
+          crypto: partnerKeys?.blobs,
         }),
       });
       const data = await res.json();
@@ -446,6 +564,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
         setError(data.error || "Failed to join");
         return;
       }
+      setPendingRecoveryKey(partnerKeys?.recoveryKey ?? null);
       const meRes = await fetch("/api/auth/me");
       const meData = await meRes.json();
       if (meData.ok) {
@@ -497,7 +616,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
       const meRes = await fetch("/api/auth/me");
       const meData = await meRes.json();
       if (meData.ok) {
-        onSuccess({
+        const u: UserInfo = {
           userId: meData.userId,
           coupleId: meData.coupleId,
           name: meData.name,
@@ -512,7 +631,19 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           inviteCode: meData.inviteCode ?? null,
           startDate: meData.startDate ?? DEFAULT_START_DATE,
           settings: meData.settings ?? DEFAULT_SETTINGS,
-        });
+        };
+        // Unlock the encryption keys with the password (in hand here). Never let
+        // a key hiccup block sign-in — content just stays locked until unlocked.
+        try {
+          const r = await unlockKeys(signinPassword, meData);
+          if (r.status === "regranted") {
+            setPendingUser(u);
+            setRecoveryToShow(r.recoveryKey); // show the fresh recovery key before entering
+            return;
+          }
+        } catch {}
+        void maybeGrantToPartner();
+        onSuccess(u);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -538,8 +669,12 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
         const verified: UserInfo = { ...verifyPending, emailVerified: true };
         // Mark this as a fresh account so the Onboarding component shows after entry
         try { localStorage.removeItem("ann_onboarded_v1"); } catch {}
-        if (verifyInvite && verified.role === "creator") {
-          setInviteCode(verifyInvite); setPendingUser(verified);
+        setPendingUser(verified);
+        // Show the recovery key once (if E2EE is set up) before entering.
+        if (pendingRecoveryKey) {
+          setRecoveryToShow(pendingRecoveryKey);
+        } else if (verifyInvite && verified.role === "creator") {
+          setInviteCode(verifyInvite);
         } else {
           onSuccess(verified);
         }
@@ -547,6 +682,20 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
     } catch {
       setError("Something went wrong. Please try again.");
     } finally { setLoading(false); }
+  };
+
+  // After the user acknowledges their recovery key, continue to the invite-code
+  // screen (creator) or straight into the app.
+  const proceedAfterRecovery = () => {
+    setRecoveryToShow(null);
+    setPendingRecoveryKey(null);
+    const verified = pendingUser;
+    if (!verified) return;
+    if (verifyInvite && verified.role === "creator") {
+      setInviteCode(verifyInvite);
+    } else {
+      onSuccess(verified);
+    }
   };
 
   const handleResendCode = async () => {
@@ -592,10 +741,50 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
       });
       const data = await res.json();
       if (!res.ok || !data.ok) { setError(data.error || "Couldn't reset password"); return; }
-      setForgotStep("done");
-      setInfo("Password updated — you can sign in now.");
+      // Encrypted account: the new password can't read old content by itself, so
+      // go to the recovery step (reset signed us in, so /me returns the blobs).
+      if (data.hasE2EE) {
+        try {
+          const me = await (await fetch("/api/auth/me")).json();
+          setResetKeys(me?.keys ?? null);
+        } catch { setResetKeys(null); }
+        setForgotStep("recover");
+        setInfo("Password updated. One last step to unlock your memories.");
+      } else {
+        setForgotStep("done");
+        setInfo("Password updated — you can sign in now.");
+      }
     } catch { setError("Something went wrong. Please try again."); }
     finally { setLoading(false); }
+  };
+
+  // Reset recovery, path 1: restore access with the saved recovery key.
+  const handleRecoverWithKey = async () => {
+    setError(""); setInfo("");
+    if (!recoveryInput.trim()) { setError("Enter your recovery key"); return; }
+    if (!resetKeys) { setError("Couldn't load your account keys. Try signing in."); return; }
+    setLoading(true);
+    try {
+      await recoverWithRecoveryKey(recoveryInput.trim(), resetKeys, forgotPassword);
+      const me = await (await fetch("/api/auth/me")).json();
+      if (me?.ok) onSuccess(buildUserFromMe(me));
+      else { setForgotStep("done"); setInfo("All set — you can sign in now."); }
+    } catch {
+      setError("That recovery key didn't work. Check it and try again.");
+    } finally { setLoading(false); }
+  };
+
+  // Reset recovery, path 2: recovery key lost too — ask the partner to re-grant.
+  const handleRecoverViaPartner = async () => {
+    setError(""); setInfo("");
+    setLoading(true);
+    try {
+      await startResetRegrant(forgotPassword);
+      setForgotStep("done");
+      setInfo("Ask your partner to open the app — it'll restore your access automatically. Then sign in.");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally { setLoading(false); }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -606,6 +795,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
       else if (mode === "forgot") {
         if (forgotStep === "email") handleForgotRequest();
         else if (forgotStep === "reset") handleForgotReset();
+        else if (forgotStep === "recover") handleRecoverWithKey();
       }
       else handleSignin();
     }
@@ -725,9 +915,13 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           </p>
         </div>
 
-        {/* If showing invite code after create */}
+        {/* Post-auth overlays: recovery key first (if any), then the invite code */}
         <AnimatePresence mode="wait">
-          {inviteCode && pendingUser ? (
+          {recoveryToShow ? (
+            <motion.div key="recovery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <RecoveryKeyDisplay recoveryKey={recoveryToShow} onDone={proceedAfterRecovery} />
+            </motion.div>
+          ) : inviteCode && pendingUser ? (
             <motion.div key="invite" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <InviteCodeDisplay code={inviteCode} onDone={() => onSuccess(pendingUser)} />
             </motion.div>
@@ -992,6 +1186,32 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                         </motion.button>
                       </>
                     )}
+                    {forgotStep === "recover" && (
+                      <>
+                        <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "rgba(190,24,93,0.55)", margin: "0 0 1.2rem", lineHeight: 1.5 }}>
+                          {info || "Enter your recovery key to unlock your encrypted memories under the new password."}
+                        </p>
+                        <label style={labelStyle()}>recovery key</label>
+                        <input value={recoveryInput} onChange={e => setRecoveryInput(e.target.value)}
+                          placeholder="XXXX-XXXX-XXXX-…"
+                          style={{ ...inputStyle(), letterSpacing: "0.06em", fontFamily: SERIF }} autoComplete="off" />
+                        {error && <p style={{ fontFamily: SANS, color: "#f43f5e", fontSize: "0.85rem", margin: "-0.4rem 0 0.9rem" }}>{error}</p>}
+                        <motion.button onClick={handleRecoverWithKey} disabled={loading}
+                          whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                          style={{
+                            width: "100%", padding: "0.9rem", borderRadius: 50, border: "none",
+                            background: "linear-gradient(135deg,#f9a8d4,#ec4899)", color: "#fff",
+                            fontFamily: SCRIPT, fontSize: "1.15rem", cursor: loading ? "wait" : "pointer",
+                            boxShadow: "0 4px 20px rgba(236,72,153,0.35)", opacity: loading ? 0.7 : 1,
+                          }}>
+                          {loading ? "unlocking…" : "unlock my memories 🔑"}
+                        </motion.button>
+                        <button onClick={handleRecoverViaPartner} disabled={loading}
+                          style={{ background: "none", border: "none", cursor: "pointer", fontFamily: SANS, fontSize: "0.8rem", color: "rgba(190,24,93,0.6)", marginTop: "0.8rem", textDecoration: "underline", display: "block", marginLeft: "auto", marginRight: "auto" }}>
+                          I lost my recovery key — ask my partner
+                        </button>
+                      </>
+                    )}
                     {forgotStep === "done" && (
                       <>
                         <p style={{ fontFamily: SANS, fontSize: "0.85rem", color: "#16a34a", margin: "0 0 1.2rem", textAlign: "center", lineHeight: 1.5 }}>
@@ -1015,6 +1235,14 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
           color: "rgba(190,24,93,0.35)", textAlign: "center", marginTop: "1.2rem", marginBottom: 0,
         }}>
           made with 💗 for you
+        </p>
+        <p style={{ textAlign: "center", marginTop: "0.5rem", marginBottom: 0 }}>
+          <Link href="/privacy" style={{
+            fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.5)",
+            textDecoration: "underline", textUnderlineOffset: "2px",
+          }}>
+            🔒 your privacy &amp; how it&apos;s encrypted
+          </Link>
         </p>
       </motion.div>
         </div>

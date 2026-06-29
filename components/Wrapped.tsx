@@ -40,7 +40,23 @@ export default function Wrapped() {
     try {
       const r = await fetch("/api/wrapped", { cache: "no-store" });
       if (!r.ok) throw new Error();
-      setData((await r.json()) as WrappedData);
+      const wd = (await r.json()) as WrappedData;
+      // Top mood is end-to-end encrypted, so the server can't tally it. Compute
+      // it here from the decrypted calendar (the fetch interceptor decrypts it).
+      try {
+        const cal = await (await fetch("/api/calendar", { cache: "no-store" })).json();
+        if (Array.isArray(cal)) {
+          const counts: Record<string, number> = {};
+          for (const e of cal) {
+            const m = (typeof e?.mood === "string" ? e.mood : "").trim();
+            if (m) counts[m] = (counts[m] ?? 0) + 1;
+          }
+          const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+          wd.journal.topMood = top ? top[0] : null;
+          wd.journal.topMoodCount = top ? top[1] : 0;
+        }
+      } catch { /* leave topMood null */ }
+      setData(wd);
     } catch { setFailed(true); }
     finally { setLoaded(true); }
   }, []);

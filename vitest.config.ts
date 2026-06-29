@@ -9,6 +9,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    setupFiles: ["./vitest.setup.ts"],
     include: ["lib/**/*.test.ts", "app/api/**/*.test.ts"],
   },
 });

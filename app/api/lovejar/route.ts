@@ -22,7 +22,9 @@ export const GET = withAuth(async (_req, session) => {
 
 export const POST = withAuth(async (req, session) => {
   const { text } = (await req.json().catch(() => ({}))) as { text?: string };
-  const clean = (text ?? "").trim().slice(0, 500);
+  // `text` arrives end-to-end encrypted; cap the *ciphertext* generously so a
+  // legitimate ~500-char note is never truncated (which would corrupt it).
+  const clean = (text ?? "").trim().slice(0, 4_000);
   if (!clean) return NextResponse.json({ error: "text required" }, { status: 400 });
 
   const c = await getCol("loveJar");

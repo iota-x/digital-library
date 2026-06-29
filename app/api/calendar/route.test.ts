@@ -52,7 +52,8 @@ describe("POST /api/calendar — validation", () => {
   });
 
   it("rejects an over-long mood with 400", async () => {
-    const res = await POST(req({ date: "2026-06-17", mood: "x".repeat(100) }), undefined as never);
+    // Cap bounds the *ciphertext* now (E2EE): mood is generous (1000) but finite.
+    const res = await POST(req({ date: "2026-06-17", mood: "x".repeat(1100) }), undefined as never);
     expect(res.status).toBe(400);
   });
 

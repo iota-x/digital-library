@@ -42,13 +42,13 @@ export const PUT = withAuth(async (req, session) => {
   await c.updateOne({ _id: new ObjectId(_id), coupleId: session.coupleId }, { $set: update });
   broadcastToCouple(session.coupleId, { type: "bucketlist:update" });
 
-  // Celebrate together: nudge the partner when an item gets crossed off.
+  // Celebrate together: nudge the partner when an item gets crossed off. The
+  // item text is end-to-end encrypted, so the push stays generic (no content).
   if (fields.completed === true) {
-    const item = fields.text ? fields.text : (await c.findOne({ _id: new ObjectId(_id), coupleId: session.coupleId }))?.text;
     broadcastToCouple(session.coupleId, { type: "bucketlist:done", userId: session.userId, name: await senderDisplayName(session) });
     sendPushToOtherInCouple(session.coupleId, session.userId, {
       title: "another one done together ✅",
-      body: item ? `“${String(item).slice(0, 80)}” — checked off your bucket list` : "you crossed something off your bucket list",
+      body: "you crossed something off your bucket list",
     });
   }
   return NextResponse.json({ ok: true });

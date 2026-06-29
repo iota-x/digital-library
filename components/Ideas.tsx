@@ -34,7 +34,23 @@ export default function Ideas({ mode, heading, sub, emoji, flat = false, tight =
   const load = useCallback(async () => {
     setLoading(true); setFailed(false);
     try {
-      const r = await fetch(`/api/ideas?mode=${mode}&seed=${Date.now()}`, { cache: "no-store" });
+      // Bucket list / watchlist text is end-to-end encrypted; fetch it (the
+      // interceptor decrypts) and POST it so the AI can personalize without the
+      // server ever reading stored content. Best-effort — empty lists are fine.
+      let bucket: string[] = [], watch: string[] = [];
+      try {
+        const [b, w] = await Promise.all([
+          fetch("/api/bucketlist").then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch("/api/watchlist").then(r => r.ok ? r.json() : []).catch(() => []),
+        ]);
+        if (Array.isArray(b)) bucket = b.filter((i) => !i?.completed).map((i) => i?.text).filter(Boolean);
+        if (Array.isArray(w)) watch = w.filter((i) => i?.status === "plan-to-watch").map((i) => i?.title).filter(Boolean);
+      } catch { /* no personalization */ }
+
+      const r = await fetch("/api/ideas", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, seed: Date.now(), bucket, watch }), cache: "no-store",
+      });
       if (!r.ok) throw new Error();
       const d = await r.json();
       if (Array.isArray(d?.ideas)) { setIdeas(d.ideas); setSource(d.source === "ai" ? "ai" : "library"); }

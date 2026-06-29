@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   const couples = await getCol("couples");
   const couple = await couples.findOne(
     { inviteCode: { $regex: new RegExp(`^${code}$`, "i") } },
-    { projection: { person1Name: 1, person2Email: 1, inviteNote: 1 } },
+    { projection: { person1Name: 1, person2Email: 1, inviteNote: 1, inviteSalt: 1, inviteWrappedCDK: 1 } },
   );
 
   if (!couple) return NextResponse.json({ ok: true, valid: false });
@@ -29,5 +29,10 @@ export async function GET(req: NextRequest) {
     alreadyJoined: !!couple.person2Email,
     inviterName: typeof couple.person1Name === "string" ? couple.person1Name : null,
     note: typeof couple.inviteNote === "string" && couple.inviteNote.trim() ? couple.inviteNote : null,
+    // E2EE: the data key wrapped under the invite code, so the joining client can
+    // unwrap it and re-wrap under their own password. Useless without the code
+    // itself (the shared secret). Absent for legacy couples.
+    inviteSalt: typeof couple.inviteSalt === "string" ? couple.inviteSalt : null,
+    inviteWrappedCDK: couple.inviteWrappedCDK ?? null,
   });
 }

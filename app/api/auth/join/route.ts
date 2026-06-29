@@ -4,6 +4,7 @@ import { getCol } from "@/lib/mongo";
 import { signSession, setSessionCookie } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { generateOtp, storeOtp, sendMail, verifyEmailTemplate } from "@/lib/email";
+import { pickUserCrypto } from "@/lib/cryptoServer";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -14,11 +15,14 @@ export async function POST(req: NextRequest) {
     if (!rl.ok) return tooManyRequests(rl.retryAfter, "Too many attempts. Try again later.");
 
     const body = await req.json();
-    const { name, email, password, inviteCode } = body as {
+    const { name, email, password, inviteCode, crypto } = body as {
       name?: string;
       email?: string;
       password?: string;
       inviteCode?: string;
+      // Partner's E2EE key material (CDK re-wrapped under their own password on
+      // the client). Opaque blobs — see lib/cryptoServer.
+      crypto?: unknown;
     };
 
     if (!name?.trim() || !email?.trim() || !password || !inviteCode?.trim()) {
@@ -63,12 +67,18 @@ export async function POST(req: NextRequest) {
       role: "partner" as const,
       emailVerified: false,
       createdAt: new Date().toISOString(),
+      ...pickUserCrypto(crypto),
     });
     const userId = userResult.insertedId.toString();
 
+    // Clear the invite-wrapped data key now the partner has their own copy —
+    // it's single-use and no longer needed once both members hold the CDK.
     await couples.updateOne(
       { _id: couple._id },
-      { $set: { person2Name: name.trim(), person2Email: emailLower }, $unset: { inviteNote: "" } }
+      {
+        $set: { person2Name: name.trim(), person2Email: emailLower },
+        $unset: { inviteNote: "", inviteSalt: "", inviteWrappedCDK: "" },
+      }
     );
 
     // Issue + email verification code

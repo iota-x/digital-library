@@ -116,7 +116,9 @@ export const POST = withAuth(async (req, session) => {
   if (!rl.ok) return tooManyRequests(rl.retryAfter);
 
   const { answer } = (await req.json().catch(() => ({}))) as { answer?: string };
-  const text = (answer ?? "").trim().slice(0, 2000);
+  // `answer` arrives end-to-end encrypted; cap the *ciphertext* generously so a
+  // legitimate ~2000-char answer is never truncated (which would corrupt it).
+  const text = (answer ?? "").trim().slice(0, 16_000);
   if (!text) return NextResponse.json({ error: "answer required" }, { status: 400 });
 
   const date = todayKey();

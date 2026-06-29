@@ -21,6 +21,13 @@ export async function GET(req: NextRequest) {
     let partnerAvatarUrl: string | null = null;
     let settings                   = DEFAULT_SETTINGS;
     let emailVerified              = true;
+    // E2EE key material for the signed-in user. `keys` is what the client needs
+    // to unlock the data key once it has the password (login/unlock); it's null
+    // for accounts that predate encryption. `needsRegrant`/`hasRegrantBlob` drive
+    // the partner re-grant recovery flow.
+    let keys: Record<string, unknown> | null = null;
+    let needsRegrant = false;
+    let hasRegrantBlob = false;
 
     try {
       const users = await getCol("users");
@@ -28,6 +35,19 @@ export async function GET(req: NextRequest) {
       // Legacy accounts predate the flag — treat a missing value as verified
       // so only explicitly-unverified users are gated.
       emailVerified = me?.emailVerified !== false;
+
+      if (me?.kdfSalt && (me?.wrappedCDK || me?.wrappedPrivateKey)) {
+        keys = {
+          kdfSalt: me.kdfSalt,
+          wrappedCDK: me.wrappedCDK ?? null,
+          wrappedPrivateKey: me.wrappedPrivateKey ?? null,
+          recoverySalt: me.recoverySalt ?? null,
+          recoveryWrappedCDK: me.recoveryWrappedCDK ?? null,
+          recoveryWrappedPrivateKey: me.recoveryWrappedPrivateKey ?? null,
+        };
+      }
+      needsRegrant = me?.needsRegrant === true;
+      hasRegrantBlob = typeof me?.regrantBlob === "string";
 
       // Debounced last-seen stamp powers the admin DAU/returning-user view.
       // /me is hit on every app load, so only write when the stored value is
@@ -79,6 +99,9 @@ export async function GET(req: NextRequest) {
       startDate,
       settings,
       emailVerified,
+      keys,
+      needsRegrant,
+      hasRegrantBlob,
     });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e) }, { status: 500 });

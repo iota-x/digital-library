@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 import { DEFAULT_START_DATE, startDateFrom } from "@/lib/relationship";
+import { clearKeys } from "@/lib/crypto";
+import type { ServerKeys } from "@/lib/e2ee";
 
 export interface UserInfo {
   userId:      string;
@@ -31,6 +33,16 @@ export interface UserInfo {
 
 let _user: UserInfo | null = null;
 const _listeners: Set<(u: UserInfo | null) => void> = new Set();
+
+// E2EE key material for the signed-in user, returned by /api/auth/me. Kept in
+// memory only (never persisted to localStorage) — used by the unlock flow which
+// needs the password to actually derive the data key. See lib/e2ee.ts.
+let _serverKeys: ServerKeys | null = null;
+let _hasRegrantBlob = false;
+let _needsRegrant = false;
+export function getServerKeys(): ServerKeys | null { return _serverKeys; }
+export function getHasRegrantBlob(): boolean { return _hasRegrantBlob; }
+export function getNeedsRegrant(): boolean { return _needsRegrant; }
 
 // Cache the last-known user so a returning visitor's themed app paints
 // instantly (optimistic) while /api/auth/me revalidates in the background —
@@ -63,7 +75,14 @@ export async function fetchUserData(): Promise<UserInfo | null> {
     const res  = await fetch("/api/auth/me");
     const data = await res.json();
     // Explicit "not authenticated" — clear cache and log out locally.
-    if (!data.ok) { _user = null; persist(null); notify(null); return null; }
+    if (!data.ok) {
+      _user = null; _serverKeys = null; _hasRegrantBlob = false; _needsRegrant = false;
+      clearKeys(); persist(null); notify(null); return null;
+    }
+    // Stash E2EE key material (in memory only) for the unlock flow.
+    _serverKeys = data.keys ?? null;
+    _hasRegrantBlob = data.hasRegrantBlob === true;
+    _needsRegrant = data.needsRegrant === true;
     const u: UserInfo = {
       userId:      data.userId,
       coupleId:    data.coupleId,
@@ -90,7 +109,10 @@ export async function fetchUserData(): Promise<UserInfo | null> {
 }
 
 export function setUser(u: UserInfo): void        { _user = u; persist(u); notify(u); }
-export function clearUserData(): void              { _user = null; persist(null); notify(null); }
+export function clearUserData(): void              {
+  _user = null; _serverKeys = null; _hasRegrantBlob = false; _needsRegrant = false;
+  clearKeys(); persist(null); notify(null);
+}
 /** Synchronous read of the current user — for non-React modules (SSE filters,
  *  presence store) that need the userId without subscribing to a hook. */
 export function getUser(): UserInfo | null         { return _user; }

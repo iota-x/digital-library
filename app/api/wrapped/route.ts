@@ -57,13 +57,14 @@ export const GET = withAuth(async (_req, session) => {
   ]);
 
   // ── Journal ──
+  // note/mood are end-to-end encrypted, so the server only sees ciphertext.
+  // Counts and streaks still work (an encrypted note is still a non-empty note),
+  // but the *top mood* must be tallied client-side from decrypted data — see
+  // components/Wrapped.tsx. We return null for it here.
   const cal = (await calCol.find({ coupleId }).toArray()) as unknown as CalEntry[];
   const journaled = cal.filter((e) => (e.note && e.note.trim()) || (e.photos?.length ?? 0) > 0);
   const photos = cal.reduce((n, e) => n + (e.photos?.length ?? 0), 0);
   const specialDays = cal.filter((e) => e.special).length;
-  const moodCounts: Record<string, number> = {};
-  for (const e of cal) { const m = (e.mood ?? "").trim(); if (m) moodCounts[m] = (moodCounts[m] ?? 0) + 1; }
-  const topMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0] ?? null;
   const journalStreak = longestStreak(journaled.map((e) => e.date));
 
   // ── Daily question ──
@@ -110,8 +111,8 @@ export const GET = withAuth(async (_req, session) => {
       entries: journaled.length,
       photos,
       specialDays,
-      topMood: topMood?.[0] ?? null,
-      topMoodCount: topMood?.[1] ?? 0,
+      topMood: null,        // computed client-side from decrypted moods
+      topMoodCount: 0,
       longestStreak: journalStreak,
     },
     daily: { answeredTogether: bothDays.length, longestStreak: dailyStreak },

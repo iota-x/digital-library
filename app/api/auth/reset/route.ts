@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { getCol } from "@/lib/mongo";
 import { rateLimit, tooManyRequests } from "@/lib/rateLimit";
 import { verifyOtp } from "@/lib/email";
+import { signSession, setSessionCookie } from "@/lib/auth";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,7 +36,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true });
+    // Sign the user in (they proved control of the account via the email code) so
+    // the client can restore E2EE access — re-wrapping the data key under the new
+    // password via the recovery key or a partner re-grant. `hasE2EE` tells the
+    // client whether a recovery step is needed at all.
+    const user = await users.findOne({ email: emailLower });
+    let res = NextResponse.json({ ok: true });
+    if (user) {
+      const token = await signSession({
+        userId: user._id.toString(), coupleId: user.coupleId, name: user.name, role: user.role,
+      });
+      res = NextResponse.json({ ok: true, hasE2EE: !!user.kdfSalt });
+      setSessionCookie(res, token);
+    }
+    return res;
   } catch (e) {
     console.error("Reset error:", e);
     return NextResponse.json({ error: String(e) }, { status: 500 });
