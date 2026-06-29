@@ -16,7 +16,8 @@ import { withAuth } from "@/lib/apiHandler";
 // Collections that are keyed by coupleId and safe to export wholesale.
 const COUPLE_COLLECTIONS = [
   "calendar", "bucketlist", "watchlist", "voicenotes",
-  "capsules", "dailyAnswers", "doodles", "watchSessions",
+  "capsules", "dailyAnswers", "doodles", "doodleGallery", "watchSessions",
+  "loveJar", "quizRounds",
 ] as const;
 
 const SECRET_KEY = /password|passwordhash|hash|token|secret|otp/i;

@@ -15,6 +15,7 @@ import { useFocusTrap } from "@/lib/useFocusTrap";
 import { applyAccent, isValidHex } from "@/lib/themeColor";
 import { cldImg } from "@/lib/cldImg";
 import { exportMediaZip, type ExportProgress } from "@/lib/exportMedia";
+import { exportDecryptedJson } from "@/lib/exportData";
 import AvatarEditor from "@/components/AvatarEditor";
 import Tip from "@/components/Tip";
 
@@ -160,6 +161,8 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const [zipBusy,     setZipBusy]     = useState(false);
   const [zipProgress, setZipProgress] = useState<ExportProgress | null>(null);
   const [zipErr,      setZipErr]      = useState("");
+  const [jsonBusy,    setJsonBusy]    = useState(false);
+  const [jsonErr,     setJsonErr]     = useState("");
   const [migrateBusy, setMigrateBusy] = useState(false);
   const [migrateMsg,  setMigrateMsg]  = useState("");
   // "Close our space" offboarding — gated behind a type-to-confirm.
@@ -542,6 +545,18 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
       setPushErr(e instanceof Error ? e.message : "Couldn't change notification settings.");
     } finally {
       setPushLoading(false);
+    }
+  };
+
+  const downloadJson = async () => {
+    if (jsonBusy) return;
+    setJsonBusy(true); setJsonErr("");
+    try {
+      await exportDecryptedJson();
+    } catch (e) {
+      setJsonErr(e instanceof Error ? e.message : "couldn't build the export — try again");
+    } finally {
+      setJsonBusy(false);
     }
   };
 
@@ -1425,22 +1440,24 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
               {/* ─── Your data ─── */}
               <GroupLabel>📦 your data</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.2rem 0 0.5rem", lineHeight: 1.5 }}>
-                Download everything — memories, letters, lists — as a single JSON file. The media zip below packs the actual photos &amp; voice notes too.
+                Download everything — memories, letters, lists — as a single JSON file. It&apos;s decrypted on your device before saving, so the file is readable. The media zip below packs the actual photos &amp; voice notes too.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                <motion.a
-                  href="/api/export"
-                  download
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                <motion.button
+                  onClick={downloadJson} disabled={jsonBusy}
+                  whileHover={{ scale: jsonBusy ? 1 : 1.02 }} whileTap={{ scale: jsonBusy ? 1 : 0.98 }}
                   style={{
-                    display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "0.5rem",
                     padding: "0.6rem 1.1rem", borderRadius: 12,
                     border: "1.5px solid var(--pink-mid)", background: "var(--pink-light)",
                     color: "var(--pink-deep)", fontFamily: SANS, fontSize: "0.85rem", fontWeight: 600,
-                    textDecoration: "none", cursor: "pointer",
+                    cursor: jsonBusy ? "wait" : "pointer", opacity: jsonBusy ? 0.7 : 1,
                   }}>
-                  ⬇️ download data (JSON)
-                </motion.a>
+                  {jsonBusy ? "decrypting…" : "⬇️ download data (JSON)"}
+                </motion.button>
+                {jsonErr && (
+                  <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "#ef4444", margin: 0 }}>⚠️ {jsonErr}</p>
+                )}
                 <motion.button
                   onClick={downloadMediaZip} disabled={zipBusy}
                   whileHover={{ scale: zipBusy ? 1 : 1.02 }} whileTap={{ scale: zipBusy ? 1 : 0.98 }}

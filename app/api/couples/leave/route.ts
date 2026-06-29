@@ -19,7 +19,8 @@ import { log } from "@/lib/log";
 // device/analytics collections we also clear for a clean exit).
 const COUPLE_KEYED = [
   "calendar", "bucketlist", "watchlist", "voicenotes",
-  "capsules", "dailyAnswers", "doodles", "watchSessions",
+  "capsules", "dailyAnswers", "doodles", "doodleGallery", "watchSessions",
+  "loveJar", "quizRounds",
   "pushSubscriptions", "pageviews", "events", "reminderSent", "winbackSent",
 ];
 

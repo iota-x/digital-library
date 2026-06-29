@@ -1236,12 +1236,18 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
         }}>
           made with 💗 for you
         </p>
-        <p style={{ textAlign: "center", marginTop: "0.5rem", marginBottom: 0 }}>
+        <p style={{ textAlign: "center", marginTop: "0.5rem", marginBottom: 0, display: "flex", gap: "0.8rem", justifyContent: "center", flexWrap: "wrap" }}>
           <Link href="/privacy" style={{
             fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.5)",
             textDecoration: "underline", textUnderlineOffset: "2px",
           }}>
             🔒 your privacy &amp; how it&apos;s encrypted
+          </Link>
+          <Link href="/terms" style={{
+            fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.5)",
+            textDecoration: "underline", textUnderlineOffset: "2px",
+          }}>
+            terms
           </Link>
         </p>
       </motion.div>

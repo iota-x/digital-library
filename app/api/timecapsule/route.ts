@@ -5,16 +5,11 @@ import { withAuth } from "@/lib/apiHandler";
 import { READ_CACHE_HEADERS } from "@/lib/cacheHeaders";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/log";
+import { sendMail } from "@/lib/email";
 
 async function sendUnlockEmail(capsules: { letter: string; from: string; unlockDate: string }[]) {
-  const apiKey = serverEnv.RESEND_API_KEY;
-  if (!apiKey || apiKey.startsWith("re_placeholder")) return;
-
   const emails = [serverEnv.NOTIFY_EMAIL_1, serverEnv.NOTIFY_EMAIL_2].filter(Boolean) as string[];
   if (!emails.length) return;
-
-  const { Resend } = await import("resend");
-  const resend = new Resend(apiKey);
 
   for (const c of capsules) {
     // The letter is end-to-end encrypted, so the server can't include its text in
@@ -36,12 +31,9 @@ async function sendUnlockEmail(capsules: { letter: string; from: string; unlockD
         <p style="text-align:center;color:#be185d;font-size:0.8rem;margin-top:24px">— with love 🩷</p>
       </div>
     `;
-    await resend.emails.send({
-      from: "Time Capsule <onboarding@resend.dev>",
-      to: emails,
-      subject: `💌 A time capsule just unlocked — from ${c.from || "your love"}`,
-      html,
-    });
+    // Route through the shared sender so it uses the configured provider
+    // (Gmail SMTP when set, else Resend) — same path as verification emails.
+    await sendMail(emails.join(", "), `💌 A time capsule just unlocked — from ${c.from || "your love"}`, html);
   }
 }
 

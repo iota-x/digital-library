@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npm test
+
+      # Lint is advisory for now — surfaces issues without blocking the merge.
+      - name: Lint
+        run: npx eslint .
+        continue-on-error: true
+
+      # Build with placeholder env so required vars resolve. next build doesn't
+      # connect to these services; it only needs the vars to exist.
+      - name: Build
+        run: npm run build
+        env:
+          JWT_SECRET: ci-placeholder-secret
+          MONGODB_URI: mongodb://localhost:27017/ci
+          CLOUDINARY_API_KEY: ci
+          CLOUDINARY_API_SECRET: ci
+          VAPID_SUBJECT: mailto:ci@example.com
+          VAPID_PRIVATE_KEY: ci
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ci
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ci
