@@ -26,6 +26,9 @@ export interface UserInfo {
   inviteCode:  string | null;
   startDate:   string;
   settings:    CoupleSettings;
+  /** Whether the couple has the lifetime premium unlock. Optional/undefined is
+   *  treated as premium (fail-open: legacy objects, paywall not configured). */
+  isPremium?:  boolean;
   /** False only when the account has an unconfirmed email. Optional/undefined
    *  is treated as verified (legacy accounts, locally-built objects). */
   emailVerified?: boolean;
@@ -98,6 +101,7 @@ export async function fetchUserData(): Promise<UserInfo | null> {
       inviteCode:  data.inviteCode  ?? null,
       startDate:   data.startDate   ?? DEFAULT_START_DATE,
       settings:    data.settings    ?? DEFAULT_SETTINGS,
+      isPremium:   data.isPremium   !== false,
       emailVerified: data.emailVerified !== false,
     };
     _user = u; persist(u); notify(u); return u;

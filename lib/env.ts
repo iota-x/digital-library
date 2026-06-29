@@ -59,6 +59,22 @@ export const serverEnv = {
   // Unset → verification is skipped (fail-open), so dev/un-configured deploys
   // keep working. Pairs with NEXT_PUBLIC_TURNSTILE_SITE_KEY on the client.
   get TURNSTILE_SECRET()     { return optional("TURNSTILE_SECRET"); },
+  // ─── Premium (Razorpay one-time lifetime unlock) ───
+  // All optional. When the keys are unset the billing endpoints are inert and
+  // every couple is treated as premium (see lib/billing.ts) — so the app runs
+  // exactly as before until the owner configures Razorpay + sets PREMIUM_LAUNCH_AT.
+  get RAZORPAY_KEY_ID()        { return optional("RAZORPAY_KEY_ID"); },
+  get RAZORPAY_KEY_SECRET()    { return optional("RAZORPAY_KEY_SECRET"); },
+  get RAZORPAY_WEBHOOK_SECRET(){ return optional("RAZORPAY_WEBHOOK_SECRET"); },
+  // Couples created strictly before this ISO timestamp are grandfathered free.
+  // Unset → the paywall is OFF (everyone premium). Set it to go-live to switch on.
+  get PREMIUM_LAUNCH_AT()      { return optional("PREMIUM_LAUNCH_AT"); },
+  // Price overrides (defaults live in lib/billing.ts): amount in the smallest
+  // currency unit (paise for INR) and the ISO currency code.
+  get PREMIUM_PRICE_PAISE()    { return optional("PREMIUM_PRICE_PAISE"); },
+  get PREMIUM_CURRENCY()       { return optional("PREMIUM_CURRENCY"); },
+  // Free-tier photo cap (calendar memory photos). Override to change the gate.
+  get FREE_PHOTO_CAP()         { return optional("FREE_PHOTO_CAP"); },
 };
 
 /** Public env — safe to read from the client.

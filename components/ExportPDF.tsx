@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useUserData, displayName, partnerDisplayName } from "@/lib/userStore";
 import { motion, AnimatePresence } from "framer-motion";
 import BgAccents from "@/components/BgAccents";
+import UpgradeButton from "@/components/UpgradeButton";
 import { SERIF, SANS, MONO } from "@/lib/typography";
 import { startDateFrom } from "@/lib/relationship";
 
@@ -27,6 +28,8 @@ export default function ExportPDF() {
 
   const coupleName = userData?.settings?.coupleName?.trim() ||
     (userData?.partnerName ? `${displayName(userData)} & ${partnerDisplayName(userData)}` : "our story");
+  // The printable PDF keepsake is premium; previewing on-screen stays free.
+  const isPremium = userData?.isPremium !== false;
 
   const [loading,    setLoading]    = useState(false);
   const [preview,    setPreview]    = useState(false);
@@ -203,13 +206,17 @@ export default function ExportPDF() {
             }}>
             {loading?"loading memories…":"preview memory book 📖"}
           </motion.button>
-          {preview&&(
+          {preview && (isPremium ? (
             <motion.button onClick={handlePrint}
               whileHover={{scale:1.03,y:-2}} whileTap={{scale:0.97}}
               style={{padding:"1rem 1.4rem",borderRadius:12,cursor:"pointer",border:"1.5px solid rgba(var(--pink-rgb),.4)",background:"var(--cream)",color:ACC,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem"}}>
               print / PDF 🖨️
             </motion.button>
-          )}
+          ) : (
+            <UpgradeButton style={{padding:"1rem 1.4rem",borderRadius:12,fontFamily:SERIF,fontStyle:"italic",fontSize:"1rem"}}>
+              🔒 unlock PDF — premium
+            </UpgradeButton>
+          ))}
         </div>
 
         {/* Preview */}

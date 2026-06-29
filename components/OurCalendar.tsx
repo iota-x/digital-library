@@ -1200,6 +1200,10 @@ export default function OurCalendar({ initialDate }: { initialDate?: string }) {
     // cause is visible (e.g. 401 → re-login, 400 → which field) instead of a
     // silent "saved" that vanishes on the next refetch.
     if (!res.ok) {
+      // Free-tier photo cap reached — surface a premium nudge, not a raw error.
+      if (res.status === 402) {
+        throw new Error("You've reached the free photo limit 📷 — unlock unlimited photos with lifetime premium 💝 (Settings → Look).");
+      }
       const hint = res.status === 401 || res.status === 403
         ? "Your session expired — please log in again."
         : res.message || "the server rejected the request.";

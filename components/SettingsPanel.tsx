@@ -16,6 +16,7 @@ import { applyAccent, isValidHex } from "@/lib/themeColor";
 import { cldImg } from "@/lib/cldImg";
 import { exportMediaZip, type ExportProgress } from "@/lib/exportMedia";
 import { exportDecryptedJson } from "@/lib/exportData";
+import UpgradeButton from "@/components/UpgradeButton";
 import AvatarEditor from "@/components/AvatarEditor";
 import Tip from "@/components/Tip";
 
@@ -141,6 +142,10 @@ interface Props { open: boolean; onClose: () => void; focusField?: string | null
 
 export default function SettingsPanel({ open, onClose, focusField }: Props) {
   const user = useUserData();
+  // Premium gate for the appearance personalization controls (custom colours,
+  // gradients, fonts, saved themes, page backgrounds). Solid themes + earned
+  // referral reward themes stay free. Default true (fail-open).
+  const isPremium = user?.isPremium !== false;
   const pathname = usePathname();
   const spotifyInputRef = useRef<HTMLInputElement>(null);
   const [saving,  setSaving]  = useState(false);
@@ -824,6 +829,19 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 })}
               </div>
 
+              {/* Premium upsell — shown to non-premium couples in place of the
+                  custom colour / gradient / saved-theme / font / backdrop controls. */}
+              {!isPremium && (
+                <div style={{ marginTop: "1rem", padding: "0.95rem 1rem", borderRadius: 14,
+                  background: "linear-gradient(135deg, rgba(var(--pink-rgb),.14), rgba(var(--pink-deep-rgb),.1))",
+                  border: "1px solid rgba(var(--pink-mid-rgb,249,168,212),.4)", display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                  <p style={{ fontFamily: SANS, fontSize: "0.78rem", color: "var(--pink-deep)", margin: 0, lineHeight: 1.45, fontWeight: 600 }}>
+                    💝 Custom colours, gradients, fonts, saved themes &amp; page backgrounds are part of <b>lifetime premium</b> — a one-time unlock for your space.
+                  </p>
+                  <UpgradeButton style={{ alignSelf: "flex-start" }}>unlock premium 💝</UpgradeButton>
+                </div>
+              )}
+              {isPremium && (<>
               {/* ── Custom colour / gradient ── */}
               <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "1.1rem 0 0.5rem", fontWeight: 700 }}>
                 or make your own — one colour, or two for a gradient
@@ -909,6 +927,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                   );
                 })}
               </div>
+              </>)}
 
               {/* ── Spread the love (referral) ── */}
               <div style={{ marginTop: "1.3rem", padding: "0.95rem 1rem", borderRadius: 14,
@@ -993,6 +1012,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 })}
               </div>
 
+              {isPremium && (<>
               {/* ── My saved themes ── */}
               <p style={{ fontFamily: SANS, fontSize: "0.66rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", margin: "1.1rem 0 0.5rem", fontWeight: 700 }}>
                 💾 my themes
@@ -1110,6 +1130,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                   );
                 })}
               </div>
+              </>)}
 
               {/* ─── Immersive background ─── */}
               <GroupLabel>🌈 immersive background</GroupLabel>
@@ -1120,6 +1141,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                 Lets your colour or gradient flow across the backgrounds, not just the accents.
               </p>
 
+              {isPremium && (<>
               {/* ─── Page background ─── */}
               <GroupLabel>🖼 page background</GroupLabel>
               <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "var(--muted)", margin: "0.1rem 0 0.5rem", lineHeight: 1.5 }}>
@@ -1156,6 +1178,7 @@ export default function SettingsPanel({ open, onClose, focusField }: Props) {
                   );
                 })}
               </div>
+              </>)}
 
               {/* ─── Couple signature ─── */}
               <GroupLabel>💞 your signature</GroupLabel>

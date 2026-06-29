@@ -8,6 +8,7 @@ import { serverEnv } from "@/lib/env";
 import { fetchWeatherSnapshot } from "@/lib/weather";
 import { v, parseBody, badRequest } from "@/lib/validate";
 import { senderDisplayName } from "@/lib/displayName";
+import { isPremiumCouple, loadCouple, FREE_PHOTO_CAP } from "@/lib/billing";
 
 /** Server's UTC date in YYYY-MM-DD (matches how entries are keyed). */
 function todayKey(): string {
@@ -55,6 +56,27 @@ export const POST = withAuth(async (req, session) => {
   // copy of — the dedicated /api/calendar/reaction endpoint may have updated
   // them since the client last loaded.
   const existing = await col.findOne({ date, coupleId: session.coupleId });
+
+  // Premium gate: free couples have a total photo cap across all memories. Only
+  // checked when this save *adds* photos (so editing notes / re-saving is never
+  // blocked), and only when the couple isn't premium.
+  const incomingPhotos = photos?.length ?? 0;
+  if (incomingPhotos > (existing?.photos?.length ?? 0)) {
+    const couple = await loadCouple(session.coupleId);
+    if (!isPremiumCouple(couple)) {
+      const agg = await col.aggregate<{ total: number }>([
+        { $match: { coupleId: session.coupleId, date: { $ne: date } } },
+        { $group: { _id: null, total: { $sum: { $size: { $ifNull: ["$photos", []] } } } } },
+      ]).toArray();
+      const otherTotal = agg[0]?.total ?? 0;
+      if (otherTotal + incomingPhotos > FREE_PHOTO_CAP) {
+        return NextResponse.json(
+          { error: "premiumRequired", reason: "photo_cap", cap: FREE_PHOTO_CAP },
+          { status: 402 },
+        );
+      }
+    }
+  }
 
   // Per-day weather snapshot — captured once, the first time today's entry is
   // saved, then preserved forever (like reactions). Best-effort: needs home

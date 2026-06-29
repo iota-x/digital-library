@@ -4,6 +4,7 @@ import { getCol } from "@/lib/mongo";
 import { withAuth } from "@/lib/apiHandler";
 import { DEFAULT_SETTINGS, type CoupleSettings } from "@/lib/themes";
 import { badRequest } from "@/lib/validate";
+import { loadCouple, sanitizePremiumSettings } from "@/lib/billing";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -27,7 +28,11 @@ export const PUT = withAuth(async (req, session) => {
   if (startDate !== undefined && !ISO_DATE.test(startDate)) {
     return badRequest("startDate: must be YYYY-MM-DD");
   }
-  const patch: Record<string, unknown> = { settings };
+  // Premium gate: strip paid-only personalization (custom colours, saved themes,
+  // page accents/backgrounds, fonts) for non-premium couples, so the paywall
+  // holds even against a direct POST. Earned referral reward themes still pass.
+  const couple = await loadCouple(session.coupleId);
+  const patch: Record<string, unknown> = { settings: sanitizePremiumSettings(settings, couple) };
   if (startDate) patch.startDate = startDate;
   const col = await getCol("couples");
   await col.updateOne({ _id: new ObjectId(session.coupleId) }, { $set: patch });

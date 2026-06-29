@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth";
 import { getCol } from "@/lib/mongo";
 import { DEFAULT_SETTINGS } from "@/lib/themes";
 import { DEFAULT_START_DATE } from "@/lib/relationship";
+import { isPremiumCouple } from "@/lib/billing";
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,6 +22,9 @@ export async function GET(req: NextRequest) {
     let partnerAvatarUrl: string | null = null;
     let settings                   = DEFAULT_SETTINGS;
     let emailVerified              = true;
+    // Premium entitlement. Defaults true (fail-open) so an un-configured paywall
+    // or a missing couple never gates a real user's own features.
+    let isPremium                 = true;
     // E2EE key material for the signed-in user. `keys` is what the client needs
     // to unlock the data key once it has the password (login/unlock); it's null
     // for accounts that predate encryption. `needsRegrant`/`hasRegrantBlob` drive
@@ -79,6 +83,7 @@ export async function GET(req: NextRequest) {
         avatarUrl        = (isCreator ? couple.person1Avatar  : couple.person2Avatar) ?? null;
         partnerAvatarUrl = (isCreator ? couple.person2Avatar  : couple.person1Avatar) ?? null;
         settings    = couple.settings ?? DEFAULT_SETTINGS;
+        isPremium   = isPremiumCouple(couple);
       }
     } catch {}
 
@@ -98,6 +103,7 @@ export async function GET(req: NextRequest) {
       inviteCode,
       startDate,
       settings,
+      isPremium,
       emailVerified,
       keys,
       needsRegrant,

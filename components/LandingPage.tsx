@@ -35,7 +35,7 @@ const FEATURES = [
 // Honest reassurances that lower the bar to signing up.
 const TRUST = [
   { e: "🔒", t: "private, just for two" },
-  { e: "🆓", t: "free to use" },
+  { e: "🆓", t: "free to start" },
   { e: "⚡", t: "ready in a minute" },
 ];
 
@@ -989,7 +989,7 @@ export default function LandingPage({ onSuccess, initialVerify }: LandingPagePro
                       {loading ? "creating…" : "create our space 🌸"}
                     </motion.button>
                     <p style={{ fontFamily: SANS, fontSize: "0.72rem", color: "rgba(190,24,93,0.45)", textAlign: "center", margin: "0.8rem 0 0", lineHeight: 1.4 }}>
-                      free · private · no ads — just the two of you 💗
+                      free to start · no ads · optional premium for extras 💗
                     </p>
                   </motion.div>
                 )}
